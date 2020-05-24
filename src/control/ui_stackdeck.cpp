@@ -76,7 +76,7 @@ void LongUI::UIDeck::Update(UpdateReason reason) noexcept {
 /// <param name="index">The index.</param>
 /// <returns></returns>
 void LongUI::UIDeck::SetSelectedIndex(uint32_t index) noexcept {
-    if (index >= this->GetCount()) return;
+    if (index >= this->GetChildrenCount()) return;
     if (m_index != index) {
         const auto newitem = this->calculate_child_at(index);
         const auto olditem = this->calculate_child_at(m_index);

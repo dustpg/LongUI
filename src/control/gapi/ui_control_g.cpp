@@ -79,18 +79,6 @@ bool LongUI::UIControl::native_style_render() const noexcept {
 
 
 /// <summary>
-/// try to draw focus rect
-/// </summary> 
-/// <param name="rect"></param>
-/// <returns></returns>
-void LongUI::UIControl::draw_focus_rect(const RectF& rect) const noexcept {
-#ifdef LUI_DRAW_FOCUS_RECT
-    assert(m_pWindow && "try to draw but no window?");
-    LongUI::NativeStyleFocus(rect);
-#endif
-}
-
-/// <summary>
 /// Customs the style update.
 /// </summary>
 /// <returns></returns>

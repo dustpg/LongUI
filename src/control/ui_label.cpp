@@ -168,7 +168,7 @@ void LongUI::UILabel::SetAsDefaultMinsize() noexcept {
 /// <param name="ch">The ch.</param>
 /// <returns></returns>
 void LongUI::UILabel::setup_access_key() noexcept {
-    const auto ch = m_state.accessKey;
+    const auto ch = this->GetAccessKey();
     if (ch >= 'A' && ch <= 'Z') {
         // 查找字符串是否存在指定字符
         m_uPosAkey = 0;
@@ -188,7 +188,7 @@ void LongUI::UILabel::setup_access_key() noexcept {
 /// <param name="show">if set to <c>true</c> [show].</param>
 /// <returns></returns>
 void LongUI::UILabel::ShowAccessKey(bool show) noexcept {
-    if (m_state.accessKey && m_text) {
+    if (this->GetAccessKey() && m_text) {
         m_text.SetUnderline(m_uPosAkey, 1, show);
         this->Invalidate();
     }
@@ -234,7 +234,7 @@ void LongUI::UILabel::on_text_changed() noexcept {
     // 需要额外的字符
     const auto base_len = m_string.length();
     if (m_uPosAkey == base_len + 1)
-        detail::append_ass_key(m_string, m_state.accessKey);
+        detail::append_ass_key(m_string, this->GetAccessKey());
     // 创建文本布局
     auto hr = m_text.SetText(m_string.c_str(), m_string.length());
     m_string.erase(base_len);

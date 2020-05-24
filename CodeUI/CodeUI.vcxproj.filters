@@ -1086,6 +1086,9 @@
     <ClInclude Include="..\include\core\ui_unsafe.h">
       <Filter>header\core</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\core\ui_control_state.h">
+      <Filter>header\core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\helper\BorderImageEffectPS.hlsl">

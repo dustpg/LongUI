@@ -5,6 +5,7 @@
 #include <util/ui_unicode.h>
 #include <core/ui_manager.h>
 #include <core/ui_string.h>
+#include <style/ui_native_style.h>
 #include <input/ui_kminput.h>
 #include <style/ui_ssvalue.h>
 #include <graphics/ui_dcomp.h>
@@ -217,13 +218,13 @@ namespace LongUI {
         auto end_render() const noexcept->Result;
         // render caret
         void render_caret(I::Renderer2D&) const noexcept;
+        // render focus rect
+        void render_focus(I::Renderer2D&) const noexcept;
         // clean up
         //void cleanup() noexcept;
     public:
         // destroy window only
         static void Destroy(HWND hwnd, bool acc) noexcept;
-        // draw caret
-        static void DrawCaret() noexcept {};
     public:
         // empty render
         void EmptyRender() noexcept;
@@ -338,6 +339,8 @@ namespace LongUI {
         ColorF          clear_color = ColorF::FromRGBA_CT<RGBA_TianyiBlue>();
         // rect of caret
         RectF           caret = {};
+        // rect of foucs area
+        RectF           foucs = {};
         // color of caret
         ColorF          caret_color = ColorF::FromRGBA_CT<RGBA_Black>();
         // rect of window
@@ -356,17 +359,17 @@ namespace LongUI {
         // title name
         CUIString       titlename;
         // mouse track data
-        TRACKMOUSEEVENT track_mouse;
-        // text render type
-        uint32_t        text_antialias = 0;
+        alignas(void*) TRACKMOUSEEVENT track_mouse;
         // get first
         auto GetFirst() noexcept { return &this->focused; }
         // get last
         auto GetLast() noexcept { return &this->wnd_default; }
     public:
+        // text render type
+        uint32_t        text_antialias = 0;
         // auto sleep count
         uint32_t        auto_sleep_count = 0;
-        // unused
+        // popup type
         PopupType       popup_type = PopupType::Type_Exclusive;
         // ime input count
         uint16_t        ime_count = 0;
@@ -374,6 +377,7 @@ namespace LongUI {
         char16_t        saved_utf16 = 0;
         // ma return code
         uint8_t         ma_return_code = 3;
+    public:
         // sized
         bool            flag_sized : 1;
         // mouse enter
@@ -391,8 +395,11 @@ namespace LongUI {
         // layered window support
         bool            layered_window_support : 1;
     public:
+        // focus on
+        bool            focus_ok : 1;
         // caret on
-        bool            caret_ok = false;
+        bool            caret_ok : 1;
+    public:
         // visible window
         bool            window_visible = false;
         // access key display
@@ -458,6 +465,8 @@ namespace LongUI {
         mouse_left_down = false;
         system_skip_rendering = false;
         layered_window_support = false;
+        focus_ok = false;
+        caret_ok = false;
         std::memset(access_key_map, 0, sizeof(access_key_map));
         impl::init_dcomp(dcomp_buf);
         //sizeof(*this)
@@ -466,6 +475,16 @@ namespace LongUI {
         static_assert(sizeof(Private) <= ty::size, "buffer not safe");
         static_assert(alignof(Private) <= ty::align, "buffer not safe");
     }
+}
+
+
+/// <summary>
+/// update focus rect
+/// </summary>
+/// <param name="cfg">The config.</param>
+/// <param name="parent">The parent.</param>
+void LongUI::CUIWindow::UpdateFocusRect(const RectF& rect) noexcept {
+    pimpl()->foucs = rect;
 }
 
 /// <summary>
@@ -485,7 +504,6 @@ LongUI::CUIWindow::CUIWindow(CUIWindow* parent, WindowConfig cfg) noexcept :
     // 初始化BF
     m_inDtor = false;
     m_bInExec = false;
-    m_bDrawFocus = false;
     //m_bBigIcon = false;
     //m_bCtorFaild = false;
     // XXX: 错误处理
@@ -817,9 +835,30 @@ auto LongUI::CUIWindow::FindControl(ULID id) noexcept -> UIControl * {
 /// <param name="ctrl">The control.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::ControlAttached(UIControl& ctrl) noexcept {
-    assert(!"TODO");
-    //this->AddNamedControl(ctrl);
-    //this->RegisterAccessKey(ctrl);
+    // 本函数调用地点
+    // A. UIControl::init
+    // B. UIControl::set_window_force
+    assert(ctrl.is_inited() && "call after init");
+    // 注册焦点链
+    if (ctrl.IsTabstop()) {
+        assert(ctrl.IsFocusable());
+        auto& list = pimpl()->focus_list;
+#ifndef NDEBUG
+        // 必须不在里面
+        auto node = list.first;
+        while (node) {
+            if (*node == ctrl) {
+                LUIDebug(Error) LUI_FRAMEID
+                    << "add focus control but control exist: "
+                    << ctrl
+                    << endl;
+            }
+            node = node->m_oManager.next_tabstop;
+        }
+#endif
+        const size_t offset = offsetof(UIControl, m_oManager.next_tabstop);
+        CUIControlControl::AddControlToList(ctrl, list, offset);
+    }
 }
 
 /// <summary>
@@ -847,25 +886,6 @@ void LongUI::CUIWindow::AddNamedControl(UIControl& ctrl) noexcept {
         const size_t offset = offsetof(UIControl, m_oManager.next_named);
         CUIControlControl::AddControlToList(ctrl, list, offset);
     }
-    // 注册焦点链
-    if (ctrl.IsFocusable()) {
-        auto& list = pimpl()->focus_list;
-#ifndef NDEBUG
-        // 必须不在里面
-        auto node = list.first;
-        while (node) { 
-            if (*node == ctrl) {
-                LUIDebug(Error) LUI_FRAMEID
-                    << "add focus control but control exist: "
-                    << ctrl
-                    << endl;
-            }
-            node = node->m_oManager.next_focus;
-        }
-#endif
-        const size_t offset = offsetof(UIControl, m_oManager.next_focus);
-        CUIControlControl::AddControlToList(ctrl, list, offset);
-    }
 }
 
 /// <summary>
@@ -880,7 +900,9 @@ void LongUI::CUIWindow::ControlDisattached(UIControl& ctrl) noexcept {
     // 没有承载窗口就算了
     if (!this) return;
     // 清除
-    const auto cleanup = [this]() noexcept {
+    const auto cleanup = [this, &ctrl]() noexcept {
+        // 强制重置
+        ctrl.m_oStyle.state.focus = false;
         m_pMiniWorldChange = nullptr;
         pimpl()->dirty_count_recording = 0;
     };
@@ -950,9 +972,11 @@ void LongUI::CUIWindow::ControlDisattached(UIControl& ctrl) noexcept {
     // 6. 移除焦点表中的弱引用
     if (ctrl.IsFocusable()) {
         auto& list = pimpl()->focus_list;
-        const size_t offset = offsetof(UIControl, m_oManager.next_focus);
+        const size_t offset = offsetof(UIControl, m_oManager.next_tabstop);
         CUIControlControl::RemoveControlInList(ctrl, list, offset);
     }
+    ctrl.m_oManager.next_tabstop = nullptr;
+    ctrl.m_oManager.next_named = nullptr;
 }
 
 /// <summary>
@@ -1002,7 +1026,7 @@ bool LongUI::CUIWindow::FocusPrev() noexcept {
         while (node) {
             if (node == focused) break;
             if (node->IsEnabled()) rcode = node;
-            node = node->m_oManager.next_focus;
+            node = node->m_oManager.next_tabstop;
         }
         return rcode;
     };
@@ -1024,10 +1048,14 @@ bool LongUI::CUIWindow::FocusPrev() noexcept {
 /// </summary>
 /// <returns></returns>
 bool LongUI::CUIWindow::FocusNext() noexcept {
+    // TODO: 下一个可以成为焦点控件但是不能成为默认控件时候
+    // 默认控件应该回退至窗口初始的默认控件
+
+
     // 搜索下一个
     const auto find_next = [](UIControl* node) noexcept {
         while (true) {
-            node = node->m_oManager.next_focus;
+            node = node->m_oManager.next_tabstop;
             if (!node || node->IsEnabled()) break;
         }
         return node;
@@ -1772,9 +1800,16 @@ void LongUI::CUIWindow::Private::OnKeyDownUp(InputEvent ekey, CUIInputKM::KB key
             return;
         }
         break;
+    case CUIInputKM::KB_SPACE:
+        // 空格键: 直接将输入引导到焦点控件
+        if (const auto nowfocus = this->focused) {
+            if (nowfocus->IsEnabled()) nowfocus->DoInputEvent({ ekey, 0, key });
+            return;
+        }
+        break;
     case CUIInputKM::KB_TAB:
         // Tab键: 聚焦上/下键盘焦点
-        this->viewport()->RefWindow().m_bDrawFocus = true;
+        this->focus_ok = true;
         if (ekey == InputEvent::Event_KeyUp) {
             if (CUIInputKM::GetKeyState(CUIInputKM::KB_SHIFT))
                 this->viewport()->RefWindow().FocusPrev();
@@ -2944,6 +2979,8 @@ auto LongUI::CUIWindow::Private::end_render() const noexcept->Result {
     renderer.SetTransform({ 1.f,0.f,0.f,1.f,0.f,0.f });
     // 渲染插入符号
     this->render_caret(renderer);
+    // 渲染焦点矩形
+    this->render_focus(renderer);
 #ifndef NDEBUG
     // 显示
     if (UIManager.flag & ConfigureFlag::Flag_DbgDrawDirtyRect) {
@@ -3093,6 +3130,7 @@ auto LongUI::CUIWindow::Private::end_render() const noexcept->Result {
 /// <param name="renderer">The renderer.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::Private::render_caret(I::Renderer2D& renderer) const noexcept {
+    // TODO: 脏矩形渲染时候可能没有必要渲染?
     // 渲染插入符号
     if (this->careted /*&& this->caret_ok*/) {
         // 保持插入符号的清晰
@@ -3113,6 +3151,27 @@ void LongUI::CUIWindow::Private::render_caret(I::Renderer2D& renderer) const noe
         renderer.FillRectangle(auto_cast(rect), &brush);
         renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
     }
+}
+
+
+
+/// <summary>
+/// Renders the focus.
+/// </summary>
+/// <param name="renderer">The renderer.</param>
+/// <returns></returns>
+void LongUI::CUIWindow::Private::render_focus(I::Renderer2D& renderer) const noexcept {
+#ifdef LUI_DRAW_FOCUS_RECT
+    // TODO: 脏矩形渲染时候可能没有必要渲染?
+    // 渲染焦点矩形
+    if (this->focus_ok && this->focused) {
+        // 脏矩形符号的清晰
+        renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+        auto rect = this->foucs;
+        this->focused->MapToWindow(rect);
+        LongUI::NativeStyleFocus(rect);
+    }
+#endif
 }
 
 

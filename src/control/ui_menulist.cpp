@@ -524,27 +524,13 @@ void LongUI::UIMenuList::SetText(const CUIString& text) noexcept {
 void LongUI::UIMenuList::add_child(UIControl& child) noexcept {
     // 检查是不是 Menu Popup
     if (const auto ptr = uisafe_cast<UIMenuPopup>(&child)) {
+        // HACK: ptr目前可能只是UIControl, 但是现在修改的正是UIControl
+        ptr->save_selected_true();
         m_pMenuPopup = ptr;
-        this->NeedUpdate(Reason_ChildIndexChanged);
         // 仅仅是弱引用, 直接返回
         return;
     }
     return Super::add_child(child);
-}
-
-/// <summary>
-/// update this 
-/// </summary>
-/// <param name="reason"></param>
-/// <returns></returns>
-void LongUI::UIMenuList::Update(UpdateReason reason) noexcept {
-    // 添加
-    if (reason & Reason_ChildIndexChanged) {
-        // 针对combobox(menupopup) 每次打开保存选择
-        if (m_pMenuPopup) m_pMenuPopup->save_selected_true();
-    }
-    // 超类处理
-    return Super::Update(reason);
 }
 
 /// <summary>
@@ -553,7 +539,7 @@ void LongUI::UIMenuList::Update(UpdateReason reason) noexcept {
 /// <returns></returns>
 void LongUI::UIMenuList::ShowPopup() noexcept {
     // 有窗口?
-    if (m_pMenuPopup && m_pMenuPopup->GetCount()) {
+    if (m_pMenuPopup && m_pMenuPopup->GetChildrenCount()) {
         // 出现在左下角
         const auto edge = this->GetBox().GetBorderEdge();
         const auto y = this->GetSize().height - edge.top;
@@ -609,6 +595,7 @@ LongUI::UIMenuPopup::~UIMenuPopup() noexcept {
 /// <param name="meta">The meta.</param>
 LongUI::UIMenuPopup::UIMenuPopup(UIControl* hoster, const MetaControl& meta) noexcept
     : Super(*impl::ctor_lock(hoster), CUIWindow::Config_FixedSize | CUIWindow::Config_Popup, meta) {
+    // XXX: 由NativeStyle提供
     // 保存选择的认为是组合框
     if (this->is_save_selected())
         this->init_clear_color_for_default_combobox();
@@ -650,15 +637,15 @@ void LongUI::UIMenuPopup::init_clear_color_for_default_combobox() noexcept {
 void LongUI::UIMenuPopup::Update(UpdateReason reason) noexcept {
     // 悬浮控件修改的情况
     if (reason & Reason_HoveredChanged) {
-        //if (m_pHovered || m_bMouseIn) {
-        //    m_bMouseIn = true;
+        if (m_pHovered || m_bMouseIn) {
+            m_bMouseIn = true;
             if (m_pPerSelected != m_pHovered) {
                 this->change_select(m_pPerSelected, m_pHovered);
                 m_pPerSelected = m_pHovered;
                 // 没有m_pDelayClosed? 尝试关闭
                 //if (!m_pDelayClosed) SetDelayClosedPopup();
             }
-        //}
+        }
     }
     // 超类更新
     Super::Update(reason);
@@ -670,19 +657,21 @@ void LongUI::UIMenuPopup::Update(UpdateReason reason) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIMenuPopup::WindowClosed() noexcept {
-    //m_bMouseIn = false;
+    m_bMouseIn = false;
     // 保存
     if (this->is_save_selected()) {
         // 不同的选择就归位
         if (m_pPerSelected != m_pLastSelected) {
+            //LUIDebug(Hint)
+            //    << "m_pPerSelected: " << (void*)m_pPerSelected
+            //    << "m_pLastSelected: " << (void*)m_pLastSelected
+            //    << endl;
             this->change_select(m_pPerSelected, m_pLastSelected);
             m_pPerSelected = m_pLastSelected;
         }
     }
     // 不保存
-    else {
-        this->ClearSelected();
-    }
+    else this->ClearSelected();
     return Super::WindowClosed();
 }
 
@@ -778,12 +767,8 @@ void LongUI::UIMenuPopup::SelectFirstItem() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIMenuPopup::ClearSelected() noexcept {
-    //if (m_pLastSelected) this->select(nullptr);
-    //m_pLastSelected = nullptr;
-
-    if (m_pPerSelected) {
-        m_pPerSelected->StartAnimation({ StyleStateType::Type_Selected, false });
-    }
+    if (const auto per = m_pPerSelected)
+        per->StartAnimation({ StyleStateType::Type_Selected, false });
     m_pLastSelected = nullptr;
     m_pPerSelected = nullptr;
     m_iSelected = -1;
@@ -809,6 +794,7 @@ void LongUI::UIMenuPopup::SubViewportPopupBegin(UIViewport& vp, PopupType type) 
 /// <returns></returns>
 void LongUI::UIMenuPopup::MarkNoDelayClosedPopup() noexcept {
     // FIXME: 新窗口WM_MOUSELEAVE WM_MOUSEMOVE前后可能互换
+
     // 处理KnownIssues#3:
     //  - 先LEAVE: 终止延迟关闭
     //  - 先ENTER, 标记m_bNoClosedOnce

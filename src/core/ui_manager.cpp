@@ -263,7 +263,6 @@ void LongUI::CUIManager::OneFrame() noexcept {
             "delta: %.2fms -- %2.2f fps",
             time * 1000.f, 1.f / time
         );
-        CUIDataAutoLocker locker;
         if (this_()->flag & ConfigureFlag::Flag_DbgDebugWindow)
             ::ui_dbg_set_window_title(this_()->m_pDebugWindow, buffer);
         else

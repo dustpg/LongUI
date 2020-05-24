@@ -26,6 +26,7 @@ namespace LongUI {
 LongUI::UIRadio::UIRadio(UIControl* parent, const MetaControl& meta) noexcept
     : Super(impl::ctor_lock(parent), meta),
     m_oImage(this), m_oLabel(this) {
+    m_state.tabstop = true;
     m_state.focusable = true;
     m_state.orient = Orient_Horizontal;
     m_oStyle.align = AttributeAlign::Align_Center;
@@ -74,6 +75,14 @@ void LongUI::UIRadio::Update(UpdateReason reason) noexcept {
         // uisafe_cast 空指针安全
         m_pRadioGroup = uisafe_cast<UIRadioGroup>(m_pParent);
     }
+#ifdef LUI_DRAW_FOCUS_RECT
+    // 渲染焦点框
+    if (this->m_oStyle.state.focus) {
+        // 成本较低就不用进一步判断
+        assert(m_pWindow);
+        this->UpdateFocusRect();
+    }
+#endif
     // 超类调用
     Super::Update(reason);
 }
@@ -138,6 +147,8 @@ auto LongUI::UIRadio::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
     switch (event)
     {
     case LongUI::GuiEvent::Event_OnFocus:
+        this->UpdateFocusRect();
+        [[fallthrough]];
     case LongUI::GuiEvent::Event_OnBlur:
         this->Invalidate();
         break;
@@ -146,23 +157,21 @@ auto LongUI::UIRadio::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
 }
 
 /// <summary>
-/// render this
+/// update the focus rect
 /// </summary>
 /// <returns></returns>
-void LongUI::UIRadio::Render() const noexcept {
-    Super::Render();
-    // 渲染焦点框
-    if (this->m_oStyle.state.focus && m_pWindow->IsDrawFocus()) {
-        // 单选框的焦点框在文本边上
-        auto rect = m_oLabel.GetBox().GetBorderEdge();
-        const auto pos = m_oLabel.GetPos();
-        rect.left += pos.x;
-        rect.top += pos.y;
-        rect.right += pos.x;
-        rect.bottom += pos.y;
-        this->draw_focus_rect(rect);
-    }
+void LongUI::UIRadio::UpdateFocusRect() const noexcept {
+    // 单选框的焦点框在文本边上
+    auto rect = m_oLabel.GetBox().GetBorderEdge();
+    const auto pos = m_oLabel.GetPos();
+    rect.left += pos.x;
+    rect.top += pos.y;
+    rect.right += pos.x;
+    rect.bottom += pos.y;
+    m_pWindow->UpdateFocusRect(rect);
 }
+
+
 #endif
 
 /// <summary>

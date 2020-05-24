@@ -53,11 +53,6 @@ LongUI::UIScrollBar::UIScrollBar(AttributeOrient o, UIControl* parent,
     //UIControlPrivate::SetGuiEvent2Parent(up_bottom);
     //UIControlPrivate::SetGuiEvent2Parent(down_bottom);
 
-    UIControlPrivate::SetParentData(m_oUpTop, Type_UpTop);
-    UIControlPrivate::SetParentData(m_oDownTop, Type_DownTop);
-    UIControlPrivate::SetParentData(m_oSlider, Type_Slider);
-    UIControlPrivate::SetParentData(m_oUpBottom, Type_UpBottom);
-    UIControlPrivate::SetParentData(m_oDownBottom, Type_DownBottom);
     UIControlPrivate::SetFlex(m_oSlider, 1.f);
 
     m_oDownTop.SetVisible(false);
@@ -200,30 +195,15 @@ auto LongUI::UIScrollBar::DoMouseEvent(
     switch (e.type)
     {
     case MouseEvent::Event_LButtonDown:
-        // 鼠标左键按下
         // TODO: 持续按下
-        if (m_pHovered) {
-            // 分类讨论
-            switch (UIControlPrivate::GetParentData(*m_pHovered))
-            {
-            case LongUI::Type_UpTop:
-                // 顶上
-                m_oSlider.Decrease();
-                break;
-            case LongUI::Type_DownTop:
-                // 顶下
-                m_oSlider.DecreasePage();
-                break;
-            case LongUI::Type_UpBottom:
-                // 底上
-                m_oSlider.IncreasePage();
-                break;
-            case LongUI::Type_DownBottom:
-                // 底下
-                m_oSlider.Increase();
-                break;
-            };
-        }
+        // 顶上
+        if (m_pHovered == &m_oUpTop) m_oSlider.Decrease();
+        // 顶下
+        else if (m_pHovered == &m_oDownTop) m_oSlider.DecreasePage();
+        // 底上
+        else if (m_pHovered == &m_oUpBottom) m_oSlider.IncreasePage();
+        // 底下
+        else if (m_pHovered == &m_oDownBottom) m_oSlider.Increase();
         break;
     }
     return Super::DoMouseEvent(e);

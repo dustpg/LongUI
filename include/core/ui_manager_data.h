@@ -11,8 +11,8 @@ namespace LongUI {
         UIControl*          next_delinitupd;
         // next named node
         UIControl*          next_named;
-        // next focus node
-        UIControl*          next_focus;
+        // next tabstop node
+        UIControl*          next_tabstop;
     };
 }
 

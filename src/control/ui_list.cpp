@@ -419,10 +419,10 @@ void LongUI::UIListBox::refresh_cols_minsize() noexcept {
     // 根本没有列信息
     if (!m_pCols) return;
     // 内存不足?
-    m_minwidth.resize(m_pCols->GetCount());
+    m_minwidth.resize(m_pCols->GetChildrenCount());
     if (!m_minwidth.is_ok()) return;
     // 清空
-    std::memset(m_minwidth.data(), 0, m_pCols->GetCount() * sizeof(float));
+    std::memset(m_minwidth.data(), 0, m_pCols->GetChildrenCount() * sizeof(float));
     const auto end = m_minwidth.end();
     // 遍历数据
     for (auto ctrl : m_list) {
@@ -692,7 +692,7 @@ auto LongUI::UIListItem::DoEvent(UIControl * sender,
         return Event_Accept;
     case NoticeEvent::Event_Initialize:
         // 没子控件
-        if (!this->GetCount()) {
+        if (!this->GetChildrenCount()) {
             // TODO: 没有文本时候的处理
             m_oLabel.SetAsDefaultMinsize();
             this->add_private_child();

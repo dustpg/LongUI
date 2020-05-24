@@ -300,7 +300,7 @@ void LongUI::UIBoxLayout::relayout_this() noexcept {
     const auto s = this->GetSize();
     if (s.width * s.height <= 0.f) return;
     // 存在子控件才计算
-    if (this->GetCount()) {
+    if (this->GetChildrenCount()) {
         // 更新布局
         const auto ishor = m_state.orient == Orient_Horizontal;
         return ishor ? this->relayout_h() : this->relayout_v();

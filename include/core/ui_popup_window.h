@@ -4,13 +4,13 @@
 #include "ui_basic_type.h"
 #include "ui_core_type.h"
 // c++
-#include <cstddef>
+#include <cstdint>
 
 namespace LongUI {
     // position type
     enum class AttributePopupPosition : uint32_t;
     // popup type
-    enum class PopupType : uint32_t {
+    enum class PopupType : uint16_t {
         // type exclusive : invoke via exclusive hoster, will keep same width as hoster
         Type_Exclusive = 0,
         // type popup-h   : maybe by active control(left click)

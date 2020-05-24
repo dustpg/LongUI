@@ -173,7 +173,7 @@ auto LongUI::UIScrollArea::DoMouseEvent(const MouseEventArg & e) noexcept -> Eve
 //    // 处理大小修改
 //    this->size_change_handled();
 //    // 存在子控件才计算
-//    if (this->GetCount()) {
+//    if (this->GetChildrenCount()) {
 //        // 更新布局
 //        this->relayout();
 //        // 更新子控件

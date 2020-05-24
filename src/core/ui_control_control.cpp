@@ -353,16 +353,43 @@ void LongUI::CUIControlControl::ControlAttached(UIControl& ctrl) noexcept {
 /// Removes the reference.
 /// </summary>
 void LongUI::CUIControlControl::ControlDisattached(UIControl& ctrl) noexcept {
+    const bool case0 = ctrl.exist_basic_animation();
+    const bool case1 = !ctrl.is_inited();
+    const bool case2 = ctrl.m_state.in_update_list;
+
+    const bool case4 = !!ctrl.m_pLastEnd;
+#ifdef LUI_DISABLE_STYLE_SUPPORT
+    const bool case5 = false;
+#else
+    const bool case5 = !!ctrl.m_oStyle.extra_abcount;
+#endif
+    const bool case_call = case0 | case1 | case2 | case4 | case5;
     // 检查引用
-    if (!ctrl.is_inited() || ctrl.m_state.in_update_list || ctrl.m_pLastEnd) {
+    if (case_call) {
         CUIDataAutoLocker locker;
+        // 0. 动画引用
+        if (ctrl.exist_basic_animation()) {
+            const auto b = cc().basic_anima.begin();
+            const auto e = cc().basic_anima.end();
+            for (auto itr = b; itr != e; ++itr) {
+                if (itr->ctrl == &ctrl) {
+                    itr->done = itr->duration;
+                    itr->ctrl = nullptr;
+#ifndef NDEBUG
+                    ctrl.clear_basic_animation();
+#endif
+                    break;
+                }
+            }
+            assert(!ctrl.exist_basic_animation());
+        }
         // 1. 移除初始化表中的引用
         if (!ctrl.is_inited()) {
             const size_t offset = offsetof(UIControl, m_oManager.next_delinitupd);
             CUIControlControl::RemoveControlInList(ctrl, luiref cc().init_list, offset);
         }
         // 2. 移除刷新表中的引用
-        if (ctrl.is_inited() && ctrl.m_state.in_update_list) {
+        else if (ctrl.m_state.in_update_list) {
             const size_t offset = offsetof(UIControl, m_oManager.next_delinitupd);
             CUIControlControl::RemoveControlInList(ctrl, luiref cc().update_list, offset);
         }
@@ -376,6 +403,24 @@ void LongUI::CUIControlControl::ControlDisattached(UIControl& ctrl) noexcept {
             this->DisposeTimeCapsule(ctrl);
             ctrl.m_pLastEnd = nullptr;
         }
+#ifndef LUI_DISABLE_STYLE_SUPPORT
+        // 5. TEST THIS: 高阶动画引用
+        if (ctrl.m_oStyle.extra_abcount) {
+            const auto b = cc().extra_anima.begin();
+            const auto e = cc().extra_anima.end();
+            for (auto itr = b; itr != e; ++itr) {
+                if (itr->ctrl == &ctrl) {
+                    itr->done = itr->duration;
+                    itr->ctrl = nullptr;
+#ifndef NDEBUG
+                    assert(ctrl.m_oStyle.extra_abcount && "bad count");
+                    ctrl.m_oStyle.extra_abcount--;
+#endif
+                }
+            }
+            assert(ctrl.m_oStyle.extra_abcount == 0 && "bad count");
+        }
+#endif
     }
 }
 
@@ -806,6 +851,8 @@ void LongUI::CUIControlControl::update_extra_animation(uint32_t delta)noexcept {
         // 完成动画: ctrl 标记为0
         if (x.done >= x.duration) {
             x.done = x.duration;
+            assert(x.ctrl->m_oStyle.extra_abcount && "bad count");
+            x.ctrl->m_oStyle.extra_abcount--;
             x.ctrl = nullptr;
         }
         // 获取比率P
@@ -1334,14 +1381,21 @@ void LongUI::CUIControlControl::do_animation_in_from_to(UIControl & ctrl) noexce
         auto&x = *itr;
         // 初始化
         x.ctrl = &ctrl;
+        ctrl.m_oStyle.extra_abcount++;
+#ifndef NDEBUG
+        if (ctrl.m_oStyle.extra_abcount == 127) {
+            LUIDebug(Warning) << "EXTRA -> 127" << endl;
+        }
+        else if (ctrl.m_oStyle.extra_abcount == 255) {
+            LUIDebug(Error) << "EXTRA -> 255" << endl;
+        }
+#endif
         x.done = 0;
         x.duration = ctrl.GetStyle().tduration;
         x.length = len_remain > EXTRA_FROM_TO_LIST_LENGTH
             ? EXTRA_FROM_TO_LIST_LENGTH : len_remain;
         // 写入数组
-        std::memcpy(
-            x.list, &(*list_itr), sizeof(x.list[0]) * x.length
-        );
+        std::memcpy(x.list, &(*list_itr), sizeof(*x.list) * x.length);
         len_remain -= x.length;
         list_itr += x.length;
     }
@@ -1566,7 +1620,7 @@ bool LongUI::CUIControlControl::MakeXul(UIControl& ctrl, const char* xul) noexce
     // 设置长跳转环境   顺便, setjmp是宏, 而非函数
     const auto code = setjmp(stream.env);
     // 先去掉所有子控件
-    while (ctrl.GetCount()) {
+    while (ctrl.GetChildrenCount()) {
         auto& control = *ctrl.begin();
         control.SetParent(nullptr);
         control.DeleteLater();

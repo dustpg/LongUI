@@ -91,7 +91,7 @@ void LongUI::UITree::Update(UpdateReason reason) noexcept {
         // 判断DISPLAY ROWS
         if (m_pChildren) {
             UIControl* ctrl = m_pChildren;
-            while (ctrl->GetCount()) ctrl = &(*ctrl->begin());
+            while (ctrl->GetChildrenCount()) ctrl = &(*ctrl->begin());
             // 正常情况下ctrl现在是treecell, parent就是treerow
             const auto mh = ctrl->GetParent()->GetMinSize().height;
             m_pChildren->line_size.height = mh;
@@ -241,7 +241,7 @@ void LongUI::UITree::SelectItem(UITreeItem& item, bool exadd) noexcept {
 /// <returns></returns>
 void LongUI::UITree::SelectTo(UITreeItem& item) noexcept {
     assert(m_pChildren && "cannot be null on call select");
-    assert(m_pChildren->GetCount() && "cannot be 0 on call select");
+    assert(m_pChildren->GetChildrenCount() && "cannot be 0 on call select");
     // 单选?
     if (!this->IsMultiple()) return this->SelectItem(item, false);
     // 先清除之前的所有选择
@@ -311,7 +311,7 @@ void LongUI::UITree::SelectTo(UITreeItem& item) noexcept {
             if (item_ptr == &item) break;
             // 将子节点压入待用栈
             if (const auto tc = item_ptr->GetTreeChildren()) {
-                if (tc->GetCount()) push_item(tc->begin());
+                if (tc->GetChildrenCount()) push_item(tc->begin());
             }
         }
     }
@@ -1010,7 +1010,7 @@ void LongUI::UITreeChildren::Update(UpdateReason reason) noexcept {
     }
     // 子节点添加删除
     if (reason & Reason_ChildIndexChanged) {
-        const auto has = !!this->GetCount();
+        const auto has = !!this->GetChildrenCount();
         if (has != m_bHasChild) {
             m_bHasChild = has;
             // 通知父控件(父节点必须是UITreeItem)

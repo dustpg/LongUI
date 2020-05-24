@@ -77,7 +77,7 @@ namespace LongUI {
         long GetSelectedIndex() const noexcept { return m_iSelected; }
     public:
         // update
-        void Update(UpdateReason) noexcept override;
+        //void Update(UpdateReason) noexcept override;
         // do event
         auto DoEvent(UIControl * sender, const EventArg & e) noexcept->EventAccept override;
         // render

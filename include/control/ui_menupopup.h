@@ -102,11 +102,11 @@ namespace LongUI {
         // change select
         static void change_select(UIControl* old, UIControl* now) noexcept;
         // save selected?
-        auto is_save_selected() const noexcept { return m_bSaveSelected; }
+        auto is_save_selected() const noexcept { return m_state.inner_data; }
         // save selected: true
-        auto save_selected_true() noexcept { m_bSaveSelected = true; }
+        auto save_selected_true() noexcept { m_state.inner_data = true; }
         // save selected: false
-        auto save_selected_false() noexcept { m_bSaveSelected = false; }
+        auto save_selected_false() noexcept { m_state.inner_data = false; }
         // init clear color for defualt ctxmenu
         void init_clear_color_for_default_ctxmenu() noexcept;
         // init clear color for defualt combobox
@@ -131,8 +131,6 @@ namespace LongUI {
         bool                    m_bMouseIn = false;
         // no delay closed once
         bool                    m_bNoClosedOnce = false;
-        // no delay closed once
-        bool                    m_bSaveSelected = false;
     };
     // get meta info for UIMenuPopup
     LUI_DECLARE_METAINFO(UIMenuPopup);

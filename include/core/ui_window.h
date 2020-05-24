@@ -22,15 +22,15 @@ namespace LongUI {
     // WindowsAlList
     struct AllWindows;
     // popup type
-    enum class PopupType : uint32_t;
+    enum class PopupType : uint16_t;
     // detail namespace
     namespace detail {
         // private data for manager
         template<size_t> struct private_window;
         // 32bit
-        template<> struct private_window<4> { enum { size = 948, align = 4 }; };
+        template<> struct private_window<4> { enum { size = 960, align = 4 }; };
         // 64bit
-        template<> struct private_window<8> { enum { size = 1200, align = 8 }; };
+        template<> struct private_window<8> { enum { size = 1216, align = 8 }; };
     }
     /// <summary>
     /// window base class
@@ -110,8 +110,6 @@ namespace LongUI {
         bool IsInDtor() const noexcept { return m_inDtor; }
         // mark full rendering
         void MarkFullRendering() noexcept;
-        // will draw focus rect?
-        bool IsDrawFocus() const noexcept { return m_bDrawFocus; };
         // is auto sleep?
         bool IsAutoSleep() const noexcept { return !!(config & Config_Popup); }
         // is in sleep mode?
@@ -238,6 +236,8 @@ namespace LongUI {
         // begin iterator
         auto begin()noexcept->Iterator { return{ static_cast<CUIWindow*>(m_oHead.next) }; }
     public:
+        // update focus rect
+        void UpdateFocusRect(const RectF& rect) noexcept;
         // delete later
         void DeleteLater() noexcept;
         // delete now
@@ -320,8 +320,6 @@ namespace LongUI {
         bool                m_inDtor : 1;
         // in exec
         bool                m_bInExec : 1;
-        // draw focus rect
-        bool                m_bDrawFocus : 1;
         // big icon
         //bool                m_bBigIcon : 1;
         // state: under "minsize changed" list

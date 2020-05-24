@@ -44,7 +44,8 @@ namespace LongUI {
     struct InputEventArg {
         // input event type
         InputEvent      event;
-        // sequence id  N...3->2->1->[0] in same frame
+        // sequence id  
+        //  - character N...3->2->1->[0] in same frame
         uint16_t        sequence;
         // character
         char32_t        character;

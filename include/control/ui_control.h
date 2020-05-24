@@ -216,7 +216,7 @@ namespace LongUI {
         // swap child index
         void SwapChildren(UIControl& a, UIControl& b) noexcept;
         // get children count
-        auto GetCount() const noexcept { return m_cChildrenCount; }
+        auto GetChildrenCount() const noexcept { return m_cChildrenCount; }
         // invalidate this control
         void Invalidate() noexcept;
         // is top level of tree? -> no parent
@@ -244,6 +244,8 @@ namespace LongUI {
         void SetAsDefaultAndFocus() noexcept;
         // focusable?
         auto IsFocusable() const noexcept { return m_state.focusable; }
+        // tabstop? mustbe focusable
+        auto IsTabstop() const noexcept { return m_state.tabstop; }
         // defaultable?
         auto IsDefaultable() const noexcept { return m_state.defaultable; }
         // is gui event to parent?
@@ -280,7 +282,7 @@ namespace LongUI {
         // set visible
         void SetVisible(bool visible) noexcept;
         // get access key
-        auto GetAccessKey() const noexcept { return m_state.accessKey; }
+        auto GetAccessKey() const noexcept { return m_oStyle.accessKey; }
         // get id, default as ""
         auto GetID() const noexcept { return m_id; }
         // set tooltip text
@@ -402,9 +404,9 @@ namespace LongUI {
 #endif
         // start animation change
         bool start_animation_change(StyleStateTypeChange) noexcept;
+        // set window - force
+        void set_window_force(CUIWindow*) noexcept;
     protected:
-        // draw focus rect
-        void draw_focus_rect(const RectF& rect) const noexcept;
         // apply world transform to renderer
         void apply_world_transform() const noexcept;
         // apply clip rect
@@ -456,9 +458,9 @@ namespace LongUI {
         UIControl*              m_pParent;
         // window
         CUIWindow*              m_pWindow = nullptr;
-        // hovered child, always right
+        // hovered child, always valid
         UIControl*              m_pHovered = nullptr;
-        // clicked child, right during in click-down-to-up
+        // clicked child, valid during in click-down-to-up
         UIControl*              m_pClicked = nullptr;
         // last end time capsule
         CUITimeCapsule*         m_pLastEnd = nullptr;

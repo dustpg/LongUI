@@ -389,7 +389,7 @@ auto LongUI::UIControl::init() noexcept -> Result {
     assert(m_state.inited == false && "this control has been inited");
     m_state.inited = true;
     // XXX: 注册访问按键
-    if (m_state.accessKey >= 'A' && m_state.accessKey <= 'Z' && m_pWindow)
+    if (m_oStyle.accessKey >= 'A' && m_oStyle.accessKey <= 'Z' && m_pWindow)
         m_pWindow->RegisterAccessKey(*this);
 #ifndef LUI_DISABLE_STYLE_SUPPORT
     // 重新连接样式表
@@ -415,7 +415,8 @@ auto LongUI::UIControl::init() noexcept -> Result {
     }
     // 设置初始化状态
     this->setup_init_state();
-
+    // 链接窗口
+    m_pWindow->ControlAttached(*this);
     return hr;
 }
 
@@ -452,8 +453,10 @@ void LongUI::UIControl::remove_triggered() noexcept {
 /// <returns></returns>
 void LongUI::UIControl::Update(UpdateReason reason) noexcept {
     assert(m_state.inited && "must init control first");
+    //if (reason & Reason_WindowChanged)
+    //    m_pWindow->ControlAttached(*this);
     // 提示样式渲染器大小修改
-    if (reason & Reason_SizeChanged)
+    if (reason & (Reason_SizeChanged | Reason_BoxChanged))
         this->custom_style_size_changed();
 }
 
@@ -554,7 +557,7 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
         // id         : 窗口唯一id
         m_id = UIManager.GetUniqueText(value);
         // 尝试添加命名控件
-        if (m_pWindow) m_pWindow->AddNamedControl(*this);
+        m_pWindow->AddNamedControl(*this);
         break;
     case BKDR_LEFT:
         // left
@@ -637,7 +640,7 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
         if (true) {
             auto ch = *value.begin();
             if (ch >= 'a' && ch <= 'z') ch -= 'a' - 'A';
-            m_state.accessKey = ch;
+            m_oStyle.accessKey = ch;
         }
         break;
     case BKDR_DRAGGABLE:
@@ -909,16 +912,41 @@ auto LongUI::UIControl::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
             // 右下箭头键
             assert(m_pWindow);
             return EventAccept(m_pWindow->FocusNext());
+        case CUIInputKM::KB_SPACE:
+            // 持续按下不算
+            if (m_oStyle.state.active) return Event_Ignore;
+            //LUIDebug(Hint) << this << endl;
+            // 相当于按下鼠标左键
+            this->StartAnimation({ StyleStateType::Type_Active, true });
+            if (m_state.atomicity)
+                this->start_animation_children({ StyleStateType::Type_Active, true });
+            // 必须可以设为焦点 设为捕捉控件
+            m_pWindow->SetCapture(*this);
+            return Event_Accept;
         }
         break;
     case InputEvent::Event_KeyUp:
         // XXX: 弹出位置
-        if (e.character != CUIInputKM::KB_APPS) break;
-        return LongUI::PopupWindowFromName(
-            *this, m_pCtxCtrl, { 0 }, 
-            PopupType::Type_Context,
-            AttributePopupPosition::Position_Default
-        );
+        switch (static_cast<CUIInputKM::KB>(e.character))
+        {
+        case CUIInputKM::KB_APPS:
+            return LongUI::PopupWindowFromName(
+                *this, m_pCtxCtrl, { 0 },
+                PopupType::Type_Context,
+                AttributePopupPosition::Position_Default
+            );
+        case CUIInputKM::KB_SPACE:
+            //LUIDebug(Hint) << this << endl;
+            // 相当于弹起鼠标左键
+            if (m_state.atomicity)
+                this->start_animation_children({ StyleStateType::Type_Active, false });
+            this->StartAnimation({ StyleStateType::Type_Active, false });
+            if (!m_pWindow->ReleaseCapture(*this)) {
+                assert(!"NOT IMPL");
+            }
+            // XXX: 调用_onClick?
+            return Event_Accept;
+        }
     }
     return Event_Ignore;
 }
@@ -945,7 +973,7 @@ auto LongUI::UIControl::calculate_child_index(const UIControl& ctrl) const noexc
 /// <param name="index">The index.</param>
 /// <returns></returns>
 auto LongUI::UIControl::calculate_child_at(uint32_t index) noexcept -> UIControl* {
-    if (index >= this->GetCount()) return nullptr;
+    if (index >= this->GetChildrenCount()) return nullptr;
     auto child = this->begin();
     while (index) { ++child; --index; }
     return child;
@@ -1515,6 +1543,7 @@ namespace LongUI {
     }
 }
 
+
 /// <summary>
 /// Starts the animation.
 /// </summary>
@@ -1522,10 +1551,16 @@ namespace LongUI {
 /// <returns></returns>
 void LongUI::UIControl::StartAnimation(StyleStateTypeChange change) noexcept {
 #if 0
-    if (this->IsTopLevel())
-        LUIDebug(Hint) << "window-" << type << endl;
-    if (change.type == StyleStateType::Type_Active) {
-        LUIDebug(Hint) << this << change << endl;
+    // <control/ui_menuitem.h>
+    if (const auto item = uisafe_cast<UIMenuItem>(this)) {
+        if (item->RefText() == u"Normal") {
+            if (change.type == StyleStateType::Type_Selected) {
+                if (change.change)
+                    LUIDebug(Hint) << change << endl;
+                else
+                    LUIDebug(Hint) << change << endl;
+            }
+        }
     }
 #endif
     // 未初始化
@@ -1616,18 +1651,37 @@ void LongUI::UIControl::add_child(UIControl& child) noexcept {
     // 要求刷新
     child.m_state.level = m_state.level + 1;
     assert(child.GetLevel() < 120 && "tree too deep");
-    // 移除之前的窗口引用
-    child.m_pWindow->ControlDisattached(child);
-    // 设置新的窗口
-    child.m_pWindow = m_pWindow;
-    // XXX: 添加新的窗口引用
-    //child.m_pWindow->ControlAttached(child);
+    // 新的窗口
+    if (child.m_pWindow != m_pWindow) 
+        child.set_window_force(m_pWindow);
     // 同步
-    if (child.GetCount()) UIControlPrivate::SyncInitData(child);
+    if (child.GetChildrenCount()) UIControlPrivate::SyncInitData(child);
     this->NeedUpdate(Reason_ChildIndexChanged);
     this->mark_window_minsize_changed();
     // 提示管理器新的控件被添加到控件树中
     //UIManager.ControlAttached(child);
+}
+
+/// <summary>
+/// set new window - force
+/// </summary>
+/// <returns></returns>
+void LongUI::UIControl::set_window_force(CUIWindow* window) noexcept {
+    // XXX: [优化]改成非递归
+    assert(m_pWindow != window);
+    const auto prev = m_pWindow;
+    // 设置新的窗口
+    m_pWindow = window;
+    if (this->is_inited()) {
+        // 移除之前的窗口引用
+        prev->ControlDisattached(*this);
+        // 添加新的窗口引用
+        window->ControlAttached(*this);
+        // 标记窗口修改
+        this->NeedUpdate(Reason_WindowChanged);
+    }
+    // 修改全部子节点
+    for (auto& child : (*this)) child.set_window_force(window);
 }
 
 #ifndef LUI_DISABLE_STYLE_SUPPORT

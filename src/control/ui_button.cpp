@@ -50,6 +50,7 @@ LongUI::UIButton::UIButton(UIControl* parent, const MetaControl& meta) noexcept
     : Super(impl::ctor_lock(parent), meta),
     m_oImage(nullptr), m_oLabel(nullptr) {
     m_state.focusable = true;
+    m_state.tabstop = true;
     m_state.defaultable = true;
     // 原子性, 子控件为本控件的组成部分
     m_state.atomicity = true;
@@ -232,7 +233,7 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
     case NoticeEvent::Event_Initialize:
         UIControlPrivate::SetAppearanceIfNotSet(*this, Appearance_Button);
         // 没子控件
-        if (!this->GetCount()) {
+        if (!this->GetChildrenCount()) {
             // TODO: 没有文本时候的处理
             m_oLabel.SetAsDefaultMinsize();
             this->add_private_child();
@@ -291,12 +292,40 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
 /// render this
 /// </summary>
 /// <returns></returns>
-void LongUI::UIButton::Render() const noexcept {
-    Super::Render();
-    // 按钮的焦点矩形在里面
-    if (this->m_oStyle.state.focus && m_pWindow->IsDrawFocus())
-        this->draw_focus_rect(m_oBox.GetContentEdge());
+void LongUI::UIButton::Update(UpdateReason reason) noexcept {
+    // 渲染焦点框
+    if (this->m_oStyle.state.focus) {
+        // 成本较低就不用进一步判断
+        assert(m_pWindow);
+        // 按钮的焦点矩形在里面
+        this->UpdateFocusRect();
+    }
+    Super::Update(reason);
 }
+
+/// <summary>
+/// render this
+/// </summary>
+/// <returns></returns>
+void LongUI::UIButton::UpdateFocusRect() const noexcept {
+    // 按钮的焦点矩形在里面
+    m_pWindow->UpdateFocusRect(m_oBox.GetContentEdge());
+}
+
+/// <summary>
+/// Trigger this
+/// </summary>
+/// <returns></returns>
+auto LongUI::UIButton::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
+    // 针对焦点的处理 
+    switch (event)
+    {
+    case LongUI::GuiEvent::Event_OnFocus:
+        this->UpdateFocusRect();
+    }
+    return Super::TriggerEvent(event);
+}
+
 #endif
 
 /// <summary>

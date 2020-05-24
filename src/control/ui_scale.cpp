@@ -55,7 +55,7 @@ void LongUI::UIScale::Update(UpdateReason reason) noexcept {
     // 污了
     if (reason & (Reason_SizeChanged | Reason_ValueTextChanged)) {
         // 本类只能存在唯一的子元素(thumb)
-        assert(this->GetCount() == 1 && "thumb ony");
+        assert(this->GetChildrenCount() == 1 && "thumb ony");
         assert(*this->begin() == this->thumb && "thumb ony");
         this->refresh_thumb_size();
         this->refresh_thumb_postion();

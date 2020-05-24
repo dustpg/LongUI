@@ -479,12 +479,12 @@ auto LongUI::CUIAccessible::Navigate(NavigateDirection direction,
         break;
     case NavigateDirection_FirstChild:
         if (const auto logic = m_control.GetLogicAccessibleControl())
-            if (logic->GetCount())
+            if (logic->GetChildrenCount())
                 ctrl = static_cast<UIControl*>(logic->m_oHead.next);
         break;
     case NavigateDirection_LastChild:
         if (const auto logic = m_control.GetLogicAccessibleControl())
-            if (logic->GetCount())
+            if (logic->GetChildrenCount())
                 ctrl = static_cast<UIControl*>(logic->m_oHead.prev);
         break;
     }
@@ -1432,7 +1432,7 @@ auto LongUI::CUIAccessibleWnd::ElementProviderFromPoint(double x, double y,
     // 拥有逻辑子控件
     const auto is_has_logical_child = [](UIControl* ctrl) noexcept {
         const auto logical = ctrl->GetLogicAccessibleControl();
-        return logical && logical->GetCount();
+        return logical && logical->GetChildrenCount();
     };
     // 查找控件
     UIControl* ctrl = &m_window.RefViewport();

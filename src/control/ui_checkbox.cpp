@@ -1,5 +1,6 @@
 ﻿// Gui
 #include <core/ui_window.h>
+#include <input/ui_kminput.h>
 #include <core/ui_ctrlmeta.h>
 #include <debugger/ui_debug.h>
 #include <control/ui_checkbox.h>
@@ -107,6 +108,7 @@ LongUI::UICheckBox::UICheckBox(UIControl* parent, const MetaControl& meta) noexc
     // XXX: 硬编码
     m_oBox.margin = { 4, 2, 4, 2 };
     m_oBox.padding = { 4, 1, 2, 1 };
+    m_state.tabstop = true;
     m_state.focusable = true;
     // 原子性, 子控件为本控件的组成部分
     m_state.atomicity = true;
@@ -218,6 +220,8 @@ auto LongUI::UICheckBox::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
     switch (event)
     {
     case LongUI::GuiEvent::Event_OnFocus:
+        this->UpdateFocusRect();
+        [[fallthrough]];
     case LongUI::GuiEvent::Event_OnBlur:
         this->Invalidate();
         break;
@@ -226,22 +230,32 @@ auto LongUI::UICheckBox::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
 }
 
 /// <summary>
+/// update the focus rect
+/// </summary>
+/// <returns></returns>
+void LongUI::UICheckBox::UpdateFocusRect() const noexcept {
+    // 复选框的焦点框在文本边上
+    auto rect = m_oLabel.GetBox().GetBorderEdge();
+    const auto pos = m_oLabel.GetPos();
+    rect.left += pos.x;
+    rect.top += pos.y;
+    rect.right += pos.x;
+    rect.bottom += pos.y;
+    m_pWindow->UpdateFocusRect(rect);
+}
+
+/// <summary>
 /// render this
 /// </summary>
 /// <returns></returns>
-void LongUI::UICheckBox::Render() const noexcept {
-    Super::Render();
+void LongUI::UICheckBox::Update(UpdateReason reason) noexcept {
     // 渲染焦点框
-    if (this->m_oStyle.state.focus && m_pWindow->IsDrawFocus()) {
-        // 复选框的焦点框在文本边上
-        auto rect = m_oLabel.GetBox().GetBorderEdge();
-        const auto pos = m_oLabel.GetPos();
-        rect.left += pos.x;
-        rect.top += pos.y;
-        rect.right += pos.x;
-        rect.bottom += pos.y;
-        this->draw_focus_rect(rect);
+    if (this->m_oStyle.state.focus) {
+        // 成本较低就不用进一步判断
+        assert(m_pWindow);
+        this->UpdateFocusRect();
     }
+    Super::Update(reason);
 }
 #endif
 
@@ -284,6 +298,25 @@ auto LongUI::UICheckBox::DoMouseEvent(const MouseEventArg & e) noexcept -> Event
     default:
         return Super::DoMouseEvent(e);
     }
+}
+
+/// <summary>
+/// Does the input event.
+/// </summary>
+/// <param name="e">The e.</param>
+/// <returns></returns>
+auto LongUI::UICheckBox::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
+    switch (e.event)
+    {
+    case InputEvent::Event_KeyUp:
+        switch (static_cast<CUIInputKM::KB>(e.character))
+        {
+        case CUIInputKM::KB_SPACE:
+            this->Toggle();
+            break;
+        }
+    }
+    return Super::DoInputEvent(e);
 }
 
 /// <summary>

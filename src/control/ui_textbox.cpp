@@ -60,6 +60,7 @@ LongUI::UITextBox::UITextBox(UIControl* parent, const MetaControl& meta) noexcep
     m_oStyle.appearance = Appearance_TextField;
     // 允许焦点
     m_state.focusable = true;
+    m_state.tabstop = true;
 #ifdef LUI_TEXTBOX_USE_UNIFIED_INPUT
     m_state.unified_input = true;
 #endif

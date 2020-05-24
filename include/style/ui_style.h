@@ -77,28 +77,32 @@ namespace LongUI {
         Style(const Style&) noexcept = delete;
         // state            [4]
         StyleState          state;
-        // pack             [1]
-        AttributePack       pack;
+        // flex             [4]
+        float               flex;
         // t-duration       [2]
         uint16_t            tduration;
-        // unused           [2]
-        uint16_t            unused2;
-        // unused           [4]
-        uint32_t            unused4;
+        // offset in byte for text font, set this if support text [2]
+        uint16_t            offset_tf;
+        // pack             [1]
+        AttributePack       pack;
         // align            [1]
         AttributeAlign      align;
         // appearance tpye  [1]
         AttributeAppearance appearance;
         // t-timing funtion [1]
         uint8_t             tfunction;
-        // offset in byte for text font, set this if support text [2]
-        uint16_t            offset_tf;
+
         // overflow-x       [1]
         AttributeOverflow   overflow_x;
         // overflow-y       [1]
         AttributeOverflow   overflow_y;
-        // flex             [4]
-        float               flex;
+        // accesskey char   [1]
+        char                accessKey;
+        // extri-anima-buck [1]
+        uint8_t             extra_abcount;
+        // unused u32       [4]
+        uint32_t            unused_4;
+
         // style used min size
         Size2F              minsize;
         // style used max size

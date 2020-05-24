@@ -86,8 +86,12 @@ namespace LongUI {
         // do event
         auto DoEvent(UIControl * sender, const EventArg & e) noexcept->EventAccept override;
 #ifdef LUI_DRAW_FOCUS_RECT
-        // render
-        void Render() const noexcept override;
+        // update this
+        void Update(UpdateReason) noexcept override;
+        // Update Focus Rect
+        void UpdateFocusRect() const noexcept;
+        // trigger event
+        auto TriggerEvent(GuiEvent event) noexcept->EventAccept override;
 #endif
         // mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
