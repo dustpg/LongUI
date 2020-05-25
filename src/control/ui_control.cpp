@@ -407,7 +407,9 @@ auto LongUI::UIControl::init() noexcept -> Result {
         // 依赖类型初始化控件
         LongUI::NativeStyleInit(*this, this->GetStyle().appearance);
         // 重建对象
+        UIManager.RenderLock();
         hr = this->Recreate(false);
+        UIManager.RenderUnlock();
         // 初始化大小
         if (m_oBox.size.width == static_cast<float>(INVALID_CONTROL_SIZE)) {
             this->Resize({ DEFAULT_CONTROL_WIDTH, DEFAULT_CONTROL_HEIGHT });
@@ -1650,7 +1652,16 @@ void LongUI::UIControl::add_child(UIControl& child) noexcept {
 #endif
     // 要求刷新
     child.m_state.level = m_state.level + 1;
-    assert(child.GetLevel() < 120 && "tree too deep");
+#ifndef NDEBUG
+    // 深度过大
+    if (child.GetLevel() >= (MAX_CONTROL_TREE_DEPTH / 2)) {
+        if (child.GetLevel() == (MAX_CONTROL_TREE_DEPTH - 2))
+            LUIDebug(Error) << "Tree to deep" << uint32_t(child.m_state.level) << endl;
+        else
+            LUIDebug(Warning) << "Tree to deep" << uint32_t(child.m_state.level) << endl;
+    }
+    
+#endif
     // 新的窗口
     if (child.m_pWindow != m_pWindow) 
         child.set_window_force(m_pWindow);
@@ -1680,8 +1691,6 @@ void LongUI::UIControl::set_window_force(CUIWindow* window) noexcept {
         // 标记窗口修改
         this->NeedUpdate(Reason_WindowChanged);
     }
-    // 修改全部子节点
-    for (auto& child : (*this)) child.set_window_force(window);
 }
 
 #ifndef LUI_DISABLE_STYLE_SUPPORT

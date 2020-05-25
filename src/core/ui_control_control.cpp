@@ -1383,11 +1383,11 @@ void LongUI::CUIControlControl::do_animation_in_from_to(UIControl & ctrl) noexce
         x.ctrl = &ctrl;
         ctrl.m_oStyle.extra_abcount++;
 #ifndef NDEBUG
-        if (ctrl.m_oStyle.extra_abcount == 127) {
-            LUIDebug(Warning) << "EXTRA -> 127" << endl;
+        if (ctrl.m_oStyle.extra_abcount == (MAX_CONTROL_TREE_DEPTH/2)-1) {
+            LUIDebug(Warning) << "EXTRA -> HALF MAX" << endl;
         }
-        else if (ctrl.m_oStyle.extra_abcount == 255) {
-            LUIDebug(Error) << "EXTRA -> 255" << endl;
+        else if (ctrl.m_oStyle.extra_abcount == MAX_CONTROL_TREE_DEPTH-1) {
+            LUIDebug(Error) << "EXTRA -> MAX" << endl;
         }
 #endif
         x.done = 0;

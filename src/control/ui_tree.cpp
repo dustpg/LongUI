@@ -247,7 +247,7 @@ void LongUI::UITree::SelectTo(UITreeItem& item) noexcept {
     // 先清除之前的所有选择
     this->ClearAllSelected();
     // LongUI 控件树最大深度256, TreeItem之间交错连接故最大深度128
-    UIControl* items[128];
+    UIControl* items[MAX_CONTROL_TREE_DEPTH/2];
     auto item_top = items;
     // 一堆方便
     const auto push_item = [&item_top](UIControl* i) noexcept {
@@ -276,7 +276,7 @@ void LongUI::UITree::SelectTo(UITreeItem& item) noexcept {
             assert(longui_cast<UITreeItem*>(opt));
             // 弟节点
             if (!opt->IsLastChild()) {
-                // XXX: [测试] next 是滚动条的场合?
+                // TEST THIS: next 是滚动条的场合?
                 *item_top = UIControlPrivate::Next(opt);
                 ++item_top;
             }

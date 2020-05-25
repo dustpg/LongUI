@@ -2470,7 +2470,10 @@ auto LongUI::CUIWindow::Private::DoMsg(
         case WM_KILLFOCUS:
             ::HideCaret(hwnd);
             ::DestroyCaret();
-
+        case WM_TOUCH:
+            // TODO: TOUCH MESSAGE
+            TOUCHINPUT;
+            break;
 #endif
             if (this->viewport()->RefWindow().config & CUIWindow::Config_Popup) {
                 // CloseWindow 仅仅最小化窗口

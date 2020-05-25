@@ -743,9 +743,7 @@ auto LongUI::CUIManager::Initialize(
                 break;
             }
         }
-        else {
-            hr = { Result::RE_OUTOFMEMORY };
-        }
+        else hr = { Result::RE_OUTOFMEMORY };
     }
     // 第一次重建设备资源
     if (hr) {

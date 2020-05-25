@@ -103,6 +103,9 @@ namespace LongUI {
         MAX_GRAPHICS_ADAPTERS = 16,
         // window class name buffer
         WNDCLASS_NAME_BUFFER_LENGTH = 48,
+
+        // LongUI Max Control Tree Depth(level in byte for 256)
+        MAX_CONTROL_TREE_DEPTH = 256,
     };
     // attribute [pseudo] namespace
     struct Attribute {

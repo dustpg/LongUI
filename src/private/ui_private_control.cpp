@@ -67,9 +67,19 @@ void LongUI::UIControlPrivate::SyncInitData(UIControl& ctrl) noexcept {
     for (auto& child : ctrl) {
         // 树节点深度
         child.m_state.level = ctrl.m_state.level + 1;
-        assert(child.GetLevel() < 100 && "tree too deep");
+#ifndef NDEBUG
+        // 深度过大
+        if (child.GetLevel() >= (MAX_CONTROL_TREE_DEPTH / 2)) {
+            if (child.GetLevel() == (MAX_CONTROL_TREE_DEPTH - 2))
+                LUIDebug(Error) << "Tree to deep" << uint32_t(child.m_state.level) << endl;
+            else
+                LUIDebug(Warning) << "Tree to deep" << uint32_t(child.m_state.level) << endl;
+        }
+
+#endif
         // 窗口
-        child.m_pWindow = ctrl.m_pWindow;
+        if (child.m_pWindow != ctrl.m_pWindow)
+            child.set_window_force(ctrl.m_pWindow);
 
         assert(child.m_pCtxCtrl == nullptr && "TODO: move to global");
         // XXX: 添加新的窗口引用
