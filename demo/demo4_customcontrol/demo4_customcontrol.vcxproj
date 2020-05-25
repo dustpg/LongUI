@@ -20,10 +20,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="demo4.cpp" />
-    <ClCompile Include="mycontrol.cpp" />
+    <ClCompile Include="mytoggle.cpp" />
+    <ClCompile Include="mytoggleex.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="mycontrol.h" />
+    <ClInclude Include="mytoggle.h" />
+    <ClInclude Include="mytoggleex.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

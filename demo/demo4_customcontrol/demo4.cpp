@@ -2,18 +2,25 @@
 #include <control/ui_label.h>
 #include <control/ui_viewport.h>
 
-
 #include <interface/ui_default_config.h>
 #include <interface/ui_ctrlinfolist.h>
-#include "mycontrol.h"
+#include "mytoggle.h"
+#include "mytoggleex.h"
 
 const auto xul = u8R"xml(
 <?xml version="1.0"?>
 <window clearcolor="white" title="lui demo">
   <spacer flex="1"/>
-  <hbox flex="1">
+  <hbox>
     <spacer flex="1"/>
-    <myctrl flex="1" value="cyan" mc="blue"/>
+    <label value="C++ Toggle Switch A:"/>
+    <mytoggle base="red" time="0.233"/>
+    <spacer flex="1"/>
+  </hbox>
+  <hbox>
+    <spacer flex="1"/>
+    <label value="C++ Toggle Switch B:"/>
+    <mytoggleex base="blue" time="0.233"/>
     <spacer flex="1"/>
   </hbox>
   <spacer flex="1"/>
@@ -23,8 +30,10 @@ const auto xul = u8R"xml(
 namespace Demo { struct Config final : LongUI::CUIDefaultConfigure {
     // register control
     void RegisterControl(LongUI::ControlInfoList& list) noexcept override {
-        // MyControl
-        list.push_back(&Demo::MyControl::s_meta);
+        // MyToggle
+        list.push_back(&Demo::MyToggle::s_meta);
+        // MyToggleEx
+        list.push_back(&Demo::MyToggleEx::s_meta);
     }
 };}
 
@@ -32,10 +41,8 @@ int main() {
     int code = -1;
     Demo::Config config;
     if (UIManager.Initialize(&config)) {
-        LongUI::UIControl::ControlMakingBegin();
         LongUI::UIViewport viewport;
         viewport.SetXul(xul);
-        LongUI::UIControl::ControlMakingEnd();
 
         viewport.GetWindow()->ShowWindow();
         code = LongUI::IntCode(viewport.GetWindow()->Exec());

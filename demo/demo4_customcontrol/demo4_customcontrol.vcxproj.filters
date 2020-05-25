@@ -2,9 +2,11 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="demo4.cpp" />
-    <ClCompile Include="mycontrol.cpp" />
+    <ClCompile Include="mytoggle.cpp" />
+    <ClCompile Include="mytoggleex.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="mycontrol.h" />
+    <ClInclude Include="mytoggle.h" />
+    <ClInclude Include="mytoggleex.h" />
   </ItemGroup>
 </Project>
