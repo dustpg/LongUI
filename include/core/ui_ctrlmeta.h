@@ -27,6 +27,11 @@
 namespace LongUI {
     // control
     class UIControl;
+    // inner flag
+    enum class InnerFlag : decltype(sizeof(0)) {
+        // flag init
+        Flag_Non            = 0,
+    };
     // control meta info
     struct MetaControl {
         // super class
@@ -35,8 +40,8 @@ namespace LongUI {
         const char*         element_name;
         // create control
         auto (*create_func)(UIControl*) noexcept->UIControl*;
-        // size of class
-        decltype(sizeof(0)) size_of;
+        // innser
+        InnerFlag           inner_flag;
     };
 }
 
@@ -49,7 +54,7 @@ namespace LongUI {
         &T::Super::s_meta,\
         ele,\
         create_##T,\
-        sizeof(T)\
+        InnerFlag::Flag_Non \
     };
 
 // control meta info 
@@ -57,5 +62,6 @@ namespace LongUI {
     const MetaControl T::s_meta = {\
         &T::Super::s_meta,\
         ele,\
-        nullptr\
+        nullptr,\
+        InnerFlag::Flag_Non \
     };

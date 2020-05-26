@@ -16,6 +16,11 @@ function setText(treeID,textID,val)
   document.getElementById(textID).value = text;
 }
 
+function test(treeID)
+{
+
+}
+
 ]]>
 	</script>
 
@@ -125,7 +130,7 @@ function setText(treeID,textID,val)
 				</treecols>
 				<treechildren>
 
-					<treeitem container="true" open="true">
+					<treeitem container="true">
 						<treerow>
 							<treecell label="Female" />
 						</treerow>

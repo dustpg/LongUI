@@ -52,10 +52,10 @@ namespace LongUI {
     public:
         // is selected?
         auto IsSelected() const noexcept { return m_oStyle.state.selected; }
-        // select to this
-        //void SelectToThis() noexcept;
-        // select this
-        //void Select(bool exsel) noexcept;
+        // is container[from xml-attribute]
+        auto IsContainer()const noexcept { return m_bContainer; }
+        // is opened ?
+        auto IsOpened() const noexcept { return m_bOpened; }
         // get row
         auto GetRow() const noexcept { return m_pRow; }
         // get tree node
@@ -82,6 +82,8 @@ namespace LongUI {
         // recreate/init device(gpu) resource
         //auto Recreate() noexcept->Result override;
     protected:
+        // add attribute
+        void add_attribute(uint32_t key, U8View value) noexcept override;
         // add child
         void add_child(UIControl& child) noexcept override;
 #ifdef LUI_ACCESSIBLE
@@ -103,8 +105,16 @@ namespace LongUI {
         UITreeChildren*         m_pChildren = nullptr;
         // level offset
         float                   m_fLevelOffset = 0.f;
+    public:
+        // index - vaild on displayed
+        uint32_t                index = 0;
+    protected:
         // marked selected
         bool                    m_bMarkdSel = false;
+        // opened
+        bool                    m_bOpened = false;
+        // container
+        bool                    m_bContainer = false;
     private:
     };
     // get meta info for UITreeItem

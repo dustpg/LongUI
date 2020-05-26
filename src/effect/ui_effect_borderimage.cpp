@@ -3,6 +3,7 @@
 #ifndef LUI_DISABLE_STYLE_SUPPORT
 #include "../private/ui_private_effect.h"
 #include <cassert>
+#include <core/ui_manager.h>
 
 // GUID for border image
 extern "C" const GUID GUID_LongUIEffect_BorderImage = {
@@ -180,6 +181,12 @@ namespace LongUI {
         }
         // PREPAREFORRENDER
         IFACEMETHODIMP PrepareForRender(D2D1_CHANGE_TYPE changeType) noexcept override final {
+#if 0
+            auto& renderer = UIManager.Ref3DRenderer();
+            D3D11_PRIMITIVE_TOPOLOGY top;
+            renderer.IAGetPrimitiveTopology(&top);
+            renderer.IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+#endif
             if (changeType == D2D1_CHANGE_TYPE_NONE) return S_OK;
             // 设置像素着色器
             m_pDrawInfo->SetPixelShader(s_resource_ps);

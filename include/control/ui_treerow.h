@@ -61,6 +61,8 @@ namespace LongUI {
         bool ToggleNode() noexcept;
         // set level offset
         void SetLevelOffset(float offset) noexcept;
+        // Init open close[ call this from parent]
+        void InitOpen_Parent(bool) noexcept;
     public:
         // do normal event
         auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;

@@ -58,13 +58,17 @@ namespace LongUI {
         // select item
         void SelectItem(UITreeItem&, bool exadd) noexcept;
         // select to
-        void SelectTo(UITreeItem&) noexcept;
+        void SelectTo(uint32_t) noexcept;
         // clear select
         void ClearSelected(UITreeItem&) noexcept;
         // clear all select
         void ClearAllSelected() noexcept;
+        // get displayed items
+        auto&GetDisplayed() const noexcept { return m_displayed; };
         // get selected items
         auto&GetSelected() const noexcept { return m_selected; };
+        // tree node toggled
+        void OnTreeNodeToggled(UITreeItem* node) noexcept; // virtual?
     public:
         // do normal event
         auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
@@ -87,17 +91,21 @@ namespace LongUI {
 #endif
         // select item
         void select_item(UITreeItem&) noexcept;
+        // is item in displaying
+        bool is_item_in_displaying(const UITreeItem&) const noexcept;
     protected:
         // cols
         UITreeCols*         m_pCols = nullptr;
         // last op
         UITreeItem*         m_pLastOp = nullptr;
+        // displayed
+        ItemList            m_displayed;
         // selected
         ItemList            m_selected;
+        // current index
+        int32_t             m_iCurrent = -1;
         // display row | xul::rows related
         uint16_t            m_displayRow = 0;
-        // unused u8
-        char                m_unusedU8 = 0;
         // select type
         AttributeSeltype    m_seltype = Seltype_Multiple;
     private:

@@ -47,7 +47,7 @@ namespace LongUI {
         // set level offset
         void SetLevelOffset(float offset);
     public:
-        //// do normal event
+        // do normal event
         //auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         //// do mouse event
         //auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
@@ -62,10 +62,18 @@ namespace LongUI {
         // add child for debug
         void add_child(UIControl& child) noexcept override;
 #endif
-
-    protected:
-        bool                    m_bHasChild = false;
+        // relayout this
+        //void relayout_this() noexcept;
+        // refresh minsize
+        //void refresh_minsize() noexcept;
+    public:
+        // line height
+        //float                   line_height = 10.f;
+        // ref line height
+        auto&RefLineHeight() noexcept { return this->line_size.height; }
     private:
+        // has child
+        bool                    m_bHasChild = false;
     };
     // get meta info for UITreeChildren
     LUI_DECLARE_METAINFO(UITreeChildren);

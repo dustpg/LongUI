@@ -42,6 +42,11 @@ namespace LongUI {
     LUI_CONTROL_META_INFO(UITreeCell, "treecell");
     // UITreeChildren类 元信息
     LUI_CONTROL_META_INFO(UITreeChildren, "treechildren");
+    // detail namespace
+    namespace detail {
+        // calculate lowest common ancestor
+        UIControl* lowest_common_ancestor(UIControl* now, UIControl* old) noexcept;
+    }
 }
 
 
@@ -88,13 +93,15 @@ LongUI::UITree::UITree(UIControl* parent, const MetaControl& meta) noexcept
 void LongUI::UITree::Update(UpdateReason reason) noexcept {
     // 更新行高
     if (reason & Reason_ChildIndexChanged) {
+        // 更新
+        this->OnTreeNodeToggled(nullptr);
         // 判断DISPLAY ROWS
         if (m_pChildren) {
             UIControl* ctrl = m_pChildren;
             while (ctrl->GetChildrenCount()) ctrl = &(*ctrl->begin());
             // 正常情况下ctrl现在是treecell, parent就是treerow
             const auto mh = ctrl->GetParent()->GetMinSize().height;
-            m_pChildren->line_size.height = mh;
+            m_pChildren->RefLineHeight() = mh;
         }
     }
     // XXX: 要求重新布局
@@ -174,17 +181,18 @@ auto LongUI::UITree::DoEvent(UIControl* sender,
             height += m_pCols->GetMinSize().height;
         // 判断DISPLAY ROWS
         if (m_pChildren) {
-            const auto mh = m_pChildren->line_size.height;
+            const auto mh = m_pChildren->RefLineHeight();
             height += mh * static_cast<float>(m_displayRow);
         }
         // 加上间距
         this->set_contect_minsize({ 0, height });
     }
         return Event_Accept;
-    //case NoticeEvent::Event_Initialize:
-    //    // 初始化
-    //    if (m_pChildren) m_pChildren->SetAutoOverflow();
-    //    [[fallthrough]];
+    case NoticeEvent::Event_Initialize:
+        // 初始化
+        // 根节点必须为打开状态
+        m_bOpened = true;
+        [[fallthrough]];
     default:
         // 其他事件
         return Super::DoEvent(sender, e);
@@ -202,8 +210,10 @@ void LongUI::UITree::ItemRemoved(UITreeItem& item) noexcept {
     if (m_state.destructing) return;
     // 移除Last Op引用
     if (m_pLastOp == &item) m_pLastOp = nullptr;
+    // 取消所有显示等待下次刷新
+    m_displayed.clear();
     // 1. 删除在选数据
-    {
+    if (item.IsSelected()) {
         const auto enditr = m_selected.end();
         const auto itr = std::find(m_selected.begin(), enditr, &item);
 #ifndef NDEBUG
@@ -237,84 +247,38 @@ void LongUI::UITree::SelectItem(UITreeItem& item, bool exadd) noexcept {
 /// <summary>
 /// Selects to.
 /// </summary>
-/// <param name="item">The item.</param>
+/// <param name="index">The index.</param>
 /// <returns></returns>
-void LongUI::UITree::SelectTo(UITreeItem& item) noexcept {
+void LongUI::UITree::SelectTo(uint32_t index) noexcept {
+    // 范围外
+    if (index >= m_displayed.size()) {
+#ifndef NDEBUG
+        LUIDebug(Warning) << this << "out of range or OOM" << endl;
+#endif // !NDEBUG
+        return;
+    }
+    const auto item = m_displayed[index];
     assert(m_pChildren && "cannot be null on call select");
     assert(m_pChildren->GetChildrenCount() && "cannot be 0 on call select");
     // 单选?
-    if (!this->IsMultiple()) return this->SelectItem(item, false);
+    if (!this->IsMultiple()) return this->SelectItem(*item, false);
     // 先清除之前的所有选择
     this->ClearAllSelected();
-    // LongUI 控件树最大深度256, TreeItem之间交错连接故最大深度128
-    UIControl* items[MAX_CONTROL_TREE_DEPTH/2];
-    auto item_top = items;
-    // 一堆方便
-    const auto push_item = [&item_top](UIControl* i) noexcept {
-        ++item_top; *item_top = i;
-    };
-    const auto pop_item = [&]() noexcept {
-        assert(item_top >= items); --item_top;
-    };
-    // 没有上次操作对象
-    items[0] = m_pChildren->begin();
-    // 拥有上次操作对象
+    // 存在m_pLastOp
+    uint32_t sel_from = 0, sel_to = index;
     if (m_pLastOp) {
-        const auto d1 = m_pLastOp->GetLevel();
-        const auto d2 = this->GetLevel();
-        assert(d1 > d2 && ((d1 - d2) & 1) == 0);
-        auto d3 = (d1 - d2) / 2 - 1;
-        *item_top = m_pLastOp; ++item_top;
-        UIControl* opt = m_pLastOp;
-        while (d3) {
-            --d3; 
-            // 获取上一级TreeItem
-            assert(opt->GetParent());
-            opt = opt->GetParent();
-            assert(opt->GetParent());
-            opt = opt->GetParent();
-            assert(longui_cast<UITreeItem*>(opt));
-            // 弟节点
-            if (!opt->IsLastChild()) {
-                // TEST THIS: next 是滚动条的场合?
-                *item_top = UIControlPrivate::Next(opt);
-                ++item_top;
-            }
-        }
-        // 逆置数组
-        std::reverse(items, item_top);
-        // 将顶层指针下移动
-        --item_top;
-    }
-    // 利用深度优先遍历
-    while (true) {
-        // 没有数据则退出(正常情况则不可能)
-        assert(item_top >= items && "BUG");
-        if (item_top < items) break;
-        // 获取栈顶数据
-        const auto now_item = *item_top;
-        if (now_item->IsLastChild()) pop_item();
-        else *item_top = UIControlPrivate::Next(now_item);
-        
-        // XXX: [优化] items大概率是UITreeItem, 小概率是滚动条
-        if (const auto item_ptr = uisafe_cast<UITreeItem>(now_item)) {
-
-#if 0
-            auto& dbg_item = static_cast<UITreeItem&>(*now_item);
-            const auto dbg_row = dbg_item.GetRow();
-            CUIString row_text;
-            dbg_row->GetRowString(row_text);
-            LUIDebug(Log) << row_text << endl;
-#endif
-            this->select_item(*item_ptr);
-            // 遇到目标目标则退出循环
-            if (item_ptr == &item) break;
-            // 将子节点压入待用栈
-            if (const auto tc = item_ptr->GetTreeChildren()) {
-                if (tc->GetChildrenCount()) push_item(tc->begin());
-            }
+        const auto last = m_pLastOp->index;
+        if (last < m_displayed.size()) {
+            sel_from = std::min(index, last);
+            sel_to = std::max(index, last);
         }
     }
+    // 选择
+    std::for_each(
+        &m_displayed[sel_from],
+        &m_displayed[sel_to] + 1,
+        [this](UITreeItem* i) noexcept { this->select_item(*i); }
+    );
 }
 
 /// <summary>
@@ -345,6 +309,37 @@ void LongUI::UITree::ClearAllSelected() noexcept {
     m_selected.clear();
 }
 
+
+/// <summary>
+/// tree node tooggle
+/// </summary>
+/// <returns></returns>
+void LongUI::UITree::OnTreeNodeToggled(UITreeItem* item) noexcept {
+    // TODO: [优化] 更新从后面item开始所有节点
+    // TODO: [优化] 非递归
+    m_displayed.clear();
+    struct helper {
+        static void add_node(ItemList& list, UITreeItem& node) noexcept {
+            if (!node.IsVisible()) return;
+            list.push_back(&node);
+            if (node.IsOpened()) {
+                const auto children = node.GetTreeChildren();
+                if (children) for (auto& child : (*children))
+                    helper::add_node(list, *longui_cast<UITreeItem*>(&child));
+            };
+        }
+    };
+    // 第一级可能有滚动条
+    if (m_pChildren) for (auto& child : (*m_pChildren)) {
+        if (const auto node = uisafe_cast<UITreeItem>(&child))
+            helper::add_node(m_displayed, *node);
+    }
+    // 有效
+    if (m_displayed.empty())  return;
+    const auto count = m_displayed.size();
+    for (uint32_t i = 0; i != count; ++i) m_displayed[i]->index = i;
+}
+
 PCN_NOINLINE
 /// <summary>
 /// Selects the item.
@@ -359,6 +354,16 @@ void LongUI::UITree::select_item(UITreeItem& item) noexcept {
     if (const auto row = item.GetRow()) {
         row->StartAnimation({ StyleStateType::Type_Selected, true });
     }
+}
+
+/// <summary>
+/// check item is in displaying
+/// </summary>
+/// <param name="item"></param>
+/// <returns></returns>
+bool LongUI::UITree::is_item_in_displaying(const UITreeItem& item) const noexcept {
+    const auto i = item.index;
+    return i < m_displayed.size() && m_displayed[i] == &item;
 }
 
 #ifdef LUI_ACCESSIBLE
@@ -466,6 +471,17 @@ void LongUI::UITreeRow::SetLevelOffset(float offset) noexcept {
     //}
 }
 
+
+/// <summary>
+/// init open data
+/// </summary>
+/// <param name="open">The open.</param>
+/// <returns></returns>
+void LongUI::UITreeRow::InitOpen_Parent(bool open) noexcept {
+    m_bOpened = open;
+    UIControlPrivate::RefStyleState(m_oTwisty).closed = !open;
+}
+
 /// <summary>
 /// Closes the node.
 /// </summary>
@@ -479,6 +495,11 @@ void LongUI::UITreeRow::open_close(bool open) noexcept {
     // 父节点必须是UITreeItem
     if (const auto item = longui_cast<UITreeItem*>(m_pParent)) {
         item->TreeChildrenOpenClose(open);
+        // 父节点就必须有根节点
+        const auto tree = item->GetTreeNode();
+        assert(tree && "parent exsit but tree?");
+        // 提示根节点
+        tree->OnTreeNodeToggled(item);
     }
 }
 
@@ -571,7 +592,7 @@ auto LongUI::UITreeRow::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
             const auto tree = item->GetTreeNode();
             // 判断SHIFT
             if (CUIInputKM::GetKeyState(CUIInputKM::KB_SHIFT)) {
-                tree->SelectTo(*item);
+                tree->SelectTo(item->index);
             }
             else {
                 // 判断CTRL键
@@ -688,7 +709,9 @@ void LongUI::UITreeRow::relayout() noexcept {
 /// </summary>
 /// <returns></returns>
 LongUI::UITreeItem::~UITreeItem() noexcept {
-
+    m_state.destructing = true;
+    // 移除引用
+    if (m_pTree) m_pTree->ItemRemoved(*this);
 }
 
 
@@ -711,6 +734,26 @@ LongUI::UITreeItem::UITreeItem(UIControl* parent, const MetaControl& meta) noexc
     impl::ctor_unlock();
 }
 
+
+/// <summary>
+/// add attribute
+/// </summary>
+/// <param name="child">The child.</param>
+/// <returns></returns>
+void LongUI::UITreeItem::add_attribute(uint32_t key, U8View value) noexcept {
+    const auto BKDR_OPEN = 0x0efd2e42_ui32;
+    const auto BKDR_CONTAINER = 0xc85e44a5_ui32;
+    switch (key)
+    {
+    case BKDR_OPEN:
+        m_bOpened = value.ToBool();
+        return;
+    case BKDR_CONTAINER:
+        m_bContainer = value.ToBool();
+        return;
+    }
+    return Super::add_attribute(key, value);
+}
 
 /// <summary>
 /// Adds the child.
@@ -818,6 +861,7 @@ bool LongUI::UITreeItem::cal_is_last_item() const noexcept {
 /// <param name="open">if set to <c>true</c> [open].</param>
 /// <returns></returns>
 void LongUI::UITreeItem::TreeChildrenOpenClose(bool open) noexcept {
+    m_bOpened = open;
     // 节点不是最后一个的话重绘父节点减少脏矩形压力
     if (!this->cal_is_last_item()) m_pParent->Invalidate();
     assert(m_pChildren && "bad apple??");
@@ -837,6 +881,11 @@ auto LongUI::UITreeItem::DoEvent(UIControl* sender,
     case NoticeEvent::Event_RefreshBoxMinSize:
         this->refresh_minsize(m_pRow);
         return Event_Accept;
+    case NoticeEvent::Event_Initialize:
+        // 将open信息传递给ROW
+        if (m_pRow) m_pRow->InitOpen_Parent(m_bOpened);
+        if (m_pChildren) m_pChildren->SetVisible(m_bOpened);
+        [[fallthrough]];
     default:
         // 其他事件
         return Super::DoEvent(sender, e);
@@ -1011,6 +1060,7 @@ void LongUI::UITreeChildren::Update(UpdateReason reason) noexcept {
     // 子节点添加删除
     if (reason & Reason_ChildIndexChanged) {
         const auto has = !!this->GetChildrenCount();
+        // 仅仅修改有没有子节点才计算
         if (has != m_bHasChild) {
             m_bHasChild = has;
             // 通知父控件(父节点必须是UITreeItem)
@@ -1019,9 +1069,49 @@ void LongUI::UITreeChildren::Update(UpdateReason reason) noexcept {
             }
         }
     }
+    // 布局
+    //if (reason & Reason_BasicRelayout) this->relayout_this();
     return Super::Update(reason);
 }
 
+
+#if 0
+
+/// <summary>
+/// do the event
+/// </summary>
+/// <returns></returns>
+auto LongUI::UITreeChildren::DoEvent(UIControl* sender, const EventArg & e) noexcept -> EventAccept {
+    switch (e.nevent)
+    {
+    case NoticeEvent::Event_RefreshBoxMinSize:
+        this->refresh_minsize();
+        return Event_Accept;
+    }
+    return Super::DoEvent(sender, e);
+}
+
+/// <summary>
+/// relayout this
+/// </summary>
+/// <param name="child">The child.</param>
+/// <returns></returns>
+void LongUI::UITreeChildren::relayout_this() noexcept {
+
+}
+
+
+/// <summary>
+/// refresh minsize
+/// </summary>
+/// <param name="child">The child.</param>
+/// <returns></returns>
+void LongUI::UITreeChildren::refresh_minsize() noexcept {
+    Size2F min_size = { 0 };
+
+    this->set_contect_minsize(min_size);
+}
+#endif
 
 #ifndef NDEBUG
 /// <summary>

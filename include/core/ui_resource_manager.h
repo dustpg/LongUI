@@ -74,6 +74,8 @@ namespace LongUI {
         auto&RefGraphicsFactory() noexcept { return *m_pGraphicsFactory; }
         // get 2d renderer
         auto&Ref2DRenderer() noexcept { return *m_p2DRenderer; }
+        // get 3d renderer
+        auto&Ref3DRenderer() noexcept { return *m_p3DRenderer; }
         // get 3d device
         auto&Ref3DDevice() noexcept { return *m_p3DDevice; }
         // get native renderer

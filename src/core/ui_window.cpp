@@ -98,8 +98,13 @@ namespace LongUI { namespace impl {
 
 // LongUI::detail
 namespace LongUI { namespace detail {
-    // lowest common ancestor
-    auto lowest_common_ancestor(UIControl* now, UIControl* old) noexcept {
+    /// <summary>
+    /// Lowests the common ancestor.
+    /// </summary>
+    /// <param name="now">The now.</param>
+    /// <param name="old">The old.</param>
+    /// <returns></returns>
+    UIControl* lowest_common_ancestor(UIControl* now, UIControl* old) noexcept {
         /* 
             由于控件有深度信息, 所以可以进行优化
             时间复杂度 O(q) q是目标解与最深条件节点之间深度差
