@@ -31,6 +31,8 @@ namespace LongUI {
         void Lock() noexcept;
         // unlock
         void Unlock() noexcept;
+        // try to lock
+        bool TryLock() noexcept ;
         // get recursion count
         auto GetRecursionCount() const noexcept->uint32_t;
     public:

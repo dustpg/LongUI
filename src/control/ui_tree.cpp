@@ -208,6 +208,8 @@ auto LongUI::UITree::DoEvent(UIControl* sender,
 void LongUI::UITree::ItemRemoved(UITreeItem& item) noexcept {
     // 删除中直接返回?
     if (m_state.destructing) return;
+    // 清除引用
+    item.ClearTreeNode();
     // 移除Last Op引用
     if (m_pLastOp == &item) m_pLastOp = nullptr;
     // 取消所有显示等待下次刷新
@@ -231,8 +233,9 @@ void LongUI::UITree::ItemRemoved(UITreeItem& item) noexcept {
 /// </summary>
 /// <param name="item">The item.</param>
 /// <param name="exadd">if set to <c>true</c> [exadd].</param>
+/// <param name="cell">cell</param>
 /// <returns></returns>
-void LongUI::UITree::SelectItem(UITreeItem& item, bool exadd) noexcept {
+void LongUI::UITree::SelectItem(UITreeItem& item, bool exadd, UITreeCell* cell) noexcept {
     // 在表内额外添加就算了
     if (item.IsSelected() && exadd) return;
     // 记录上次操作对象
@@ -240,7 +243,7 @@ void LongUI::UITree::SelectItem(UITreeItem& item, bool exadd) noexcept {
     // 清空?
     if (!exadd || !this->IsMultiple()) this->ClearAllSelected();
     // 写入表内
-    this->select_item(item);
+    this->select_item(item, cell);
 }
 
 
@@ -248,8 +251,9 @@ void LongUI::UITree::SelectItem(UITreeItem& item, bool exadd) noexcept {
 /// Selects to.
 /// </summary>
 /// <param name="index">The index.</param>
+/// <param name="cell">The cell.</param>
 /// <returns></returns>
-void LongUI::UITree::SelectTo(uint32_t index) noexcept {
+void LongUI::UITree::SelectTo(uint32_t index, UITreeCell* cell) noexcept {
     // 范围外
     if (index >= m_displayed.size()) {
 #ifndef NDEBUG
@@ -261,7 +265,7 @@ void LongUI::UITree::SelectTo(uint32_t index) noexcept {
     assert(m_pChildren && "cannot be null on call select");
     assert(m_pChildren->GetChildrenCount() && "cannot be 0 on call select");
     // 单选?
-    if (!this->IsMultiple()) return this->SelectItem(*item, false);
+    if (!this->IsMultiple()) return this->SelectItem(*item, false, cell);
     // 先清除之前的所有选择
     this->ClearAllSelected();
     // 存在m_pLastOp
@@ -277,7 +281,7 @@ void LongUI::UITree::SelectTo(uint32_t index) noexcept {
     std::for_each(
         &m_displayed[sel_from],
         &m_displayed[sel_to] + 1,
-        [this](UITreeItem* i) noexcept { this->select_item(*i); }
+        [this](UITreeItem* i) noexcept { this->select_item(*i, nullptr); }
     );
 }
 
@@ -294,6 +298,7 @@ void LongUI::UITree::ClearSelected(UITreeItem& item) noexcept {
     if (const auto row = item.GetRow()) {
         row->StartAnimation({ StyleStateType::Type_Selected, false });
     }
+    item.SelectCell(nullptr);
 }
 
 /// <summary>
@@ -303,6 +308,7 @@ void LongUI::UITree::ClearSelected(UITreeItem& item) noexcept {
 void LongUI::UITree::ClearAllSelected() noexcept {
     for (auto* item : m_selected) {
         assert(item->GetRow() && "???");
+        item->SelectCell(nullptr);
         item->StartAnimation({ StyleStateType::Type_Selected, false });
         item->GetRow()->StartAnimation({ StyleStateType::Type_Selected, false });
     }
@@ -346,15 +352,18 @@ PCN_NOINLINE
 /// </summary>
 /// <param name="item">The item.</param>
 /// <returns></returns>
-void LongUI::UITree::select_item(UITreeItem& item) noexcept {
+void LongUI::UITree::select_item(UITreeItem& item, UITreeCell* cell) noexcept {
+    // XXX: 链表实现m_selected ?
+
     // 写入表内
-    // TODO: 链表实现m_selected
     m_selected.push_back(&item);
     item.StartAnimation({ StyleStateType::Type_Selected, true });
-    if (const auto row = item.GetRow()) {
+    if (const auto row = item.GetRow())
         row->StartAnimation({ StyleStateType::Type_Selected, true });
-    }
+    // CELL 选择
+    if (this->IsSelCell()) item.SelectCell(cell);
 }
+
 
 /// <summary>
 /// check item is in displaying
@@ -482,6 +491,7 @@ void LongUI::UITreeRow::InitOpen_Parent(bool open) noexcept {
     UIControlPrivate::RefStyleState(m_oTwisty).closed = !open;
 }
 
+
 /// <summary>
 /// Closes the node.
 /// </summary>
@@ -516,9 +526,7 @@ LongUI::UITreeRow::UITreeRow(UIControl* parent, const MetaControl& meta) noexcep
     : Super(impl::ctor_lock(parent), meta),
     m_oTwisty(this), m_oImage(this) {
     // 暂时用ListItem?
-    m_oStyle.appearance = Appearance_ListItem;
-    // TODO: 默认是关闭状态?
-
+    //m_oStyle.appearance = Appearance_ListItem;
     // 私有实现
     //UIControlPrivate::SetFocusable(image, false);
     //UIControlPrivate::SetFocusable(label, false);
@@ -571,6 +579,23 @@ auto LongUI::UITreeRow::DoEvent(UIControl* sender, const EventArg& e) noexcept->
     case NoticeEvent::Event_RefreshBoxMinSize:
         this->refresh_minsize();
         return Event_Accept;
+#if 0
+    case NoticeEvent::Event_Initialize:
+        app = Appearance_None;
+#ifndef NDEBUG
+        if (m_pParent)
+#endif
+        if (const auto parent = longui_cast<UITreeItem*>(m_pParent)) {
+            if (const auto tree = parent->GetTreeNode()) {
+                if (tree->IsSelCell())
+                    app = Appearance_TreeRowModeCell;
+                else
+                    app = Appearance_ListItem;
+            }
+        }
+        UIControlPrivate::SetAppearanceIfNotSet(*this, app);
+        [[fallthrough]];
+#endif
     default:
         // 其他事件
         return Super::DoEvent(sender, e);
@@ -590,6 +615,7 @@ auto LongUI::UITreeRow::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
         // 父节点必须是UITreeItem
         if (const auto item = longui_cast<UITreeItem*>(m_pParent)) {
             const auto tree = item->GetTreeNode();
+            assert(tree && "parent exsit but tree");
             // 判断SHIFT
             if (CUIInputKM::GetKeyState(CUIInputKM::KB_SHIFT)) {
                 tree->SelectTo(item->index);
@@ -602,7 +628,10 @@ auto LongUI::UITreeRow::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
                     tree->ClearSelected(*item);
                 }
                 // 添加选择
-                else tree->SelectItem(*item, ctrl);
+                else {
+                    const auto cell = uisafe_cast<UITreeCell>(m_pHovered);
+                    tree->SelectItem(*item, ctrl, cell);
+                }
             }
         }
         [[fallthrough]];
@@ -794,6 +823,8 @@ void LongUI::UITreeItem::add_child(UIControl& child) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UITreeItem::Update(UpdateReason reason) noexcept {
+    // 更新树节点
+    this->mark_tree_node();
     // XXX: 要求重新布局
     if (reason & Reason_BasicRelayout) {
         // 重新布局
@@ -855,6 +886,44 @@ bool LongUI::UITreeItem::cal_is_last_item() const noexcept {
     return true;
 }
 
+PCN_NOINLINE
+/// <summary>
+/// mark tree node
+/// </summary>
+/// <returns></returns>
+void LongUI::UITreeItem::mark_tree_node() noexcept {
+    // XXX: 重构
+
+    // 已经有了
+    if (m_pTree) return;
+    auto item = this;
+    const auto parent_as_treechildren = [](UITreeItem* item) noexcept {
+        return longui_cast<UITreeChildren*>(item->GetParent());
+    };
+    while (const auto c = parent_as_treechildren(item)) {
+        const auto item = longui_cast<UITreeItem*>(c->GetParent());
+        assert(item && "no parent");
+        if (const auto tree = item->GetTreeNode()) {
+            m_pTree = tree;
+            // 初始ROW设定
+            if (m_pRow) {
+                AttributeAppearance app;
+                if (tree->IsSelCell())
+                    app = Appearance_TreeRowModeCell;
+                else
+                    app = Appearance_ListItem;
+                UIControlPrivate::SetAppearanceIfNotSet(*m_pRow, app);
+                if (tree->IsSelCell())
+                    for (auto& child: (*m_pRow)) {
+                        if (const auto cell = uisafe_cast<UITreeCell>(&child))
+                            UIControlPrivate::SetAppearanceIfNotSet(*cell, Appearance_ListItem);
+                    }
+            }
+            break;
+        }
+    }
+}
+
 /// <summary>
 /// Trees the children close.
 /// </summary>
@@ -866,6 +935,40 @@ void LongUI::UITreeItem::TreeChildrenOpenClose(bool open) noexcept {
     if (!this->cal_is_last_item()) m_pParent->Invalidate();
     assert(m_pChildren && "bad apple??");
     if (m_pChildren) m_pChildren->SetVisible(open);
+}
+
+/// <summary>
+/// cell remove
+/// </summary>
+/// <param name=""></param>
+/// <returns></returns>
+void LongUI::UITreeItem::CellRemoved(UITreeCell& cell) noexcept {
+    // 移除弱引用
+    if (&cell == m_pSelected) m_pSelected = nullptr;
+}
+
+
+/// <summary>
+/// select cell
+/// </summary>
+/// <param name="cell"></param>
+/// <returns></returns>
+void LongUI::UITreeItem::SelectCell(UITreeCell* cell) noexcept {
+    const auto prev_sel = m_pSelected; m_pSelected = cell;
+    if (prev_sel) prev_sel->StartAnimation({ StyleStateType::Type_Selected, false });
+    if (cell) cell->StartAnimation({ StyleStateType::Type_Selected, true });
+}
+
+
+
+/// <summary>
+/// select cell
+/// </summary>
+/// <param name="cell"></param>
+/// <returns></returns>
+void LongUI::UITreeItem::SelectCell(std::nullptr_t) noexcept {
+    const auto prev_sel = m_pSelected; m_pSelected = nullptr;
+    if (prev_sel) prev_sel->StartAnimation({ StyleStateType::Type_Selected, false });
 }
 
 /// <summary>
@@ -885,6 +988,7 @@ auto LongUI::UITreeItem::DoEvent(UIControl* sender,
         // 将open信息传递给ROW
         if (m_pRow) m_pRow->InitOpen_Parent(m_bOpened);
         if (m_pChildren) m_pChildren->SetVisible(m_bOpened);
+        this->mark_tree_node();
         [[fallthrough]];
     default:
         // 其他事件
@@ -1045,18 +1149,6 @@ LongUI::UITreeChildren::UITreeChildren(UIControl* parent, const MetaControl& met
 /// </summary>
 /// <returns></returns>
 void LongUI::UITreeChildren::Update(UpdateReason reason) noexcept {
-    // 父节点修改/子节点添加删除
-    if (reason & (Reason_ChildIndexChanged | Reason_ParentChanged)) {
-        // 父节点必须是UITreeItem
-        if (const auto item = longui_cast<UITreeItem*>(m_pParent)) {
-            // 子节点也必须是UITreeItem?
-            for (auto& child : (*this)) {
-                // 也有可能是滚动条
-                if (const auto ptr = uisafe_cast<UITreeItem>(&child))
-                    ptr->AsSameTreeTo(*item);
-            }
-        }
-    }
     // 子节点添加删除
     if (reason & Reason_ChildIndexChanged) {
         const auto has = !!this->GetChildrenCount();
@@ -1267,6 +1359,17 @@ void LongUI::UITreeCols::do_update_for_item(UIControl& ctrl) noexcept {
 /// </summary>
 /// <returns></returns>
 LongUI::UITreeCell::~UITreeCell() noexcept {
+#ifndef NDEBUG
+    // 避免调试时警告
+    if (m_pParent)
+#endif // !NDEBUG
+    // 父节点必须是UITreeRow
+    if (const auto parent = longui_cast<UITreeRow*>(m_pParent)) {
+        // 父节点的父节点必须是UITreeItem
+        if (const auto grandparent = longui_cast<UITreeItem*>(parent->GetParent())) {
+            grandparent->CellRemoved(*this);
+        }
+    }
 }
 
 
@@ -1277,6 +1380,8 @@ LongUI::UITreeCell::~UITreeCell() noexcept {
 /// <param name="meta">The meta.</param>
 LongUI::UITreeCell::UITreeCell(UIControl* parent, const MetaControl& meta) noexcept
     : Super(parent, meta) {
+    // 暂时用ListItem?
+    //m_oStyle.appearance = Appearance_ListItem;
 }
 
 /// <summary>
@@ -1300,3 +1405,20 @@ void LongUI::UITreeCell::add_attribute(uint32_t key, U8View value) noexcept {
     }
 }
 
+/// <summary>
+/// do the event
+/// </summary>
+/// <param name="sender">the sender</param>
+/// <param name="e">the event</param>
+/// <returns></returns>
+//auto LongUI::UITreeCell::DoEvent(UIControl* sender, const EventArg& e) noexcept -> EventAccept {
+//    switch (e.nevent)
+//    {
+//    case NoticeEvent::Event_Initialize:
+//        // 暂时用ListItem?
+//        UIControlPrivate::SetAppearanceIfNotSet(*this, Appearance_ListItem);
+//        [[fallthrough]];
+//    default:
+//        return Super::DoEvent(sender, e);
+//    }
+//}

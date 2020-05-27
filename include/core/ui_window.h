@@ -265,6 +265,10 @@ namespace LongUI {
         void SetNativeIconData(const wchar_t*, uintptr_t big=0) noexcept;
         // is inline window
         bool IsInlineWindow() const noexcept { return false; }
+#ifdef LUI_BETA_CTOR_LOCKER
+        // set in creating
+        void SetInCreating() noexcept;
+#endif
     protected:
         // private impl
         auto pimpl() noexcept { return reinterpret_cast<Private*>(&m_private); }

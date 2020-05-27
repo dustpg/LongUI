@@ -211,7 +211,8 @@ namespace LongUI {
         Appearance_Tab,                     // [tab]
         Appearance_TabPanels,               // [tabpanels]
         Appearance_TextField,               // [textfield]
-    }; 
+        Appearance_TreeRowModeCell,         // [treerow] on cell mode
+    };
     /// <summary>
     /// select type
     /// </summary>

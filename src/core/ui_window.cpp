@@ -411,11 +411,15 @@ namespace LongUI {
         bool            access_key_display = false;
         // full renderer in update
         bool            full_rendering_update = false;
+        // in creating
+        bool            in_creating = false;
+        //
+        bool            bool_used[3];
     public:
         // dirty count for recording
-        uint32_t        dirty_count_recording = 0;
+        uint16_t        dirty_count_recording = 0;
         // dirty count for presenting
-        uint32_t        dirty_count_presenting = 0;
+        uint16_t        dirty_count_presenting = 0;
         // dirty rect for recording
         DirtyRect       dirty_rect_recording[LongUI::DIRTY_RECT_COUNT];
         // dirty rect for presenting [+ 2 for safty]
@@ -2142,6 +2146,19 @@ void LongUI::CUIWindow::Private::RegisterWindowClass() noexcept {
     ::RegisterClassExW(&wcex);
 }
 
+
+#ifdef LUI_BETA_CTOR_LOCKER
+/// <summary>
+/// in creating
+/// </summary>
+/// <param name="b"></param>
+/// <returns></returns>
+void LongUI::CUIWindow::SetInCreating() noexcept {
+    CUIRenderAutoLocker locker;
+    pimpl()->in_creating = true;
+    static_assert(false, "not impl");
+}
+#endif
 
 /// <summary>
 /// Sets the native icon data.

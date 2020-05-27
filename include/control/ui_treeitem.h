@@ -26,6 +26,7 @@
 
 #include "ui_control.h"
 //#include "../util/ui_double_click.h"
+#include <cstddef>
 
 // ui namespace
 namespace LongUI {
@@ -33,6 +34,8 @@ namespace LongUI {
     class UITree;
     // treerow
     class UITreeRow;
+    // cell
+    class UITreeCell;
     // treechildren
     class UITreeChildren;
     // treeitem control
@@ -50,6 +53,12 @@ namespace LongUI {
         // ctor
         UITreeItem(UIControl* parent = nullptr) noexcept : UITreeItem(parent, UITreeItem::s_meta) {}
     public:
+        // cell removed
+        void CellRemoved(UITreeCell&) noexcept;
+        // clear tree node
+        void ClearTreeNode() noexcept { m_pTree = nullptr; };
+        // get tree
+        auto GetTreeNode() const noexcept { return m_pTree; };
         // is selected?
         auto IsSelected() const noexcept { return m_oStyle.state.selected; }
         // is container[from xml-attribute]
@@ -58,8 +67,6 @@ namespace LongUI {
         auto IsOpened() const noexcept { return m_bOpened; }
         // get row
         auto GetRow() const noexcept { return m_pRow; }
-        // get tree node
-        auto GetTreeNode() const noexcept { return m_pTree; }
         // get tree children
         auto GetTreeChildren() const noexcept { return m_pChildren; }
         // tree children changed
@@ -68,8 +75,12 @@ namespace LongUI {
         void TreeChildrenOpenClose(bool open) noexcept;
         // tree children level offset
         void TreeLevelOffset(float offset) noexcept { m_fLevelOffset = offset; }
-        // set tree root as this
-        void AsSameTreeTo(const UITreeItem& x) noexcept { m_pTree = x.m_pTree; }
+        // select cell
+        void SelectCell(UITreeCell* cell) noexcept;
+        // select cell
+        void SelectCell(std::nullptr_t) noexcept;
+        // get selected cell
+        auto GetSelectedCell() const noexcept { return m_pSelected; }
     public:
         // do normal event
         auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
@@ -96,7 +107,11 @@ namespace LongUI {
         void refresh_minsize(UIControl* head) noexcept;
         // is last item
         bool cal_is_last_item() const noexcept;
+        // mark tree node
+        void mark_tree_node() noexcept;
     protected:
+        // selected cell
+        UITreeCell*             m_pSelected = nullptr;
         // tree root
         UITree*                 m_pTree = nullptr;
         // tree row

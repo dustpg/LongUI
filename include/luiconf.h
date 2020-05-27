@@ -35,6 +35,10 @@
 //#define LUI_VECTOR_SIZE_USE_UINT32
 
 
+
+// [BETA] NOT IMPL
+//#define LUI_BETA_CTOR_LOCKER
+
 // ----------------------------------------------------------------------------
 
 // LongUI Need Win7-PlatformUpdate

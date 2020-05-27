@@ -56,7 +56,11 @@ namespace LongUI { struct CUIManager::Private {
     // km-input
     CUIInputKM              km_input;
 #endif
+
 };}
+
+
+
 
 
 /// <summary>
@@ -171,6 +175,8 @@ void LongUI::CUIManager::OneFrame() noexcept {
     meter.Start();
     int while_count = 0;
 #endif
+    // 交换初始化数据
+    this_()->swap_init_list(this_()->m_uiCtorLocker);
     // 数据更新区域
     this_()->DataLock();
     // 尝试重新创建
@@ -303,6 +309,7 @@ void LongUI::CUIManager::NeedRecreate() noexcept {
 void LongUI::CUIManager::Exit(uintptr_t code) noexcept {
     ::PostMessageW(m_hToolWnd, CallLater::Later_Exit, code, 0);
 }
+
 
 /// <summary>
 /// Gets the unique text.

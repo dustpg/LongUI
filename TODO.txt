@@ -1,5 +1,7 @@
 ﻿MinSizeChange [针对文本] 测试
 
+创建控件时候应该放入新的数据链避免阻断渲染线程, 创建完毕后再统一加入表中?
+
 树节点最差应该是重新渲染树
 
 内部uisafe_cast ->简单META-FLAG判断 CLASS-MAP 修改

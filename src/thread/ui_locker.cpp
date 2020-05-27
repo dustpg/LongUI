@@ -55,6 +55,15 @@ void LongUI::CUILocker::Lock() noexcept {
 }
 
 /// <summary>
+/// try to lock
+/// </summary>
+/// <returns></returns>
+bool LongUI::CUILocker::TryLock() noexcept {
+    const auto locker = reinterpret_cast<ui_locker_t*>(&m_impl);
+    return !!::TryEnterCriticalSection(locker);
+}
+
+/// <summary>
 /// Unlocks this instance.
 /// </summary>
 /// <returns></returns>

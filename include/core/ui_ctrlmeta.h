@@ -27,10 +27,54 @@
 namespace LongUI {
     // control
     class UIControl;
-    // inner flag
-    enum class InnerFlag : decltype(sizeof(0)) {
-        // flag init
-        Flag_Non            = 0,
+    // using
+    using luisize_t = decltype(sizeof(0));
+    // inner control flag
+    enum class InnerFlag : luisize_t {
+        // unknown control
+        Flag_Non            = 0 ,
+        // is menu item
+        Flag_UIMenuItem     = 1 << 0x00,
+        // is caption
+        Flag_UICaption      = 1 << 0x01,
+        // is list item
+        Flag_UIListItem     = 1 << 0x02,
+        // is list cols
+        Flag_UIListCols     = 1 << 0x03,
+        // is list head
+        Flag_UIListHead     = 1 << 0x04,
+        // is list col 
+        Flag_UIListCol      = 1 << 0x05,
+        // is menu popup
+        Flag_UIMenuPopup    = 1 << 0x06,
+        // is menu bar
+        Flag_UIMenuBar      = 1 << 0x07,
+        // is menu
+        Flag_UIMenu         = 1 << 0x08,
+        // is radio group
+        Flag_UIRadioGroup   = 1 << 0x09,
+        // is rich list item
+        Flag_UIRichListItem = 1 << 0x0A,
+        // is tab
+        Flag_UITab          = 1 << 0x0B,
+        // is tabs
+        Flag_UITabs         = 1 << 0x0C,
+        // is tab panels
+        Flag_UITabPanels    = 1 << 0x0D,
+        // is scroll bar
+        Flag_UIScrollBar    = 1 << 0x0E,
+
+
+        // is tree cols
+        Flag_UITreeCols     = 1 << 0x10,
+        // is tree children
+        Flag_UITreeChildren = 1 << 0x11,
+        // is tree item
+        Flag_UITreeItem     = 1 << 0x12,
+        // is tree col
+        Flag_UITreeCol      = 1 << 0x13,
+        // is tree row
+        Flag_UITreeRow      = 1 << 0x14,
     };
     // control meta info
     struct MetaControl {
@@ -40,8 +84,8 @@ namespace LongUI {
         const char*         element_name;
         // create control
         auto (*create_func)(UIControl*) noexcept->UIControl*;
-        // innser
-        InnerFlag           inner_flag;
+        // inner flags to test control type in O(1)
+        InnerFlag           inner_flags;
     };
 }
 

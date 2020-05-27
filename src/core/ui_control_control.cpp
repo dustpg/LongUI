@@ -46,8 +46,10 @@ struct LongUI::CUIControlControl::Private {
     inline Private() noexcept;
     // ctor
     inline ~Private() noexcept { }
-    // init list
+    // 初始化表A Data锁住后总为null
     ControlNode             init_list = { nullptr };
+    // 初始化表B 通过两个表降低锁住的时间
+    ControlNode             init_list_lock_free = { nullptr };
     // relayout list
     ControlNode             update_list = { nullptr };
     // delete list
@@ -78,8 +80,39 @@ struct LongUI::CUIControlControl::Private {
         const size_t offset = offsetof(UIControl, m_oManager.next_delinitupd);
         CUIControlControl::AddControlToList(ctrl, luiref update_list, offset);
     }
+    // remove from init list
+    void remove_from_init_list(UIControl& ctrl) noexcept {
+        const size_t offset = offsetof(UIControl, m_oManager.next_delinitupd);
+        assert(init_list.first == nullptr);
+        assert(init_list.last == nullptr);
+        CUIControlControl::RemoveControlInList(ctrl, luiref init_list_lock_free, offset);
+        ctrl.m_oManager.next_delinitupd = nullptr;
+    }
 };
 
+/// <summary>
+/// move list-b to list-a
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIControlControl::swap_init_list(CUILocker& locker) noexcept {
+#ifdef LUI_BETA_CTOR_LOCKER
+    auto& obj = cc();
+    // 尝试进入, 失败就下帧处理, 控件创建不会阻塞
+    if (locker.TryLock()) {
+        // 上锁目的不是仅仅安全写入init_list
+        // 而是阻断其他线程进入构造函数
+        assert(obj.init_list.first == nullptr);
+        assert(obj.init_list.last == nullptr);
+        std::swap(obj.init_list_lock_free, obj.init_list);
+        locker.Unlock();
+    }
+#ifndef NDEBUG
+    else {
+        LUIDebug(Hint) << "Ctor locker locked in other thread" << endl;
+    }
+#endif // !NDEBUG
+#endif
+}
 
 /// <summary>
 /// Sets the xul dir.
@@ -385,8 +418,8 @@ void LongUI::CUIControlControl::ControlDisattached(UIControl& ctrl) noexcept {
         }
         // 1. 移除初始化表中的引用
         if (!ctrl.is_inited()) {
-            const size_t offset = offsetof(UIControl, m_oManager.next_delinitupd);
-            CUIControlControl::RemoveControlInList(ctrl, luiref cc().init_list, offset);
+            // 调用对应
+            cc().remove_from_init_list(ctrl);
         }
         // 2. 移除刷新表中的引用
         else if (ctrl.m_state.in_update_list) {
@@ -564,7 +597,7 @@ void LongUI::CUIControlControl::AddUpdateList(UIControl& ctrl) noexcept {
 void LongUI::CUIControlControl::AddInitList(UIControl& ctrl) noexcept {
     assert(ctrl.is_inited() == false);
     const size_t offset = offsetof(UIControl, m_oManager.next_delinitupd);
-    CUIControlControl::AddControlToList(ctrl, luiref cc().init_list, offset);
+    CUIControlControl::AddControlToList(ctrl, luiref cc().init_list_lock_free, offset);
 }
 
 /// <summary>
@@ -582,8 +615,7 @@ void LongUI::CUIControlControl::delete_later(UIControl& ctrl) noexcept {
 #endif // !NDEBUG
 
         ctrl.m_state.inited = true;
-        CUIControlControl::RemoveControlInList(ctrl, luiref cc().init_list, offset);
-        ctrl.m_oManager.next_delinitupd = nullptr;
+        cc().remove_from_init_list(ctrl);
     }
     assert(ctrl.m_oManager.next_delinitupd == nullptr);
     CUIControlControl::AddControlToList(ctrl, luiref cc().delete_list, offset);
@@ -610,8 +642,13 @@ void LongUI::CUIControlControl::InvalidateControl(UIControl& ctrl, const RectF* 
 /// <returns></returns>
 bool LongUI::CUIControlControl::init_control_in_list() noexcept {
     auto& cc = this->cc();
+#ifdef LUI_BETA_CTOR_LOCKER
     auto node = cc.init_list.first;
     cc.init_list = { nullptr, nullptr };
+#else
+    auto node = cc.init_list_lock_free.first;
+    cc.init_list_lock_free = { nullptr, nullptr };
+#endif
     // 遍历初始化列表
     while (node) {
         // 本次处理

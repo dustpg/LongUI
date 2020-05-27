@@ -17,10 +17,12 @@ namespace LongUI {
         // cc size
         template<size_t> struct cc;
         // 32bit
-        template<> struct cc<4> { enum { size = 16*4+24+4*6, align = 4 }; };
+        template<> struct cc<4> { enum { size = 16*4+24+4*8, align = 4 }; };
         // 64bit
-        template<> struct cc<8> { enum { size = 24*4+32+8*6, align = 8 };  };
+        template<> struct cc<8> { enum { size = 24*4+32+8*8, align = 8 };  };
     }
+    // locker
+    class CUILocker;
     // control
     class UIControl;
     // node update
@@ -108,6 +110,8 @@ namespace LongUI {
         void update_time_capsule(float delta) noexcept;
         // has time capsule?
         bool has_time_capsule() const noexcept;
+        // swap list
+        void swap_init_list(CUILocker&) noexcept;
         // update control
         void update_control_in_list() noexcept;
         // init control, return true if update-list not empty

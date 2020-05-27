@@ -51,14 +51,16 @@ namespace LongUI {
     public:
         // is multi-selected?
         bool IsMultiple() const noexcept { return m_seltype == Seltype_Multiple; }
+        // is select cell?
+        bool IsSelCell() const noexcept { return m_seltype == Seltype_Cell; }
         // get cols
         auto GetCols() const noexcept { return m_pCols; }
         // item removed. called from UITreeItem's dtor
         void ItemRemoved(UITreeItem&) noexcept;
-        // select item
-        void SelectItem(UITreeItem&, bool exadd) noexcept;
+        // select item with cell
+        void SelectItem(UITreeItem&, bool exadd, UITreeCell* =nullptr) noexcept;
         // select to
-        void SelectTo(uint32_t) noexcept;
+        void SelectTo(uint32_t, UITreeCell* = nullptr) noexcept;
         // clear select
         void ClearSelected(UITreeItem&) noexcept;
         // clear all select
@@ -90,7 +92,7 @@ namespace LongUI {
         auto accessible(const AccessibleEventArg& args) noexcept->EventAccept override;
 #endif
         // select item
-        void select_item(UITreeItem&) noexcept;
+        void select_item(UITreeItem&, UITreeCell* cell) noexcept;
         // is item in displaying
         bool is_item_in_displaying(const UITreeItem&) const noexcept;
     protected:
@@ -102,8 +104,12 @@ namespace LongUI {
         ItemList            m_displayed;
         // selected
         ItemList            m_selected;
-        // current index
-        int32_t             m_iCurrent = -1;
+#if 0
+        // current row index
+        int32_t             m_iCurrentRow = -1;
+        // current column index
+        int32_t             m_iCurrentCol = -1;
+#endif
         // display row | xul::rows related
         uint16_t            m_displayRow = 0;
         // select type

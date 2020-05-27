@@ -66,6 +66,7 @@ auto LongUI::NativeStyleDuration(const GetDurationArgs args) noexcept -> uint32_
     case LongUI::Appearance_StatusBarPanel:
     case LongUI::Appearance_ProgressChunkH:
     case LongUI::Appearance_ProgressChunkV:
+    case LongUI::Appearance_TreeRowModeCell:
     case LongUI::Appearance_CheckBoxContainer:
     case LongUI::Appearance_ScrollbarTrackH:
     case LongUI::Appearance_ScrollbarTrackV:

@@ -131,6 +131,8 @@ namespace LongUI {
         auto DataRecursion() const noexcept { return m_uiDataLocker.GetRecursionCount(); }
         // get gui thread id
         auto GetGuiThreadId() const noexcept { return m_uGuiThreadId; }
+        // ref cotr locker
+        auto&RefCtorLocker() noexcept { return m_uiCtorLocker; }
     public:
         // exit
         void Exit(uintptr_t code = 0) noexcept;
@@ -203,6 +205,8 @@ namespace LongUI {
         CUILocker               m_uiDataLocker;
         // rendering locker
         CUILocker               m_uiRenderLocker;
+        // ctor locker
+        CUILocker               m_uiCtorLocker;
         // time capsule waiter
         CUIWaiter               m_uiTimeCapsuleWaiter;
     protected:

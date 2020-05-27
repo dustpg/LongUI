@@ -107,23 +107,6 @@ void LongUI::UIControl::AssertCast(const LongUI::MetaControl & meta) const noexc
 }
 #endif
 
-/// <summary>
-/// Controls the making begin.
-/// 在大量创建控件前调用此函数
-/// </summary>
-/// <returns></returns>
-void LongUI::UIControl::ControlMakingBegin() noexcept {
-    UIManager.DataLock();
-}
-
-/// <summary>
-/// Controls the making end.
-/// 在大量创建控件后调用此函数
-/// </summary>
-/// <returns></returns>
-void LongUI::UIControl::ControlMakingEnd() noexcept {
-    UIManager.DataUnlock();
-}
 
 /// <summary>
 /// need update this
@@ -830,7 +813,11 @@ void LongUI::UIControl::MapToParent(Point2F& point) const noexcept {
 /// <param name="p">The p.</param>
 /// <returns></returns>
 auto LongUI::impl::ctor_lock(UIControl* p) noexcept -> UIControl * {
+#ifdef LUI_BETA_CTOR_LOCKER
+    UIManager.RefCtorLocker().Lock();
+#else
     UIManager.DataLock();
+#endif
     return p;
 }
 
@@ -840,7 +827,30 @@ auto LongUI::impl::ctor_lock(UIControl* p) noexcept -> UIControl * {
 /// <param name="p">The p.</param>
 /// <returns></returns>
 void LongUI::impl::ctor_unlock() noexcept {
+#ifdef LUI_BETA_CTOR_LOCKER
+    UIManager.RefCtorLocker().Unlock();
+#else
     UIManager.DataUnlock();
+#endif
+}
+
+
+/// <summary>
+/// Controls the making begin.
+/// 在大量创建控件前调用此函数
+/// </summary>
+/// <returns></returns>
+void LongUI::UIControl::ControlMakingBegin() noexcept {
+    impl::ctor_lock(nullptr);
+}
+
+/// <summary>
+/// Controls the making end.
+/// 在大量创建控件后调用此函数
+/// </summary>
+/// <returns></returns>
+void LongUI::UIControl::ControlMakingEnd() noexcept {
+    impl::ctor_unlock();
 }
 
 /// <summary>
@@ -863,8 +873,8 @@ m_pParent(nullptr), m_refMetaInfo(meta) {
     m_oHead = { nullptr, static_cast<UIControl*>(&m_oTail) };
     m_oTail = { static_cast<UIControl*>(&m_oHead), nullptr };
 #endif
-    // 数据锁
-    CUIDataAutoLocker locker;
+    // 构造锁
+    impl::ctor_lock(nullptr);
     // 添加到父节点的子节点链表中
     if (parent) parent->add_child(*this);
     // 延迟初始化
@@ -873,6 +883,7 @@ m_pParent(nullptr), m_refMetaInfo(meta) {
     this->name_dbg = meta.element_name;
     m_state.dbg_output = false;
 #endif
+    impl::ctor_unlock();
 }
 
 
@@ -1661,6 +1672,10 @@ void LongUI::UIControl::add_child(UIControl& child) noexcept {
             LUIDebug(Warning) << "Tree to deep" << uint32_t(child.m_state.level) << endl;
     }
     
+#endif
+    // 构建中
+#ifdef LUI_BETA_CTOR_LOCKER
+    if (m_pWindow) m_pWindow->SetInCreating();
 #endif
     // 新的窗口
     if (child.m_pWindow != m_pWindow) 
