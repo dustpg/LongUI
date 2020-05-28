@@ -1,6 +1,6 @@
 ### BETA 性能
 
-实验中的功能, 定义 LUI_BETA_CTOR_LOCKER 使用隐藏的一把构造锁。由于可能牵一发动全身, 将这个功能默认关闭.
+实验中的功能, 定义 LUI_USING_CTOR_LOCKER 使用隐藏的一把构造锁。未经全面测试, 这个功能默认关闭.
 
 ### 利用 UIControl::ControlMakingBegin/End 创建大量控件
 
