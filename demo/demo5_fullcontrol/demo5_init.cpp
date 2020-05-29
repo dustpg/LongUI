@@ -66,7 +66,7 @@ void InitViewportCallback(LongUI::UIViewport& v) noexcept {
         p->RefWindow().SetClearColor({ 1,1,1,1 });
         p->RefWindow().ShowWindow();
 
-        if (modal->GetChecked())
+        if (modal->IsChecked())
             p->RefWindow().Exec();
     };
     // LAYOUT

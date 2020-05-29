@@ -28,7 +28,7 @@ namespace Demo {
         // set base color
         void SetBaseColor(const ColorF&) noexcept;
         // checked?
-        bool IsChecked() const noexcept { return m_oStyle.state.checked; }
+        auto IsChecked() const noexcept { return m_oStyle.state & State_Checked; }
         // set checked
         void SetChecked(bool checked) noexcept;
         // toggle this

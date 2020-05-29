@@ -117,9 +117,6 @@
     <Filter Include="header\accessible">
       <UniqueIdentifier>{07e56794-4e13-4148-9934-6d21456979de}</UniqueIdentifier>
     </Filter>
-    <Filter Include="source\style\native">
-      <UniqueIdentifier>{4ff79046-1c87-49d0-af12-aa8d67ca9f6d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="source\accessible">
       <UniqueIdentifier>{64fca7be-cd69-40ce-b76a-a439e9634ae9}</UniqueIdentifier>
     </Filter>
@@ -338,32 +335,14 @@
     <ClCompile Include="..\src\core\ui_hidpi.cpp">
       <Filter>source\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\style\ui_style_state.cpp">
-      <Filter>source\style</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\graphics\ui_bd_renderer.cpp">
       <Filter>source\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\style\native\ui_win10_btn.cpp">
-      <Filter>source\style\native</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\style\native\ui_win10.cpp">
-      <Filter>source\style\native</Filter>
     </ClCompile>
     <ClCompile Include="..\src\graphics\ui_geometry.cpp">
       <Filter>source\graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src\graphics\ui_mesh.cpp">
       <Filter>source\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\style\native\ui_win10_cbx.cpp">
-      <Filter>source\style\native</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\style\native\ui_win10_radio.cpp">
-      <Filter>source\style\native</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\style\native\ui_win10_slider.cpp">
-      <Filter>source\style\native</Filter>
     </ClCompile>
     <ClCompile Include="..\src\control\ui_scale.cpp">
       <Filter>source\control</Filter>
@@ -386,17 +365,11 @@
     <ClCompile Include="..\src\control\ui_radio.cpp">
       <Filter>source\control</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\style\native\ui_win10_bg.cpp">
-      <Filter>source\style\native</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\util\ui_time_clipboard.cpp">
       <Filter>source\util</Filter>
     </ClCompile>
     <ClCompile Include="..\src\xul\SimpAX.cpp">
       <Filter>source\xul</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\style\native\ui_win10_group.cpp">
-      <Filter>source\style\native</Filter>
     </ClCompile>
     <ClCompile Include="..\src\control\ui_progress.cpp">
       <Filter>source\control</Filter>
@@ -404,14 +377,8 @@
     <ClCompile Include="..\src\control\ui_list.cpp">
       <Filter>source\control</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\style\native\ui_win10_tree.cpp">
-      <Filter>source\style\native</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\control\ui_tree.cpp">
       <Filter>source\control</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\style\native\ui_win10_abtn.cpp">
-      <Filter>source\style\native</Filter>
     </ClCompile>
     <ClCompile Include="..\src\control\ui_stackdeck.cpp">
       <Filter>source\control</Filter>
@@ -421,9 +388,6 @@
     </ClCompile>
     <ClCompile Include="..\src\control\ui_splitter.cpp">
       <Filter>source\control</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\style\native\ui_win10_tab.cpp">
-      <Filter>source\style\native</Filter>
     </ClCompile>
     <ClCompile Include="..\src\debugger\ui_debug_window.cpp">
       <Filter>source\debugger</Filter>
@@ -508,6 +472,9 @@
     </ClCompile>
     <ClCompile Include="..\src\effect\ui_shader_backimage.cpp">
       <Filter>source\effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\style\ui_win10.cpp">
+      <Filter>source\style</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1088,6 +1055,12 @@
     </ClInclude>
     <ClInclude Include="..\include\core\ui_control_state.h">
       <Filter>header\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\event\ui_indirecttf_event.h">
+      <Filter>header\event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\style\ui_behavior_type.h">
+      <Filter>header\style</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

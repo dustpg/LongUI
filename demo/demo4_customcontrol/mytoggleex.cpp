@@ -6,6 +6,7 @@
 #include <constexpr/const_bkdr.h>
 #include <util/ui_color_system.h>
 #include <core/ui_control_state.h>
+#include <core/ui_window.h>
 
 #include <util/ui_little_math.h>
 
@@ -78,7 +79,7 @@ namespace Demo {
                 const auto height = rect.bottom - rect.top;
                 const auto width = rect.right - rect.left - height;
                 const auto pos = get_delta_x() / width;
-                const auto base = m_oStyle.state.checked ? 1.f : 0.f;
+                const auto base = this->IsChecked() ? 1.f : 0.f;
                 const auto value = detail::clamp(base + pos, 0.f, 1.f);
                 if (m_value != value) {
                     m_value = value;
@@ -89,6 +90,7 @@ namespace Demo {
         case MouseEvent::Event_LButtonDown:
             // called on lbutton down
             m_point = { e.px, e.py };
+            m_pWindow->SetCapture(*this);
             break;
         case MouseEvent::Event_LButtonUp:
             // called on lbutton up
@@ -96,6 +98,8 @@ namespace Demo {
                 this->Toggle();
             else
                 this->set_checked(m_value >= 0.5f);
+            //m_pWindow->ReleaseCapture(*this);
+            m_pWindow->ForceReleaseCapture();
             break;
         }
         return Super::DoMouseEvent(e);
@@ -142,7 +146,7 @@ namespace Demo {
     /// <returns></returns>
     void MyToggleEx::SetChecked(bool checked) noexcept {
         if (this->IsDisabled()) return;
-        if (this->IsChecked() == checked) return;
+        if (!!this->IsChecked() == checked) return;
         this->set_checked(checked);
     }
 
@@ -151,22 +155,23 @@ namespace Demo {
     /// </summary>
     /// <returns></returns>
     void Demo::MyToggleEx::set_checked(bool checked) noexcept {
+        const auto targets = checked ? State_Checked : State_Non;
+        const auto targetf = checked ? 1.f : 0.f;
         // animation impl via TimeCapsule
-        //this->StartAnimation({ StyleStateType::Type_Checked , checked });
+        //this->StartAnimation({ State_Checked , targets });
         // just set it directly
-        m_oStyle.state.checked = checked;
+        m_oStyle.state = (m_oStyle.state & ~State_Checked) | targets;
         // force terminate anination if vaild
         if (m_changing) m_changing->Terminate();
-        const auto target = checked ? 1.f : 0.f;
         const auto value = m_value;
         m_changing = UIManager.CreateTimeCapsule([=](float v) noexcept {
             if (v == 1.f) {
-                m_value = target;
+                m_value = targetf;
                 m_changing = nullptr;
             }
             else {
                 const float p = LongUI::EasingFunction(Type_CubicEaseOut, v);
-                m_value = value + (target - value) * p;
+                m_value = value + (targetf - value) * p;
             }
             this->Invalidate();
         }, m_time, this);

@@ -28,7 +28,7 @@ namespace Demo {
         // set base color
         void SetBaseColor(const ColorF&) noexcept;
         // checked?
-        bool IsChecked() const noexcept { return m_oStyle.state.checked; }
+        auto IsChecked() const noexcept { return m_oStyle.state & State_Checked; }
         // set checked
         void SetChecked(bool checked) noexcept;
         // toggle this
@@ -46,7 +46,7 @@ namespace Demo {
         // add attribute
         void add_attribute(uint32_t attr, U8View view) noexcept override;
         // set checked
-        void set_checked(bool) noexcept;
+        void set_checked(bool checked) noexcept;
     private:
         // base color
         ColorF                  m_base = {};

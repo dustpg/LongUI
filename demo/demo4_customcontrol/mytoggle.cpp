@@ -111,11 +111,12 @@ namespace Demo {
     void MyToggle::SetChecked(bool checked) noexcept {
         if (this->IsDisabled()) return;
         if (this->m_changing) return;
-        if (this->IsChecked() == checked) return;
+        if (!!this->IsChecked() == checked) return;
         // animation impl via TimeCapsule
-        //this->StartAnimation({ StyleStateType::Type_Checked , checked });
+        //this->StartAnimation({ State_Checked , checked ? State_Checked : State_Non });
         // just set it directly
-        m_oStyle.state.checked = checked;
+        m_oStyle.state = m_oStyle.state ^ State_Checked;
+
         this->m_changing = true;
         const auto value = m_value;
         UIManager.CreateTimeCapsule([=](float v) noexcept {
