@@ -70,7 +70,7 @@ LongUI::UIMenu::~UIMenu() noexcept {
 LongUI::UIMenu::UIMenu(UIControl* parent, const MetaControl& meta) noexcept
     : Super(impl::ctor_lock(parent), meta) {
     m_bMenuBar = true;
-    m_type = UIButton::Type_Menu;
+    m_type = BehaviorType::Type_Menu;
     m_oBox.margin = { 0 };
     m_oBox.padding = { 2, 2, 2, 2 };
     // 构造锁
@@ -189,10 +189,9 @@ void LongUI::UIMenu::try_show_next_level_menu() noexcept {
     // 显示了就不算
     if (m_pMenuPopup->RefWindow().IsVisible()) return;
     // CHECK状态
-    constexpr auto ct = StyleStateType::Type_Checked;
-    this->StartAnimation({ ct, true });
+    this->StartAnimation({ State_Closed, State_Closed });
     // XXX: 出现在右侧
-    const auto edge = this->GetBox().GetBorderEdge();
+    const auto edge = this->RefBox().GetBorderEdge();
     const auto pos = this->MapToWindowEx({ edge.right, -1 });
     LongUI::PopupWindowFromViewport(
         *this,

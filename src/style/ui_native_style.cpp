@@ -9,11 +9,6 @@
 
 // ui namespace
 namespace LongUI {
-    // some constant
-    enum : uint32_t {
-        // basic animation duration(unit: ms)
-        BASIC_ANIMATION_DURATION = 200,
-    };
     // unused style
     using CUINativeStyleNow = CUINativeStyleWindows10;
     // impl
@@ -49,38 +44,9 @@ namespace LongUI {
 /// <param name="args">The arguments.</param>
 /// <returns></returns>
 auto LongUI::NativeStyleDuration(const GetDurationArgs args) noexcept -> uint32_t {
-    // XXX: 理论应该放在CUINativeStyle里面
-    // TODO: 不同类型甚至不同状态动画时长都不一样
-    // TODO: 让一直是0的放在一起
-
-    // 分类
-    switch (args.appearance)
-    {
-    case LongUI::Appearance_ListBox:
-    case LongUI::Appearance_Caption:
-    case LongUI::Appearance_GroupBox:
-    case LongUI::Appearance_StatusBar:
-    case LongUI::Appearance_TabPanels:
-    case LongUI::Appearance_ProgressBarH:
-    case LongUI::Appearance_ProgressBarV:
-    case LongUI::Appearance_StatusBarPanel:
-    case LongUI::Appearance_ProgressChunkH:
-    case LongUI::Appearance_ProgressChunkV:
-    case LongUI::Appearance_TreeRowModeCell:
-    case LongUI::Appearance_CheckBoxContainer:
-    case LongUI::Appearance_ScrollbarTrackH:
-    case LongUI::Appearance_ScrollbarTrackV:
-    case LongUI::Appearance_DropDownMarker:
-    case LongUI::Appearance_MenuSeparator:
-    case LongUI::Appearance_MenuArrow:
-    case LongUI::Appearance_Separator:
-    case LongUI::Appearance_Resizer:
-        return 0;
-    case LongUI::Appearance_Tab:
-        return BASIC_ANIMATION_DURATION * 2;
-    default:
-        return BASIC_ANIMATION_DURATION;
-    }
+    const auto ptr = UIManager.GetNativeRenderer();
+    const auto style = static_cast<CUINativeStyleNow*>(ptr);
+    return style->NativeStyleDuration(args);
 }
 
 /// <summary>
@@ -89,8 +55,9 @@ auto LongUI::NativeStyleDuration(const GetDurationArgs args) noexcept -> uint32_
 /// <param name="now">The now.</param>
 /// <returns></returns>
 auto LongUI::NativeFgColor(StyleState now) noexcept -> uint32_t {
-    // XXX: 理论应该放在CUINativeStyle里面
-    return now.disabled ? 0x838383ff_rgba : 0x000000ff_rgba;
+    const auto ptr = UIManager.GetNativeRenderer();
+    const auto style = static_cast<CUINativeStyleNow*>(ptr);
+    return style->NativeFgColor(now);
 }
 
 PCN_NOINLINE

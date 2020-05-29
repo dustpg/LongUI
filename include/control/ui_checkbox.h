@@ -51,11 +51,11 @@ namespace LongUI {
         // set image source
         void SetImageSource(U8View src) noexcept;
         // get checked
-        auto GetChecked() const noexcept { return m_oStyle.state.checked; }
+        auto IsChecked() const noexcept { return m_oStyle.state & State_Checked; }
         // get indeterminate
-        auto GetIndeterminate() const noexcept { return m_oStyle.state.indeterminate; }
+        auto IsIndeterminate() const noexcept { return m_oStyle.state & State_Indeterminate; }
         // toggle this
-        void Toggle() noexcept { return this->SetChecked(!this->GetChecked()); }
+        void Toggle() noexcept { return this->SetChecked(!this->IsChecked()); }
         // get text
         auto GetText() const noexcept ->const char16_t*;
         // ref text- string object
@@ -83,11 +83,11 @@ namespace LongUI {
         // input event
         auto DoInputEvent(InputEventArg e) noexcept->EventAccept override;
     public:
+        // update this
+        void Update(UpdateReason) noexcept override;
 #ifdef LUI_DRAW_FOCUS_RECT
         // trigger
         auto TriggerEvent(GuiEvent event) noexcept->EventAccept override;
-        // update this
-        void Update(UpdateReason) noexcept override;
         // update
         void UpdateFocusRect() const noexcept;
 #endif

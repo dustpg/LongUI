@@ -42,6 +42,8 @@ namespace LongUI {
     class UITreeItem : public UIControl {
         // super class
         using Super = UIControl;
+        // friend
+        friend UITree; friend UITreeChildren;
     protected:
         // ctor
         UITreeItem(UIControl* parent, const MetaControl&) noexcept;
@@ -60,7 +62,7 @@ namespace LongUI {
         // get tree
         auto GetTreeNode() const noexcept { return m_pTree; };
         // is selected?
-        auto IsSelected() const noexcept { return m_oStyle.state.selected; }
+        auto IsSelected() const noexcept { return m_oStyle.state & State_Selected; }
         // is container[from xml-attribute]
         auto IsContainer()const noexcept { return m_bContainer; }
         // is opened ?
@@ -107,8 +109,6 @@ namespace LongUI {
         void refresh_minsize(UIControl* head) noexcept;
         // is last item
         bool cal_is_last_item() const noexcept;
-        // mark tree node
-        void mark_tree_node() noexcept;
     protected:
         // selected cell
         UITreeCell*             m_pSelected = nullptr;

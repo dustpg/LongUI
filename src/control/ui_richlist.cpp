@@ -69,9 +69,10 @@ void LongUI::UIRichListBox::add_child(UIControl& ctrl) noexcept {
 void LongUI::UIRichListBox::SelectItem(UIRichListItem* item) noexcept {
     assert(item || item->GetParent() == this);
     if (item == m_pSelectedItem) return;
-    if (m_pSelectedItem) m_pSelectedItem->set_selected(false);
+    const auto prev_item = m_pSelectedItem;
     m_pSelectedItem = item;
-    if (m_pSelectedItem) m_pSelectedItem->set_selected(true);
+    if (prev_item) prev_item->StartAnimation({ State_Selected ,State_Non });
+    if (item) item->StartAnimation({ State_Selected ,State_Selected });
 }
 
 
@@ -125,16 +126,6 @@ LongUI::UIRichListItem::~UIRichListItem() noexcept {
     if (const auto box = longui_cast<UIRichListBox*>(m_pParent)) {
         box->ItemDetached(*this);
     }
-}
-
-/// <summary>
-/// Sets the selected.
-/// </summary>
-/// <param name="sel">if set to <c>true</c> [sel].</param>
-/// <returns></returns>
-void LongUI::UIRichListItem::set_selected(bool sel) noexcept {
-    const StyleStateTypeChange c{ StyleStateType::Type_Selected, sel };
-    this->StartAnimation(c);
 }
 
 /// <summary>

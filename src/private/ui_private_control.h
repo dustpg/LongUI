@@ -57,8 +57,8 @@ struct LongUI::UIControlPrivate {
     static void SetOrient(UIControl& ctrl, bool o) noexcept { ctrl.m_state.orient = o; }
     // is need rerelayout
     //static auto IsNeedRelayout(const UIControl& ctrl) noexcept { return ctrl.is_need_relayout(); }
-    // is atomicity
-    static auto IsAtomicity(const UIControl& ctrl) noexcept { return ctrl.m_state.atomicity; }
+    // is mouse_continue
+    static auto IsMouseCon(const UIControl& ctrl) noexcept { return ctrl.m_state.mouse_continue; }
     // is dirty
     static auto IsInDirty(const UIControl& ctrl) noexcept { return ctrl.is_in_dirty_list(); }
     // dirty = true
@@ -79,8 +79,6 @@ struct LongUI::UIControlPrivate {
     static auto SetParentData(UIControl& ctrl, uint32_t data) noexcept { return ctrl.m_uData4Parent = data; }
     // set gui event to parent
     static void SetGuiEvent2Parent(UIControl& ctrl) noexcept { ctrl.m_state.gui_event_to_parent = true; }
-    // call add child
-    static void CallAddChild(UIControl& ctrl, UIControl& child) noexcept { ctrl.add_child(child); }
     // prev control
     static auto&Prev(UIControl& ctrl) noexcept { return *ctrl.prev; }
     // next control

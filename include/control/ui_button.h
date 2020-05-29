@@ -27,6 +27,7 @@
 // super
 #include "ui_boxlayout.h"
 #include "../core/ui_core_type.h"
+#include "../style/ui_behavior_type.h"
 // base
 #include "ui_image.h"
 #include "ui_label.h"
@@ -42,13 +43,6 @@ namespace LongUI {
     public:
         // min button width
         //enum { MIN_BUTTON_WIDTH = 175 };
-        // button type
-        enum ButtonType : uint8_t {
-            Type_Normal = 0,    // normal type
-            Type_Checkbox,      // toggle button
-            Type_Radio,         // radio-like button
-            Type_Menu,          // menu
-        };
         // class meta
         static const  MetaControl   s_meta;
         // dtor
@@ -81,13 +75,13 @@ namespace LongUI {
         // set text
         void SetText(U16View text) noexcept;
         // is checked?
-        auto IsChecked() const noexcept { return m_oStyle.state.checked; }
+        auto IsChecked() const noexcept { return m_oStyle.state & State_Checked; }
     public:
         // do event
         auto DoEvent(UIControl * sender, const EventArg & e) noexcept->EventAccept override;
-#ifdef LUI_DRAW_FOCUS_RECT
         // update this
         void Update(UpdateReason) noexcept override;
+#ifdef LUI_DRAW_FOCUS_RECT
         // Update Focus Rect
         void UpdateFocusRect() const noexcept;
         // trigger event
@@ -109,8 +103,6 @@ namespace LongUI {
         // accessible event
         auto accessible(const AccessibleEventArg&) noexcept->EventAccept override;
 #endif
-        // parse button type
-        static auto parse_button_type(U8View) noexcept->ButtonType;
     private: // private control impl
         // private image
         UIImage             m_oImage;
@@ -123,7 +115,7 @@ namespace LongUI {
         // menupopup
         UIMenuPopup*        m_pMenuPopup = nullptr;
         // button type
-        ButtonType          m_type = Type_Normal;
+        BehaviorType        m_type = BehaviorType::Type_Normal;
         // toolbar button   :<UIToolBarButton>
         bool                m_bToolBar = false;
         // menu button      :<UIMenu>

@@ -911,7 +911,7 @@ void LongUI::CUIWindow::ControlDisattached(UIControl& ctrl) noexcept {
     // 清除
     const auto cleanup = [this, &ctrl]() noexcept {
         // 强制重置
-        ctrl.m_oStyle.state.focus = false;
+        ctrl.m_oStyle.state = ctrl.m_oStyle.state & ~State_Focus;
         m_pMiniWorldChange = nullptr;
         pimpl()->dirty_count_recording = 0;
     };
@@ -1015,7 +1015,7 @@ bool LongUI::CUIWindow::SetFocus(UIControl& ctrl) noexcept {
     if (focused) this->KillFocus(*focused);
     // 设为焦点
     focused = &ctrl;
-    ctrl.StartAnimation({ StyleStateType::Type_Focus, true });
+    ctrl.StartAnimation({ State_Focus, State_Non });
     // Focus 事件
     ctrl.TriggerEvent(UIControl::_onFocus());
     return true;
@@ -1065,7 +1065,7 @@ bool LongUI::CUIWindow::FocusNext() noexcept {
     const auto find_next = [](UIControl* node) noexcept {
         while (true) {
             node = node->m_oManager.next_tabstop;
-            if (!node || node->IsEnabled()) break;
+            if (!node || (node->IsEnabled() && node->IsVisibleEx())) break;
         }
         return node;
     };
@@ -1141,6 +1141,14 @@ bool LongUI::CUIWindow::ReleaseCapture(UIControl& ctrl) noexcept {
 }
 
 /// <summary>
+/// force release
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIWindow::ForceReleaseCapture() noexcept {
+    pimpl()->captured = nullptr;
+}
+
+/// <summary>
 /// Kills the focus.
 /// </summary>
 /// <param name="ctrl">The control.</param>
@@ -1149,7 +1157,7 @@ void LongUI::CUIWindow::KillFocus(UIControl& ctrl) noexcept {
     if (pimpl()->focused == &ctrl) {
         pimpl()->focused = nullptr;
         //m_private->saved_focused = nullptr;
-        ctrl.StartAnimation({ StyleStateType::Type_Focus, false });
+        ctrl.StartAnimation({ State_Focus, State_Non });
         // Blur 事件
         ctrl.TriggerEvent(UIControl::_onBlur());
     }
@@ -1179,7 +1187,7 @@ void LongUI::CUIWindow::InvalidateControl(UIControl& ctrl, const RectF* rect) no
     if (pimpl()->is_fr_for_update()) return;
     // TODO: 相对矩形
     assert(rect == nullptr && "unsupported yet");
-    pimpl()->MarkDirtRect({ &ctrl, ctrl.GetBox().visible });
+    pimpl()->MarkDirtRect({ &ctrl, ctrl.RefBox().visible });
 }
 
 
@@ -1207,10 +1215,9 @@ bool LongUI::CUIWindow::IsFullRenderThisFrame() const noexcept {
 void LongUI::CUIWindow::SetDefault(UIControl& ctrl) noexcept {
     assert(this && "null this ptr");
     if (!ctrl.IsDefaultable()) return;
-    constexpr auto dtype = StyleStateType::Type_Default;
     auto& nowc = pimpl()->now_default;
-    if (nowc) nowc->StartAnimation({ dtype, false });
-    (nowc = &ctrl)->StartAnimation({ dtype, true });
+    if (nowc) nowc->StartAnimation({ State_Default, State_Non });
+    (nowc = &ctrl)->StartAnimation({ State_Default, State_Default });
 }
 
 /// <summary>
@@ -1974,7 +1981,7 @@ void LongUI::CUIWindow::Private::OnAccessKey(uintptr_t i) noexcept {
     // 正式处理
     CUIDataAutoLocker locker;
     const auto ctrl = this->access_key_map[i];
-    if (ctrl && ctrl->IsEnabled() && ctrl->IsVisibleToRoot()) {
+    if (ctrl && ctrl->IsEnabled() && ctrl->IsVisibleEx()) {
         ctrl->DoEvent(nullptr, { NoticeEvent::Event_DoAccessAction, 0 });
     }
     else ::longui_error_beep();
@@ -2146,20 +2153,6 @@ void LongUI::CUIWindow::Private::RegisterWindowClass() noexcept {
     ::RegisterClassExW(&wcex);
 }
 
-
-#ifdef LUI_BETA_CTOR_LOCKER
-/// <summary>
-/// in creating
-/// </summary>
-/// <param name="b"></param>
-/// <returns></returns>
-void LongUI::CUIWindow::SetInCreating() noexcept {
-    CUIRenderAutoLocker locker;
-    pimpl()->in_creating = true;
-    static_assert(false, "not impl");
-}
-#endif
-
 /// <summary>
 /// Sets the native icon data.
 /// </summary>
@@ -2267,7 +2260,7 @@ void LongUI::CUIWindow::Private::BeforeRender(const Size2F size) noexcept {
         assert(data.control && data.control->GetWindow());
         itr = impl::mark_two_rect_dirty(
             data.rectangle,
-            data.control->GetBox().visible,
+            data.control->RefBox().visible,
             size,
             itr
         );

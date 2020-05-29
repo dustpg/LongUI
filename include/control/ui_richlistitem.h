@@ -46,8 +46,6 @@ namespace LongUI {
         // mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
     protected:
-        // set selected
-        void set_selected(bool) noexcept;
         // lui std ctor
         UIRichListItem(UIControl* parent, const MetaControl&) noexcept;
     };

@@ -127,7 +127,7 @@ void LongUI::UIImage::Render() const noexcept {
     // 图像有效
     if (m_idSrc.GetId()) {
         // 将目标画在内容区
-        auto des_rect = this->GetBox().GetContentEdge();
+        auto des_rect = this->RefBox().GetContentEdge();
         // 居中显示
 #if 0
         if (m_bAsIcon) {

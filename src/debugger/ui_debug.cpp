@@ -239,8 +239,8 @@ void LongUI::CUIDebug::OutputString(
 /// 获取调试实例
 /// </summary>
 /// <returns></returns>
-auto LongUI::CUIDebug::GetInstance() noexcept->CUIDebug& {
-    return LongUI::CUIManager::GetInstance();
+auto LongUI::CUIDebug::RefInstance() noexcept->CUIDebug& {
+    return LongUI::CUIManager::RefInstance();
 }
 
 
@@ -548,7 +548,7 @@ auto LongUI::CUIDebug::operator<<(const UIControl* ctrl) noexcept ->CUIDebug& {
     }
     if (ctrl) str.format(
         "<%s~%s>", 
-        ctrl->GetMetaInfo().element_name, 
+        ctrl->RefMetaInfo().element_name, 
         ctrl->name_dbg
     );
     this->OutputNoFlush(m_lastLevel, str.c_str());
@@ -684,8 +684,30 @@ auto LongUI::CUIDebug::operator<<(MouseEvent e) noexcept ->CUIDebug& {
 /// </summary>
 /// <param name="e">The e.</param>
 /// <returns></returns>
-auto LongUI::CUIDebug::operator<<(StyleStateTypeChange e) noexcept->CUIDebug& {
-    const char* type_name ;
+auto LongUI::CUIDebug::operator<<(StyleStateChange e) noexcept->CUIDebug& {
+    const auto get_string = [](StyleState state) noexcept {
+        CUIString text;
+        if (state & State_Selected) 
+            text += u"[selected]"_sv;
+        if (state & State_Default) 
+            text += u"[default]"_sv;
+        if (state & State_Disabled) 
+            text += u"[disabled]"_sv;
+        if (state & State_Hover) 
+            text += u"[hover]"_sv;
+        if (state & State_Active) 
+            text += u"[active]"_sv;
+        if (state & State_Focus) 
+            text += u"[focus]"_sv;
+        if (state & State_Checked) 
+            text += u"[checked]"_sv;
+        if (state & State_Indeterminate) 
+            text += u"[indeterminate]"_sv;
+        if (state & State_Closed) 
+            text += u"[closed]"_sv;
+        return text;
+    };
+#if 0
     switch (e.type)
     {
     default: type_name = "[unkown]"; break;
@@ -702,7 +724,9 @@ auto LongUI::CUIDebug::operator<<(StyleStateTypeChange e) noexcept->CUIDebug& {
     case LongUI::StyleStateType::Type_Closed    :type_name = "[closed]"; break;
     case LongUI::StyleStateType::Type_NA_TabAfterSelectedTab:type_name = "[tab after seltab]"; break;
     }
-    return *this << type_name << " -> " << e.change;
+#endif
+    return *this << get_string(e.state_mask) 
+        << " -> " << get_string(e.state_change);
 }
 
 /// <summary>

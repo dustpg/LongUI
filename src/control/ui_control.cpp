@@ -33,13 +33,6 @@ namespace LongUI {
     void DeleteControl(UIControl* ctrl) noexcept { 
         delete ctrl; 
     }
-    // 计时器函数
-    //void OnTimer(UIControl& ctrl, uint32_t id) noexcept {
-    //    assert(id < 4 && "bad id");
-    //    constexpr auto eid = static_cast<uint32_t>(NoticeEvent::Event_Timer0);
-    //    const auto nid = static_cast<NoticeEvent>(eid + id);
-    //    ctrl.DoEvent(nullptr, { nid });
-    //}
     // 删除控件
     bool CheckControlDeleteLater(const UIControl& ctrl) noexcept {
         return ctrl.IsDeleteLater();
@@ -49,17 +42,11 @@ namespace LongUI {
         ctrl.MarkDeleteLater();
     }
     // 创建UIControl
-    static UIControl* create_UIControl(UIControl* p) noexcept {
+    static UIControl* CreateControl(UIControl* p) noexcept {
         return new(std::nothrow) UIControl{ p };
     }
     // UIControll类 元信息
-    const MetaControl UIControl::s_meta = {
-        nullptr,
-        "ctrl",
-        create_UIControl
-    };
-    // private 实现
-    //struct UIControl::Private { };
+    const MetaControl UIControl::s_meta = { nullptr,"ctrl",CreateControl };
 }
 
 
@@ -174,15 +161,8 @@ bool LongUI::UIControl::IsDescendantOrSiblingFor(const UIControl& ctrl) const no
 void LongUI::UIControl::resize_child(UIControl& child, Size2F size) noexcept {
     // 无需修改
     if (IsSameInGuiLevel(child.m_oBox.size, size)) return;
-    // XXX: 需要修改世界矩阵?
-    if (!std::strcmp(child.m_id.id, "this")) {
-        int bk = 9;
-    }
-    // 需要重新布局
+    child.mark_world_changed();
     child.NeedUpdate(Reason_SizeChanged);
-    // 重新渲染
-    child.Invalidate();
-    // 确定修改
     child.m_oBox.size = size;
 }
 
@@ -200,7 +180,6 @@ bool LongUI::UIControl::Resize(Size2F size) noexcept {
     this->NeedUpdate(Reason_SizeChanged);
     this->mark_world_changed();
     m_oBox.size = size;
-
     return true;
 }
 
@@ -210,6 +189,11 @@ bool LongUI::UIControl::Resize(Size2F size) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIControl::mark_world_changed() noexcept {
+#ifndef NDEBUG
+    //if (!std::strcmp(m_id.id, "btn1")) {
+    //    int bk = 9;
+    //}
+#endif // !NDEBUG
     m_state.world_changed = true;
     this->NeedUpdate(Reason_NonChanged);
 }
@@ -327,6 +311,9 @@ void LongUI::UIControl::SpecifyMaxSize(Size2F size) noexcept {
 }
 #endif
 
+
+
+#if 0
 /// <summary>
 /// Starts the animation bottom up.
 /// </summary>
@@ -346,6 +333,7 @@ void LongUI::UIControl::start_animation_children(StyleStateTypeChange c) noexcep
     for (auto& child : *this) child.StartAnimation(c);
 }
 
+
 /// <summary>
 /// Finds the clicked.
 /// </summary>
@@ -359,6 +347,7 @@ auto LongUI::UIControl::take_clicked() noexcept->UIControl* {
     }
     return ctrl;
 }
+#endif
 
 
 
@@ -367,10 +356,16 @@ auto LongUI::UIControl::take_clicked() noexcept->UIControl* {
 /// </summary>
 /// <returns></returns>
 auto LongUI::UIControl::init() noexcept -> Result {
-    // 空指针
-    if (!this) return{ Result::RE_OUTOFMEMORY };
+    assert(this && "bad action");
     assert(m_state.inited == false && "this control has been inited");
-    m_state.inited = true;
+    // 加入父节点
+    if (!m_state.added_to_parent) {
+        if (m_pParent) {
+            const auto parent = m_pParent;
+            m_pParent = nullptr;
+            parent->add_child(*this);
+        }
+    }
     // XXX: 注册访问按键
     if (m_oStyle.accessKey >= 'A' && m_oStyle.accessKey <= 'Z' && m_pWindow)
         m_pWindow->RegisterAccessKey(*this);
@@ -388,7 +383,7 @@ auto LongUI::UIControl::init() noexcept -> Result {
         constexpr auto defapp = Appearance_None;
         UIControlPrivate::SetAppearanceIfNotSet(*this, defapp);
         // 依赖类型初始化控件
-        LongUI::NativeStyleInit(*this, this->GetStyle().appearance);
+        LongUI::NativeStyleInit(*this, this->RefStyle().appearance);
         // 重建对象
         UIManager.RenderLock();
         hr = this->Recreate(false);
@@ -400,8 +395,12 @@ auto LongUI::UIControl::init() noexcept -> Result {
     }
     // 设置初始化状态
     this->setup_init_state();
+    // 初始化完毕
+    m_state.inited = true;
     // 链接窗口
     m_pWindow->ControlAttached(*this);
+    // TODO: 应该截断错误
+    assert(hr);
     return hr;
 }
 
@@ -413,7 +412,7 @@ void LongUI::UIControl::setup_init_state() noexcept {
     // FIXME: 貌似(?)是错误的实现
     if (m_oStyle.appearance != Appearance_None) {
         // 静止
-        if (m_oStyle.state.disabled) {
+        if (this->IsDisabled()) {
             const auto color = LongUI::NativeFgColor(m_oStyle.state);
             this->SetFgColor({ color });
         }
@@ -579,11 +578,13 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
     case BKDR_DISABLED:
         // disabled   : 禁用状态
         //if (value) m_oStyle.state.disabled = true;
-        m_oStyle.state.disabled = value.ToBool();
+        if (value.ToBool())
+            m_oStyle.state = m_oStyle.state | State_Disabled;
         break;
     case BKDR_CHECKED:
         // checked
-        m_oStyle.state.checked = value.ToBool();
+        if (value.ToBool())
+            m_oStyle.state = m_oStyle.state | State_Checked;
         break;
     case BKDR_DEFAULT:
         // default    : 窗口初始默认控件
@@ -681,7 +682,7 @@ PCN_NOINLINE
 /// <returns></returns>
 bool LongUI::UIControl::IsPointInsideBorder(Point2F pos) const noexcept {
     this->MapFromWindow(luiref pos);
-    const auto rect = this->GetBox().GetBorderEdge();
+    const auto rect = this->RefBox().GetBorderEdge();
     return LongUI::IsInclude(rect, pos);
 }
 
@@ -813,7 +814,7 @@ void LongUI::UIControl::MapToParent(Point2F& point) const noexcept {
 /// <param name="p">The p.</param>
 /// <returns></returns>
 auto LongUI::impl::ctor_lock(UIControl* p) noexcept -> UIControl * {
-#ifdef LUI_BETA_CTOR_LOCKER
+#ifdef LUI_USING_CTOR_LOCKER
     UIManager.RefCtorLocker().Lock();
 #else
     UIManager.DataLock();
@@ -827,7 +828,7 @@ auto LongUI::impl::ctor_lock(UIControl* p) noexcept -> UIControl * {
 /// <param name="p">The p.</param>
 /// <returns></returns>
 void LongUI::impl::ctor_unlock() noexcept {
-#ifdef LUI_BETA_CTOR_LOCKER
+#ifdef LUI_USING_CTOR_LOCKER
     UIManager.RefCtorLocker().Unlock();
 #else
     UIManager.DataUnlock();
@@ -857,11 +858,16 @@ void LongUI::UIControl::ControlMakingEnd() noexcept {
 /// Initializes a new instance of the <see cref="UIControl"/> class.
 /// </summary>
 LongUI::UIControl::UIControl(UIControl* parent, const MetaControl& meta) noexcept : 
-m_pParent(nullptr), m_refMetaInfo(meta) {
+m_pParent(parent), m_refMetaInfo(meta) {
     Node::next = nullptr;
     Node::prev = nullptr;
     m_ptChildOffset = { 0, 0 };
     m_mtWorld = { 1, 0, 0, 1, 0, 0 };
+    // 存在
+    if (parent) {
+        m_pWindow = parent->m_pWindow;
+        parent->m_state.added_to_this = true;
+    }
     m_oBox.Init();
     m_state.Init();
     m_oBox.size = { INVALID_CONTROL_SIZE, INVALID_CONTROL_SIZE };
@@ -875,8 +881,6 @@ m_pParent(nullptr), m_refMetaInfo(meta) {
 #endif
     // 构造锁
     impl::ctor_lock(nullptr);
-    // 添加到父节点的子节点链表中
-    if (parent) parent->add_child(*this);
     // 延迟初始化
     UIManager.AddInitList(*this);
 #ifndef NDEBUG
@@ -927,12 +931,10 @@ auto LongUI::UIControl::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
             return EventAccept(m_pWindow->FocusNext());
         case CUIInputKM::KB_SPACE:
             // 持续按下不算
-            if (m_oStyle.state.active) return Event_Ignore;
+            if (this->IsActive()) return Event_Ignore;
             //LUIDebug(Hint) << this << endl;
             // 相当于按下鼠标左键
-            this->StartAnimation({ StyleStateType::Type_Active, true });
-            if (m_state.atomicity)
-                this->start_animation_children({ StyleStateType::Type_Active, true });
+            this->StartAnimation({ State_Active, State_Active });
             // 必须可以设为焦点 设为捕捉控件
             m_pWindow->SetCapture(*this);
             return Event_Accept;
@@ -951,12 +953,14 @@ auto LongUI::UIControl::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
         case CUIInputKM::KB_SPACE:
             //LUIDebug(Hint) << this << endl;
             // 相当于弹起鼠标左键
-            if (m_state.atomicity)
-                this->start_animation_children({ StyleStateType::Type_Active, false });
-            this->StartAnimation({ StyleStateType::Type_Active, false });
+            this->StartAnimation({ State_Active, State_Non });
+            assert(m_pWindow);
+#ifndef NDEBUG
             if (!m_pWindow->ReleaseCapture(*this)) {
-                assert(!"NOT IMPL");
+                assert(!"BUG??");
             }
+#endif
+            m_pWindow->ForceReleaseCapture();
             // XXX: 调用_onClick?
             return Event_Accept;
         }
@@ -992,7 +996,7 @@ auto LongUI::UIControl::calculate_child_at(uint32_t index) noexcept -> UIControl
     return child;
 }
 
-
+#if 0
 /// <summary>
 /// Mouses the under atomicity.
 /// </summary>
@@ -1046,6 +1050,7 @@ auto LongUI::UIControl::mouse_under_atomicity(const MouseEventArg& e) noexcept -
     }
     return Event_Ignore;
 }
+#endif
 
 /// <summary>
 /// Does the tooltip.
@@ -1088,19 +1093,8 @@ void LongUI::UIControl::release_tooltip() noexcept {
 /// <param name="e">The e.</param>
 /// <returns></returns>
 auto LongUI::UIControl::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAccept {
-    // 检查原子性
-    if (m_state.atomicity) return mouse_under_atomicity(e);
     using Pc = UIControlPrivate;
     EventAccept s = EventAccept::Event_Ignore;
-    /*
-        XXX: 将switch处理分成两部分
-
-        switch [1]
-        if (m_pHovered && m_pHovered->IsEnabled()) {
-            if (m_pHovered->DoMouseEvent(e)) return Event_Accept;
-        }
-        switch [2]
-    */
 
     // 自己处理消息
     switch (e.type)
@@ -1108,16 +1102,16 @@ auto LongUI::UIControl::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
     case LongUI::MouseEvent::Event_MouseWheelV:
     case LongUI::MouseEvent::Event_MouseWheelH:
         // 检查指向控件是否处理
-        return (m_pHovered && m_pHovered->IsEnabled() 
+        return (m_state.mouse_continue && m_pHovered && m_pHovered->IsEnabled()
             && m_pHovered->DoMouseEvent(e)) ?
             Event_Accept : Event_Ignore;
     case LongUI::MouseEvent::Event_MouseEnter:
         // 检查是否存在动画
-        this->StartAnimation({ StyleStateType::Type_Hover, true });
+        this->StartAnimation({ State_Hover, State_Hover });
         // 截断ENTER ENTER消息
         return Event_Accept;
     case LongUI::MouseEvent::Event_MouseLeave:
-        this->StartAnimation({ StyleStateType::Type_Hover, false });
+        this->StartAnimation({ State_Hover, State_Non });
         // 即便Disabled也可以收到LEAVE/ENTER消息
         if (m_pHovered) {
             UIControlPrivate::DoMouseLeave(*m_pHovered, { e.px, e.py });
@@ -1138,19 +1132,20 @@ auto LongUI::UIControl::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
             m_pHovered = child;
             this->NeedUpdate(Reason_HoveredChanged);
         }
-        if (child && child->IsEnabled()) return child->DoMouseEvent(e);
+        if (m_state.mouse_continue && child && child->IsEnabled()) 
+            return child->DoMouseEvent(e);
         // 处理MOUSE消息
         return Event_Accept;
     }
     case LongUI::MouseEvent::Event_MouseIdleHover:
         // 子控件优先处理事件
-        if (m_pHovered && m_pHovered->IsEnabled()) {
+        if (m_state.mouse_continue && m_pHovered && m_pHovered->IsEnabled()) {
             if (m_pHovered->DoMouseEvent(e)) return Event_Accept;
         }
         return this->do_tooltip({ e.px, e.py });
     case LongUI::MouseEvent::Event_LButtonDown:
         s = Event_Accept;
-        this->StartAnimation({ StyleStateType::Type_Active, true });
+        this->StartAnimation({ State_Active, State_Active });
         m_pWindow->SetDefault(*this);
         // 可以设为焦点-设为捕捉控件
         if (this->SetFocus()) m_pWindow->SetCapture(*this);
@@ -1159,16 +1154,19 @@ auto LongUI::UIControl::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
     case LongUI::MouseEvent::Event_LButtonUp:
         // 不可用则弃用
         if (m_pClicked && !m_pClicked->IsEnabled()) m_pClicked = nullptr;
-        // 释放捕捉成功: 截断消息, 自下而上释放ACTIVE状态
+        this->StartAnimation({ State_Active, State_Non });
+        // 释放捕捉成功: 截断消息
         if (m_pWindow->ReleaseCapture(*this)) {
-            const auto c = this->take_clicked();
-            c->start_animation_b2u({ StyleStateType::Type_Active, false });
+            //assert(!"NOT IMPL");
+            //const auto c = this->take_clicked();
+            //c->start_animation_b2u({ StyleStateType::Type_Active, false });
         }
-        // 释放失败: 仅仅释放自己, 继续传递消息
+        // 释放失败:  继续传递消息
         else {
-            this->StartAnimation({ StyleStateType::Type_Active, false });
+            //this->StartAnimation({ State_Active, State_Non });
             // 存在点击的
-            if (m_pClicked) m_pClicked->DoMouseEvent(e);
+            if (m_state.mouse_continue && m_pClicked) 
+                m_pClicked->DoMouseEvent(e);
         }
         // 触发[onclick]事件
         this->TriggerEvent(_onClick());
@@ -1224,7 +1222,7 @@ LongUI::UIControl::~UIControl() noexcept {
     // 清理渲染器
     this->delete_renderer();
     // 清除父节点中的自己
-    if (m_pParent) {
+    if (m_pParent && m_state.added_to_parent) {
         m_pParent->remove_child(*this);
 #ifndef NDEBUG
         m_pParent = nullptr;
@@ -1327,11 +1325,11 @@ auto LongUI::UIControl::FindChild(const Point2F pos) noexcept -> UIControl* {
         //        << "M["
         //        << pos
         //        << "]"
-        //        << ctrl.GetBox().visible
+        //        << ctrl.RefBox().visible
         //        << endl;
         //}
 #endif
-        if (ctrl.IsVisible() && IsInclude(ctrl.GetBox().visible, pos)) {
+        if (ctrl.IsVisible() && IsInclude(ctrl.RefBox().visible, pos)) {
             if (ctrl.m_state.attachment == Attachment_Fixed)
                 return &ctrl;
             else
@@ -1488,22 +1486,25 @@ void LongUI::UIControl::RemoveStyleClass(U8View pair) noexcept {
 /// <returns></returns>
 void LongUI::UIControl::SetDisabled(bool disabled) noexcept {
     // 一样就算了
-    if (m_oStyle.state.disabled == disabled) return;
-    // 标记自己和所有后代处于[enable]状态
-    this->StartAnimation({ StyleStateType::Type_Disabled, disabled });
+    if (!!this->IsDisabled() == disabled) return;
+    const auto target = disabled ? State_Disabled : State_Non;
     // 禁止的话清除焦点状态
     if (disabled) this->KillFocus();
+    // 标记自己和所有后代处于[enable]状态
+    this->StartAnimation({ State_Disabled, target });
+#if 0
     // 原子控件除外, 因为对外是一个控件
     if (m_state.atomicity) return;
     // 递归调用
     for (auto& child : (*this)) child.SetDisabled(disabled);
+#endif
 }
 
 /// <summary>
 /// Determines whether [is visible to root].
 /// </summary>
 /// <returns></returns>
-bool LongUI::UIControl::IsVisibleToRoot() const noexcept {
+bool LongUI::UIControl::IsVisibleEx() const noexcept {
     auto ctrl = this;
     while (!ctrl->IsTopLevel()) {
         if (!ctrl->IsVisible()) return false;
@@ -1562,27 +1563,15 @@ namespace LongUI {
 /// </summary>
 /// <param name="change">The change.</param>
 /// <returns></returns>
-void LongUI::UIControl::StartAnimation(StyleStateTypeChange change) noexcept {
-#if 0
-    // <control/ui_menuitem.h>
-    if (const auto item = uisafe_cast<UIMenuItem>(this)) {
-        if (item->RefText() == u"Normal") {
-            if (change.type == StyleStateType::Type_Selected) {
-                if (change.change)
-                    LUIDebug(Hint) << change << endl;
-                else
-                    LUIDebug(Hint) << change << endl;
-            }
-        }
-    }
-#endif
+void LongUI::UIControl::StartAnimation(StyleStateChange change) noexcept {
+    // 一样就截断
+    if (!this->will_change_state(change)) return;
     // 未初始化
-    if (!this->is_inited()) { m_oStyle.state.Change(change); return; }
-
-    // 正式处理
-    const auto app = this->GetStyle().appearance;
+    if (!this->is_inited()) {
+        this->change_state(change);
+    }
     // 非默认控件
-    if (app == AttributeAppearance::Appearance_None) {
+    else if (this->RefStyle().appearance == AttributeAppearance::Appearance_None) {
 #ifndef LUI_DISABLE_STYLE_SUPPORT
         UIManager.StartExtraAnimation(*this, change);
 #else
@@ -1600,6 +1589,11 @@ void LongUI::UIControl::StartAnimation(StyleStateTypeChange change) noexcept {
         }
 #endif
         UIManager.StartBasicAnimation(*this, change);
+    }
+    // 继承状态
+    for (auto& child : (*this)) {
+        if (child.m_oStyle.inherited & change.state_mask)
+            child.StartAnimation(change);
     }
 }
 
@@ -1619,6 +1613,21 @@ void LongUI::UIControl::clear_parent() noexcept {
 }
 
 /// <summary>
+/// mark offset_tf
+/// </summary>
+/// <param name="child"></param>
+/// <returns></returns>
+void LongUI::UIControl::make_offset_tf_direct(UIControl & child) noexcept {
+    assert(child.RefStyle().offset_tf);
+    auto& style = child.RefStyle();
+    const auto ptr0 = reinterpret_cast<const char*>(&m_oStyle);
+    const auto ptr1 = reinterpret_cast<const char*>(&style);
+    const auto offset = static_cast<uintptr_t>(ptr1 - ptr0);
+    assert(offset < 0xffff && "out of range");
+    m_oStyle.offset_tf = offset + style.offset_tf ;
+}
+
+/// <summary>
 /// Marks the window minsize changed.
 /// </summary>
 /// <returns></returns>
@@ -1631,11 +1640,10 @@ void LongUI::UIControl::mark_window_minsize_changed() noexcept {
 /// <summary>
 /// Adds the child.
 /// </summary>
+/// <remarks>这条函数非常重要</remarks>
 /// <param name="child">The child.</param>
 /// <returns></returns>
 void LongUI::UIControl::add_child(UIControl& child) noexcept {
-    // 这条函数(add_child)非常重要
-    assert(this && "bad this ptr");
     // 视口?
     if (LongUI::IsViewport(child)) {
         assert(m_pWindow && "add subwindow must be vaild window");
@@ -1644,6 +1652,10 @@ void LongUI::UIControl::add_child(UIControl& child) noexcept {
     }
     // 无需再次添加
     if (child.m_pParent == this) return;
+    // 鼠标信息隔断默认会继承所有状态
+    if (!m_state.mouse_continue) child.RefInheritedMask() = State_MouseCutInher;
+    // 标记已经加入
+    child.m_state.added_to_parent = true;
     child.NeedUpdate(Reason_ParentChanged);
     // 在之前的父控件移除该控件
     if (child.m_pParent) child.m_pParent->remove_child(child);
@@ -1672,10 +1684,6 @@ void LongUI::UIControl::add_child(UIControl& child) noexcept {
             LUIDebug(Warning) << "Tree to deep" << uint32_t(child.m_state.level) << endl;
     }
     
-#endif
-    // 构建中
-#ifdef LUI_BETA_CTOR_LOCKER
-    if (m_pWindow) m_pWindow->SetInCreating();
 #endif
     // 新的窗口
     if (child.m_pWindow != m_pWindow) 
@@ -2104,40 +2112,40 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
         detail::write_value(value.data4.byte, m_oStyle.appearance);
         break;
     case ValueType::Type_MarginTop:
-        detail::write_value(value.data4.single, this->GetBox().margin.top);
+        detail::write_value(value.data4.single, this->RefBox().margin.top);
         break;
     case ValueType::Type_MarginRight:
-        detail::write_value(value.data4.single, this->GetBox().margin.right);
+        detail::write_value(value.data4.single, this->RefBox().margin.right);
         break;
     case ValueType::Type_MarginBottom:
-        detail::write_value(value.data4.single, this->GetBox().margin.bottom);
+        detail::write_value(value.data4.single, this->RefBox().margin.bottom);
         break;
     case ValueType::Type_MarginLeft:
-        detail::write_value(value.data4.single, this->GetBox().margin.left);
+        detail::write_value(value.data4.single, this->RefBox().margin.left);
         break;
     case ValueType::Type_PaddingTop:
-        detail::write_value(value.data4.single, this->GetBox().padding.top);
+        detail::write_value(value.data4.single, this->RefBox().padding.top);
         break;
     case ValueType::Type_PaddingRight:
-        detail::write_value(value.data4.single, this->GetBox().padding.right);
+        detail::write_value(value.data4.single, this->RefBox().padding.right);
         break;
     case ValueType::Type_PaddingBottom:
-        detail::write_value(value.data4.single, this->GetBox().padding.bottom);
+        detail::write_value(value.data4.single, this->RefBox().padding.bottom);
         break;
     case ValueType::Type_PaddingLeft:
-        detail::write_value(value.data4.single, this->GetBox().padding.left);
+        detail::write_value(value.data4.single, this->RefBox().padding.left);
         break;
     case ValueType::Type_BorderTopWidth:
-        detail::write_value(value.data4.single, this->GetBox().border.top);
+        detail::write_value(value.data4.single, this->RefBox().border.top);
         break;
     case ValueType::Type_BorderRightWidth:
-        detail::write_value(value.data4.single, this->GetBox().border.right);
+        detail::write_value(value.data4.single, this->RefBox().border.right);
         break;
     case ValueType::Type_BorderBottomWidth:
-        detail::write_value(value.data4.single, this->GetBox().border.bottom);
+        detail::write_value(value.data4.single, this->RefBox().border.bottom);
         break;
     case ValueType::Type_BorderLeftWidth:
-        detail::write_value(value.data4.single, this->GetBox().border.left);
+        detail::write_value(value.data4.single, this->RefBox().border.left);
         break;
     }
 }

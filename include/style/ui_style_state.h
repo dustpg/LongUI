@@ -4,6 +4,7 @@
 #include <cstdint>
 
 namespace LongUI {
+#if 0
     // typeof StyleState
     enum class StyleStateType : uint8_t {
         Type_None = 0, // for trigger event
@@ -79,4 +80,101 @@ namespace LongUI {
         // last child
         //bool        last_child   : 1;
     };
+#endif
+    // typeof StyleState
+    enum StyleStateIndex : uint32_t {
+        Index_Selected,
+        Index_Default,
+        Index_Disabled,
+        Index_Hover,
+        Index_Active,
+        Index_Focus,
+        Index_Checked,
+        Index_Indeterminate,
+        Index_Closed,
+
+
+
+        Index_NA_TabAfterSelectedTab,
+    };
+    // style state
+    enum StyleState : uint32_t {
+        // [non]
+        State_Non           = 0,
+        // [all]
+        State_All           = uint32_t(-1),
+        // [selected]
+        State_Selected      = 1 << Index_Selected,
+        // [default]
+        State_Default       = 1 << Index_Default,
+        // [disabled]       [inherited]
+        State_Disabled      = 1 << Index_Disabled,
+        // [hover]
+        State_Hover         = 1 << Index_Hover,
+        // [active]
+        State_Active        = 1 << Index_Active,
+        // [focus]
+        State_Focus         = 1 << Index_Focus,
+        // [checked]
+        State_Checked       = 1 << Index_Checked,
+        // [indeterminate]
+        State_Indeterminate = 1 << Index_Indeterminate,
+        // [closed]
+        State_Closed        = 1 << Index_Closed,
+
+
+        // [N.A.]
+        State_TAST          = 1 << Index_NA_TabAfterSelectedTab,
+
+
+
+        // [mouse cut inherited]
+        State_MouseCutInher = State_All,
+    };
+    // operator |
+    inline constexpr StyleState operator|(StyleState a, StyleState b) noexcept {
+        using state_t = uint32_t;
+        static_assert(sizeof(state_t) == sizeof(a), "bad type");
+        return StyleState(state_t(a) | state_t(b));
+    }
+    // operator &
+    inline constexpr StyleState operator&(StyleState a, StyleState b) noexcept {
+        using state_t = uint32_t;
+        static_assert(sizeof(state_t) == sizeof(a), "bad type");
+        return StyleState(state_t(a) & state_t(b));
+    }
+    // operator ^
+    inline constexpr StyleState operator^(StyleState a, StyleState b) noexcept {
+        using state_t = uint32_t;
+        static_assert(sizeof(state_t) == sizeof(a), "bad type");
+        return StyleState(state_t(a) ^ state_t(b));
+    }
+    // operator ~
+    inline constexpr StyleState operator~(StyleState a) noexcept {
+        using state_t = uint32_t;
+        static_assert(sizeof(state_t) == sizeof(a), "bad type");
+        return StyleState(~state_t(a));
+    }
+    // state change
+    struct StyleStateChange { 
+        // state mask
+        StyleState      state_mask;
+        // state to change
+        StyleState      state_change;
+    };
+    // detail namespace
+    namespace detail {
+        // is_same state
+        template<StyleState Mask> inline auto is_same(StyleState a, StyleState b) noexcept {
+            return !((a ^ b) & Mask);
+        }
+        // is_different state
+        template<StyleState Mask> inline auto is_different(StyleState a, StyleState b) noexcept {
+            return (a ^ b) & Mask;
+        }
+        // is_different state
+        template<StyleState Mask> inline auto is_any(StyleState a, StyleState b) noexcept {
+            return (a | b) & Mask;
+        }
+    }
 }

@@ -326,7 +326,7 @@ bool LongUI::UITextBox::is_change_could_trigger() const noexcept {
 void LongUI::UITextBox::show_caret() noexcept {
     auto caret = pimpl()->document().GetCaret();
     // 调整到内容区域
-    const auto lt = this->GetBox().GetContentPos();
+    const auto lt = this->RefBox().GetContentPos();
     caret.x += lt.x; caret.y += lt.y;
     // FIXME: 为什么偏了2像素?
     caret.x -= 2.f;
@@ -415,7 +415,7 @@ void LongUI::UITextBox::private_tf_changed(bool layout) noexcept {
 bool LongUI::UITextBox::private_mouse_down(Point2F pos, bool shift) noexcept {
     this->need_update();
     auto& doc = pimpl()->document();
-    const auto lt = this->GetBox().GetContentPos();
+    const auto lt = this->RefBox().GetContentPos();
     //doc.OnLButtonDown({ pos.x - lt.x, pos.y - lt.y }, shift);
     return doc.GuiLButtonDown({ pos.x - lt.x, pos.y - lt.y }, shift);
 }
@@ -427,7 +427,7 @@ bool LongUI::UITextBox::private_mouse_down(Point2F pos, bool shift) noexcept {
 /// <returns></returns>
 bool LongUI::UITextBox::private_mouse_up(Point2F pos) noexcept {
     //auto& doc = pimpl()->document();
-    //const auto lt = this->GetBox().GetContentPos();
+    //const auto lt = this->RefBox().GetContentPos();
     //doc.OnLButtonUp({ pos.x - lt.x, pos.y - lt.y });
     //return doc.GuiLButtonHold
     return true;
@@ -442,7 +442,7 @@ bool LongUI::UITextBox::private_mouse_up(Point2F pos) noexcept {
 bool LongUI::UITextBox::private_mouse_move(Point2F pos) noexcept {
     this->need_update();
     auto& doc = pimpl()->document();
-    const auto lt = this->GetBox().GetContentPos();
+    const auto lt = this->RefBox().GetContentPos();
     //doc.OnLButtonHold({ pos.x - lt.x, pos.y - lt.y });
     return doc.GuiLButtonHold({ pos.x - lt.x, pos.y - lt.y });
 }
@@ -694,14 +694,14 @@ void LongUI::UITextBox::Render() const noexcept {
 #endif // !NDEBUG
     auto& ctx = UIManager.Ref2DRenderer();
     // 设置渲染偏移
-    const auto lt = this->GetBox().GetContentPos();
+    const auto lt = this->RefBox().GetContentPos();
     Matrix3X2F matrix;
     ctx.GetTransform(&auto_cast(matrix));
     matrix._31 += lt.x;
     matrix._32 += lt.y;
     ctx.SetTransform(&auto_cast(matrix));
     // 设置剪切区域
-    const auto sz = this->GetBox().GetContentSize();
+    const auto sz = this->RefBox().GetContentSize();
     const auto mode = D2D1_ANTIALIAS_MODE_PER_PRIMITIVE;
     ctx.PushAxisAlignedClip({ 0, 0, sz.width, sz.height }, mode);
     // TODO: 是移动到渲染线程加UI锁?

@@ -70,7 +70,7 @@ void  LongUI::UILabel::Update(UpdateReason reason) noexcept {
     if (reason & Reason_ValueTextChanged) this->on_text_changed();
     // 检查到大小修改
     if (reason & Reason_SizeChanged) 
-        m_text.Resize(this->GetBox().GetContentSize());
+        m_text.Resize(this->RefBox().GetContentSize());
     // TODO: 处理BOX修改 SpecifyMinContectSize
 
     // 超类处理
@@ -156,7 +156,7 @@ auto LongUI::UILabel::DoEvent(UIControl* sender, const EventArg& e) noexcept -> 
 /// </summary>
 /// <returns></returns>
 void LongUI::UILabel::SetAsDefaultMinsize() noexcept {
-    const auto& fontsize = UIManager.GetDefaultFont();
+    const auto& fontsize = UIManager.RefDefaultFont();
     const auto lineheight = LongUI::GetLineHeight(fontsize);
     this->set_contect_minsize({ lineheight * 2.f, lineheight });
 }
@@ -270,6 +270,7 @@ void LongUI::UILabel::reset_font() noexcept {
     m_text.SetFont(m_tfBuffer, m_string.c_str(), m_string.length());
     // 设置基本属性
     this->after_set_text();
+
 }
 
 PCN_NOINLINE

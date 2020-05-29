@@ -46,6 +46,8 @@ namespace LongUI {
         // on commnad event
         static constexpr auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }
     public:
+        // is checked
+        auto IsChecked() const noexcept { return m_oStyle.state & State_Checked; }
         // set checked
         void SetChecked(bool) noexcept;
         // set selected(sameas checked)

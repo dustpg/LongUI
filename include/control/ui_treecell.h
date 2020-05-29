@@ -45,7 +45,7 @@ namespace LongUI {
         UITreeCell(UIControl* parent = nullptr) noexcept : UITreeCell(parent, UITreeCell::s_meta) {}
     public:
         // do normal event
-        //auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
+        auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         // do mouse event
         //auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
         // update, postpone change some data

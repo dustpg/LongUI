@@ -968,7 +968,7 @@ auto LongUI::CUIResMgr::create_bitmap_private(
 /// Gets the default font.
 /// </summary>
 /// <returns></returns>
-auto LongUI::CUIResMgr::GetDefaultFont()const noexcept->const FontArg& {
+auto LongUI::CUIResMgr::RefDefaultFont()const noexcept->const FontArg& {
     return rm().defarg;
 }
 

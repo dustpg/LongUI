@@ -253,7 +253,7 @@ namespace LongUI {
             if (x == &UIMetaTypeDef::UIPopup__s_meta) continue;
             // 测试这个
             if (auto ctrl = x->create_func(nullptr)) {
-                assert(&ctrl->GetMetaInfo() == x);
+                assert(&ctrl->RefMetaInfo() == x);
                 delete ctrl;
             }
         }

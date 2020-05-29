@@ -48,7 +48,7 @@ namespace LongUI {
         // set check (if in checkbox/radio mode)
         void SetChecked(bool checked) noexcept;
         // is checked?
-        auto IsChecked() const noexcept { return m_oStyle.state.checked; }
+        auto IsChecked() const noexcept { return m_oStyle.state & State_Checked; }
         // get text
         auto GetText() const noexcept->const char16_t*;
         // get text object
@@ -80,8 +80,8 @@ namespace LongUI {
         auto DoEvent(UIControl* sender, const EventArg& arg) noexcept->EventAccept override;
         // do mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
-        // render
-        //void Render() const noexcept override;
+        // update
+        void Update(UpdateReason) noexcept override;
     protected:
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;

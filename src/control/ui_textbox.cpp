@@ -36,7 +36,7 @@ void LongUI::MakeDefault(TextFont& tf) noexcept {
     tf.text.stroke_color = { 0 };
     tf.text.stroke_width = 0.f;
     tf.text.alignment = TAlign_Start;
-    tf.font = UIManager.GetDefaultFont();
+    tf.font = UIManager.RefDefaultFont();
 }
 
 /// <summary>
@@ -84,10 +84,6 @@ LongUI::UITextBox::~UITextBox() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UITextBox::Update(UpdateReason reason) noexcept {
-    constexpr UpdateReason tf_changed
-        = Reason_TextFontDisplayChanged
-        | Reason_TextFontLayoutChanged
-        ;
     // [SetText接口文本]修改
     if (reason & Reason_ValueTextChanged) {
         this->mark_change_could_trigger();
@@ -95,9 +91,9 @@ void LongUI::UITextBox::Update(UpdateReason reason) noexcept {
     }
     // 检查到大小修改
     if (reason & Reason_SizeChanged) 
-        this->private_resize(this->GetBox().GetContentSize());
+        this->private_resize(this->RefBox().GetContentSize());
     // 文本布局/显示 修改了
-    if (reason & tf_changed)
+    if (reason & Reason_TextFontChanged)
         this->private_tf_changed(!!(reason & Reason_TextFontLayoutChanged));
     // 污了
     this->private_update();

@@ -163,7 +163,7 @@ void LongUI::UIBoxLayout::relayout_v() noexcept {
             // 先考虑使用最小尺寸
             auto size = child.GetMinSize();
             // 对应方向分别使用弹性布局
-            add_flex(size, child.GetStyle().flex * len_in_unit);
+            add_flex(size, child.RefStyle().flex * len_in_unit);
             // 调整对齐
             const auto opos = adjust_align(size, remaining, align_factor);
             // 但是不能超过本身限制
@@ -185,7 +185,7 @@ PCN_NOINLINE
 /// <returns></returns>
 void LongUI::UIBoxLayout::relayout_h() noexcept {
 #ifndef NDEBUG
-    if (!std::strcmp(name_dbg, "listcols")) {
+    if (!std::strcmp(m_id.id, "layout")) {
         int bbk = 9;
     }
 #endif
@@ -237,7 +237,7 @@ void LongUI::UIBoxLayout::relayout_h() noexcept {
             // 先考虑使用最小尺寸
             auto size = child.GetMinSize();
             // 对应方向分别使用弹性布局
-            add_flex(size, child.GetStyle().flex * len_in_unit);
+            add_flex(size, child.RefStyle().flex * len_in_unit);
             // 调整对齐
             const auto opos = adjust_align(size, remaining, align_factor);
             // 但是不能超过本身限制
@@ -390,14 +390,14 @@ void LongUI::UIBoxLayout::move_splitter(UISplitter& splitter, Point2F offset) no
     const auto o = index[&offset.x];
     // 计算大小
     auto szp = p.GetSize(); index[&szp.width] += o;
-    if (index[&szp.width] <= index[&p.GetBox().minsize.width]) return;
+    if (index[&szp.width] <= index[&p.RefBox().minsize.width]) return;
     // 不是最后一个?
     if (!splitter.IsLastChild()) {
         // 修改后面的
         auto& n = UIControlPrivate::Next(splitter);
         auto szn = n.GetSize(); index[&szn.width] -= o;
         // 不够?
-        if (index[&szn.width] <= index[&n.GetBox().minsize.width]) return;
+        if (index[&szn.width] <= index[&n.RefBox().minsize.width]) return;
         n.SetStyleSize(szn);
     }
     // 重置

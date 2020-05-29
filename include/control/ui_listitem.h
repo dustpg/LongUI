@@ -26,6 +26,7 @@
 
 // super
 #include "ui_boxlayout.h"
+#include "../style/ui_behavior_type.h"
 // base
 #include "ui_image.h"
 #include "ui_label.h"
@@ -53,7 +54,11 @@ namespace LongUI {
         //static inline constexpr auto _clicked() noexcept { return GuiEvent::Event_Click; }
     public:
         // is selected?
-        auto IsSelected() const noexcept { return m_oStyle.state.selected; }
+        auto IsSelected() const noexcept { return m_oStyle.state & State_Selected; }
+        // is checked?
+        auto IsChecked() const noexcept { return m_oStyle.state & State_Checked; }
+        // set checked
+        void SetChecked(bool) noexcept;
     public:
         // get index
         auto GetIndex() const noexcept->uint32_t;
@@ -67,6 +72,8 @@ namespace LongUI {
         void SetText(CUIString&& text) noexcept;
         // set text
         void SetText(U16View text) noexcept;
+        // Is selected before init
+        auto IsSelectedBeforeInit() const noexcept { return m_bSelInit; }
     public:
         // do event
         auto DoEvent(UIControl * sender, const EventArg & e) noexcept->EventAccept override;
@@ -81,6 +88,8 @@ namespace LongUI {
         void add_private_child() noexcept;
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
+        // init with behavior
+        void init_behavior() noexcept;
 #ifdef LUI_ACCESSIBLE
     protected:
         // accessible event
@@ -94,6 +103,10 @@ namespace LongUI {
     private:
         // parent box 
         UIListBox*          m_pListBox = nullptr;
+        // behavior
+        BehaviorType        m_type = BehaviorType::Type_Normal;
+        // inited selected
+        bool                m_bSelInit = false;
     };
     // get meta info for UIListItem
     LUI_DECLARE_METAINFO(UIListItem);

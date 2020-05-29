@@ -27,8 +27,8 @@ namespace LongUI {
 LongUI::UIProgress::UIProgress(UIControl* parent, const MetaControl& meta) noexcept
     : Super(impl::ctor_lock(parent), meta),
     m_oBar(this), m_oRemainder(this) {
-    // 原子性, 子控件为本控件的组成部分
-    m_state.atomicity = true;
+    // 阻隔鼠标事件
+    m_state.mouse_continue = false;
 #ifdef LUI_ACCESSIBLE
     // 没有逻辑子控件
     m_pAccCtrl = nullptr;
@@ -128,7 +128,8 @@ void LongUI::UIProgress::add_attribute(uint32_t key, U8View value) noexcept {
         break;
     case BKDR_MODE:
         // mode         : determined/undetermined
-        m_oStyle.state.indeterminate = *value.begin() == 'u';
+        if (*value.begin() == 'u')
+            m_oStyle.state = m_oStyle.state | State_Indeterminate;
         break;
     default:
         // 超类处理
@@ -193,7 +194,7 @@ void LongUI::UIProgress::adjust_flex() noexcept {
     m_max = std::max(m_max, 1.f);
     m_value = detail::clamp(m_value, 0.f, m_max);
     // 不确定情况
-    if (m_oStyle.state.indeterminate) {
+    if (m_oStyle.state & State_Indeterminate) {
         UIControlPrivate::SetFlex(m_oBar, 1.f);
         UIControlPrivate::SetFlex(m_oRemainder, 0.f);
     }

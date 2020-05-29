@@ -38,7 +38,7 @@ namespace LongUI { auto get_frame_id() noexcept->uint32_t; }
 #endif
 
 // helper marco
-#define _lui_inter_debug LongUI::CUIDebug::GetInstance()
+#define _lui_inter_debug LongUI::CUIDebug::RefInstance()
 #ifndef NDEBUG
 #define _lui_inter_extra << LongUI::Interfmt("<%4dL@%s>: ", int(__LINE__), __FUNCTION__)
 #define longui_debug_hr(hr, msg) if (!hr) LUIDebug(Error) << msg << hr << LongUI::endl
@@ -58,7 +58,7 @@ namespace LongUI {
     // color
     struct ColorF;
     // struct
-    struct StyleStateTypeChange;
+    struct StyleStateChange;
 #endif
     // debug string level
     enum DebugStringLevel : uint32_t {
@@ -92,7 +92,7 @@ namespace LongUI {
         ) noexcept;
 #ifdef NDEBUG
         // get debug instance
-        static auto GetInstance() noexcept->CUIDebug& {
+        static auto RefInstance() noexcept->CUIDebug& {
             return *static_cast<CUIDebug*>(nullptr);
     }
         // overload << operator 重载 << 运算符
@@ -105,7 +105,7 @@ namespace LongUI {
 
 #else
         // get debug instance
-        static auto GetInstance() noexcept->CUIDebug&;
+        static auto RefInstance() noexcept->CUIDebug&;
     protected:
         // last DebugStringLevel
         DebugStringLevel        m_lastLevel = DebugStringLevel::DLevel_Log;
@@ -179,7 +179,7 @@ namespace LongUI {
         // overload << operator for MouseEvent
         CUIDebug& operator<< (MouseEvent e) noexcept;
         // overload << operator for MouseEvent
-        CUIDebug& operator<< (StyleStateTypeChange e) noexcept;
+        CUIDebug& operator<< (StyleStateChange e) noexcept;
         // output debug string with flush
         void Output(DebugStringLevel l, const char16_t* s) noexcept;
         // output debug string with flush

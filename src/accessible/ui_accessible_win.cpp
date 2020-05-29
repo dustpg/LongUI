@@ -991,9 +991,15 @@ auto LongUI::CUIAccessible::Toggle() noexcept -> HRESULT {
 auto LongUI::CUIAccessible::get_ToggleState(ToggleState* rv) noexcept -> HRESULT {
     CUIDataAutoLocker locker;
     assert(this->is_support_toggle());
-    const auto& style = m_control.GetStyle();
-    const auto state = style.state.indeterminate ? ToggleState_Indeterminate :
-        (style.state.checked ? ToggleState_On : ToggleState_Off);
+    const auto& style = m_control.RefStyle();
+    const auto indeterminate = [&style]() noexcept {
+        return style.state & State_Indeterminate;
+    };
+    const auto checked = [&style]() noexcept {
+        return style.state & State_Checked;
+    };
+    const auto state = indeterminate() ? ToggleState_Indeterminate :
+        (checked() ? ToggleState_On : ToggleState_Off);
     *rv = state;
     return S_OK;
 }

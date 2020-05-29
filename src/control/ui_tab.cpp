@@ -89,8 +89,9 @@ LongUI::UITab::UITab(UIControl* parent, const MetaControl& meta) noexcept
     m_oStyle.appearance = Appearance_Tab;
     m_oStyle.overflow_x = Overflow_Hidden;
     m_oStyle.overflow_y = Overflow_Hidden;
-    // 原子控件
-    m_state.atomicity = true;
+    // 阻隔鼠标事件
+    m_state.mouse_continue = false;
+    this->make_offset_tf_direct(m_oLabel);
     // 私有实现
     //UIControlPrivate::SetFocusable(image, false);
     //UIControlPrivate::SetFocusable(label, false);
@@ -147,6 +148,19 @@ auto LongUI::UITab::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAccept
     default:
         return Super::DoMouseEvent(e);
     }
+}
+
+
+/// <summary>
+/// update with reason
+/// </summary>
+/// <param name="reason"></param>
+/// <returns></returns>
+void LongUI::UITab::Update(UpdateReason reason) noexcept {
+    // 将文本消息传递给Label
+    if (const auto r = reason & Reason_TextFontChanged)
+        m_oLabel.Update(r);
+    return Super::Update(reason);
 }
 
 
@@ -242,10 +256,10 @@ void LongUI::UITabs::SetSelectedTab(UITab& tab) noexcept {
     if (m_pLastSelected == &tab) return;
     // 取消选择动画
     if (const auto ptr = m_pLastSelected) 
-        ptr->StartAnimation({ StyleStateType::Type_Selected, false });
+        ptr->StartAnimation({ State_Selected, State_Non });
     // 确定选择动画
     m_pLastSelected = &tab;
-    tab.StartAnimation({ StyleStateType::Type_Selected, true });
+    tab.StartAnimation({ State_Selected, State_Selected });
     // 清除后标记
     {
         const auto b = this->begin();
@@ -470,10 +484,10 @@ void LongUI::UITabBox::init_tabbox() noexcept {
 /// <returns></returns>
 void LongUI::UITabBox::relayout() noexcept {
     // XXX: 获取左上角位置
-    const auto lt = this->GetBox().GetContentPos();
+    const auto lt = this->RefBox().GetContentPos();
     const auto xofffset = lt.x;
     float yoffset = lt.y;
-    auto ctsize = this->GetBox().GetContentSize();
+    auto ctsize = this->RefBox().GetContentSize();
     // 拥有TABS
     if (m_pTabs) {
         m_pTabs->SetPos(lt);
@@ -485,7 +499,7 @@ void LongUI::UITabBox::relayout() noexcept {
     // 拥有PANELS
     if (m_pTabPanels) {
         // 加上上边框方便覆盖
-        const auto topb = m_pTabPanels->GetBox().border.top;
+        const auto topb = m_pTabPanels->RefBox().border.top;
         //const auto topb = 0.f;
         m_pTabPanels->SetPos({ xofffset, yoffset - topb });
         this->resize_child(*m_pTabPanels, { ctsize.width, ctsize.height + topb });

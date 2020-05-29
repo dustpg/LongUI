@@ -26,7 +26,7 @@ void LongUI::UICheckBox::SetIndeterminate() noexcept {
     // 禁用状态
     if (this->IsDisabled()) return;
     // 允许修改
-    if (!this->GetIndeterminate()) {
+    if (!this->IsIndeterminate()) {
         this->change_indeterminate(true);
         this->changed();
     }
@@ -58,16 +58,15 @@ void LongUI::UICheckBox::SetChecked(bool checked) noexcept {
     if (this->IsDisabled()) return;
     bool changed_flag = false;
     // 是第三方状态?
-    if (this->GetIndeterminate()) {
+    if (this->IsIndeterminate()) {
         this->change_indeterminate(false);
         changed_flag = true;
     }
     // 是相反状态?
-    if (this->GetChecked() != checked) {
+    if (!this->IsChecked() == checked) {
         changed_flag = true;
-        const auto statetp = StyleStateType::Type_Checked;
-        this->StartAnimation({ statetp , checked });
-        m_oImage.StartAnimation({ statetp , checked });
+        const auto target = checked ? State_Checked : State_Non;
+        this->StartAnimation({ State_Checked, target });
     }
     // 修改状态
     if (changed_flag) this->changed();
@@ -76,13 +75,12 @@ void LongUI::UICheckBox::SetChecked(bool checked) noexcept {
 /// <summary>
 /// Sets the indeterminate.
 /// </summary>
-/// <param name="">if set to <c>true</c> [].</param>
+/// <param name="ind">if set Indeterminat to <c>true</c> [].</param>
 /// <returns></returns>
-void LongUI::UICheckBox::change_indeterminate(bool ndeterminate) noexcept {
-    assert(this->GetIndeterminate() != ndeterminate);
-    const auto statetp = StyleStateType::Type_Indeterminate;
-    this->StartAnimation({ statetp , ndeterminate });
-    m_oImage.StartAnimation({ statetp , ndeterminate });
+void LongUI::UICheckBox::change_indeterminate(bool ind) noexcept {
+    assert(!this->IsIndeterminate() == ind);
+    const auto statetp = State_Indeterminate;
+    this->StartAnimation({ statetp , ind ? statetp : State_Non });
 }
 
 /// <summary>
@@ -110,8 +108,9 @@ LongUI::UICheckBox::UICheckBox(UIControl* parent, const MetaControl& meta) noexc
     m_oBox.padding = { 4, 1, 2, 1 };
     m_state.tabstop = true;
     m_state.focusable = true;
-    // 原子性, 子控件为本控件的组成部分
-    m_state.atomicity = true;
+    // 阻隔鼠标事件
+    m_state.mouse_continue = false;
+    this->make_offset_tf_direct(m_oLabel);
 #ifdef LUI_ACCESSIBLE
     // 没有逻辑子控件
     m_pAccCtrl = nullptr;
@@ -143,7 +142,6 @@ LongUI::UICheckBox::~UICheckBox() noexcept {
     // 存在提前释放子控件, 需要标记"在析构中"
     m_state.destructing = true;
 }
-
 
 
 /// <summary>
@@ -235,7 +233,7 @@ auto LongUI::UICheckBox::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
 /// <returns></returns>
 void LongUI::UICheckBox::UpdateFocusRect() const noexcept {
     // 复选框的焦点框在文本边上
-    auto rect = m_oLabel.GetBox().GetBorderEdge();
+    auto rect = m_oLabel.RefBox().GetBorderEdge();
     const auto pos = m_oLabel.GetPos();
     rect.left += pos.x;
     rect.top += pos.y;
@@ -244,20 +242,26 @@ void LongUI::UICheckBox::UpdateFocusRect() const noexcept {
     m_pWindow->UpdateFocusRect(rect);
 }
 
+#endif
+
 /// <summary>
 /// render this
 /// </summary>
 /// <returns></returns>
 void LongUI::UICheckBox::Update(UpdateReason reason) noexcept {
+    // 将文本消息传递给Label
+    if (const auto r = reason & Reason_TextFontChanged)
+        m_oLabel.Update(r);
+#ifdef LUI_DRAW_FOCUS_RECT
     // 渲染焦点框
-    if (this->m_oStyle.state.focus) {
+    if (this->m_oStyle.state & State_Focus) {
         // 成本较低就不用进一步判断
         assert(m_pWindow);
         this->UpdateFocusRect();
     }
+#endif
     Super::Update(reason);
 }
-#endif
 
 /// <summary>
 /// Initializes the checkbox.
@@ -268,18 +272,8 @@ void LongUI::UICheckBox::init_checkbox() noexcept {
         UIControlPrivate::SetAppearance(*this, Appearance_CheckBoxContainer);
         UIControlPrivate::SetAppearance(m_oImage, Appearance_CheckBox);
     }
-    // 在attr中设置了checked状态?
-    if (m_oStyle.state.checked) {
-        UIControlPrivate::RefStyleState(m_oImage).checked = true;
-    }
-    // 在attr中设置了indeterminate状态?
-    if (m_oStyle.state.indeterminate) {
-        UIControlPrivate::RefStyleState(m_oImage).indeterminate = true;
-    }
-    // 同步image-disable状态
-    if (m_oStyle.state.disabled) {
-        UIControlPrivate::RefStyleState(m_oImage).disabled = true;
-    }
+    // XXX: 初始化状态
+    UIControlPrivate::RefStyleState(m_oImage) = m_oStyle.state;
 }
 
 

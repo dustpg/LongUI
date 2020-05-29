@@ -8,5 +8,6 @@ void LongUI::CtrlState::Init() noexcept {
     static_assert(sizeof(CtrlState) == sizeof(uint32_t) * 2, "bad size");
     std::memset(this, 0, sizeof(*this));
     visible = true;
+    mouse_continue = true;
 }
 

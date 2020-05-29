@@ -40,13 +40,13 @@ void LongUI::UIControl::Render() const noexcept {
 /// </summary>
 /// <returns></returns>
 bool LongUI::UIControl::native_style_render() const noexcept {
-    const auto type = this->GetStyle().appearance;
+    const auto type = this->RefStyle().appearance;
     // 使用自定义风格渲染
     if (type == AttributeAppearance::Appearance_None) return true;
     // 使用本地风格渲染
     NativeDrawArgs arg;
-    arg.border = this->GetBox().GetBorderEdge();
-    arg.from = arg.to = this->GetStyle().state;
+    arg.border = this->RefBox().GetBorderEdge();
+    arg.from = arg.to = this->RefStyle().state;
     arg.progress = 0.f;
     arg.appearance = type;
     // HACK: 特殊处理
@@ -54,8 +54,8 @@ bool LongUI::UIControl::native_style_render() const noexcept {
     {
     case AttributeAppearance::Appearance_GroupBox:
         arg.border.top += (*begin()).GetSize().height * 0.5f
-                        + this->GetBox().padding.top 
-                        + this->GetBox().border.top
+                        + this->RefBox().padding.top 
+                        + this->RefBox().border.top
                         //+ 1.f
                         ;
     break;
@@ -116,16 +116,16 @@ void LongUI::UIControl::custom_style_render() const noexcept {
         // UPDATE#1
         m_pBgRender->BeforeRender();
         // A.
-        m_pBgRender->RenderColor(this->GetBox(), radius);
+        m_pBgRender->RenderColor(this->RefBox(), radius);
         // B.
-        m_pBgRender->RenderImage(this->GetBox(), radius);
+        m_pBgRender->RenderImage(this->RefBox(), radius);
     }
     // 边框渲染
     if (m_pBdRender) {
         // UPDATE#2
-        m_pBdRender->BeforeRender(this->GetBox());
+        m_pBdRender->BeforeRender(this->RefBox());
         // C.
-        m_pBdRender->RenderBorder(this->GetBox());
+        m_pBdRender->RenderBorder(this->RefBox());
     }
 #endif
 }
@@ -155,8 +155,8 @@ namespace LongUI { namespace detail {
 /// <returns></returns>
 void LongUI::UIControl::apply_clip_rect() const noexcept {
     // 检查overflow属性
-    const auto overflow_x = this->GetStyle().overflow_x;
-    const auto overflow_y = this->GetStyle().overflow_y;
+    const auto overflow_x = this->RefStyle().overflow_x;
+    const auto overflow_y = this->RefStyle().overflow_y;
     if (detail::both_visible(overflow_x, overflow_y)) return;
     // 压入
     auto& painter = UIManager.Ref2DRenderer();
@@ -174,8 +174,8 @@ void LongUI::UIControl::apply_clip_rect() const noexcept {
 
 void LongUI::UIControl::cancel_clip_rect() const noexcept {
     // 检查overflow属性
-    const auto overflow_x = this->GetStyle().overflow_x;
-    const auto overflow_y = this->GetStyle().overflow_y;
+    const auto overflow_x = this->RefStyle().overflow_x;
+    const auto overflow_y = this->RefStyle().overflow_y;
     if (detail::both_visible(overflow_x, overflow_y)) return;
     // 弹出
     auto& painter = UIManager.Ref2DRenderer();

@@ -656,43 +656,43 @@ namespace LongUI {
         {
         case 0x2694fd9a_ui32:
             // :active
-            pc.yes.active = true;
+            pc.yes = pc.yes | State_Active;
             break;
         case 0x091a155f_ui32:
             // :checked
-            pc.yes.checked = true;
+            pc.yes = pc.yes | State_Checked;
             break;
         case 0xdf345f61_ui32:
             // :default
-            pc.yes.default5 = true;
+            pc.yes = pc.yes | State_Default;
             break;
         case 0x715f1adc_ui32:
             // :disabled
-            pc.yes.disabled = true;
+            pc.yes = pc.yes | State_Disabled;
             break;
         case 0xd3d78067_ui32:
             // :enabled
-            pc.noo.disabled = true;
+            pc.noo = pc.noo | State_Disabled;
             break;
         case 0x0d707348_ui32:
             // :focus
-            pc.yes.focus = true;
+            pc.yes = pc.yes | State_Focus;
             break;
         case 0x3090d164_ui32:
             // :hover
-            pc.yes.hover = true;
+            pc.yes = pc.yes | State_Hover;
             break;
         case 0xc42c9ea7_ui32:
             // :indeterminate
-            pc.yes.indeterminate = true;
+            pc.yes = pc.yes | State_Indeterminate;
             break;
         case 0x03481b1f_ui32:
             // :selected
-            pc.yes.selected = true;
+            pc.yes = pc.yes | State_Selected;
             break;
         case 0xbaf00ef8_ui32:
             // :closed
-            pc.yes.closed = true;
+            pc.yes = pc.yes | State_Closed;
             break;
         //case 0x5f149358_ui32:
         //    // closed
@@ -861,7 +861,7 @@ namespace LongUI {
 void LongUI::InitDefaultState(UniByte4 buf[], UniByte8 buf2[]) noexcept {
     // check type count
     static_assert(static_cast<int>(ValueType::SINGLE_LAST) <= 256, "TO HUGE");
-    const auto& font = UIManager.GetDefaultFont();
+    const auto& font = UIManager.RefDefaultFont();
     // 字体
     buf[static_cast<int>(ValueType::Type_TextColor)].u32 
         = RGBA_Black;

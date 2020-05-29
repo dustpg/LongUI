@@ -53,18 +53,18 @@ namespace LongUI {
         // set text
         void SetText(const CUIString& str) noexcept;
         // force mark selected
-        void ForceMark() noexcept { m_oStyle.state.selected = true; }
+        void ForceMark() noexcept { m_oStyle.state = m_oStyle.state | State_Selected; }
         // force mark after
-        void ForceAfter() noexcept { m_oStyle.state.after_seltab = true; }
+        void ForceAfter() noexcept { m_oStyle.state = m_oStyle.state | State_TAST; }
         // force clear after
-        void ForceBefore() noexcept { m_oStyle.state.after_seltab = false; }
+        void ForceBefore() noexcept { m_oStyle.state = m_oStyle.state & ~State_TAST; }
     public:
         // do normal event
         //auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         // do mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
         // update, postpone change some data
-        //void Update() noexcept override;
+        void Update(UpdateReason) noexcept override;
         // render this control only, [Global rendering and Incremental rendering]
         //void Render() const noexcept override;
         // recreate/init device(gpu) resource

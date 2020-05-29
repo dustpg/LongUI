@@ -207,7 +207,7 @@ void LongUI::UIScrollArea::Update(UpdateReason reason) noexcept {
 auto LongUI::UIScrollArea::sum_children_flex() const noexcept -> float {
     float sum = 0.f;
     for (auto& child : *this) if (child.IsVaildInLayout())
-        sum += child.GetStyle().flex;
+        sum += child.RefStyle().flex;
     return sum;
 }
 
@@ -286,7 +286,7 @@ void LongUI::UIScrollArea::layout_corner(bool visible, Size2F size) noexcept{
 /// <param name="notenough">if set to <c>true</c> [notenough].</param>
 /// <returns></returns>
 auto LongUI::UIScrollArea::layout_hscrollbar(bool notenough) noexcept -> float {
-    const auto overflow = this->GetStyle().overflow_x;
+    const auto overflow = this->RefStyle().overflow_x;
     // 检查绝不可能的情况
     const bool nosb = overflow & 1;
     if (nosb) return 0.0f;
@@ -309,7 +309,7 @@ auto LongUI::UIScrollArea::layout_hscrollbar(bool notenough) noexcept -> float {
 /// <param name="notenough">if set to <c>true</c> [notenough].</param>
 /// <returns></returns>
 auto LongUI::UIScrollArea::layout_vscrollbar(bool notenough) noexcept -> float {
-    const auto overflow = this->GetStyle().overflow_y;
+    const auto overflow = this->RefStyle().overflow_y;
     // 检查绝不可能的情况
     const bool nosb = overflow & 1;
     if (nosb) return 0.0f;
@@ -369,7 +369,7 @@ auto LongUI::UIScrollArea::layout_scroll_bar() noexcept -> Size2F {
     constexpr float MDW = MIN_SCROLLBAR_DISPLAY_SIZE;
     constexpr float MDH = MIN_SCROLLBAR_DISPLAY_SIZE;
     // 内容大小
-    const auto content_size = this->GetBox().GetContentSize();
+    const auto content_size = this->RefBox().GetContentSize();
     // 不存在的
     if (1 & m_oStyle.overflow_x & m_oStyle.overflow_y) 
         return content_size;
@@ -418,7 +418,7 @@ auto LongUI::UIScrollArea::layout_scroll_bar() noexcept -> Size2F {
 /// </summary>
 /// <returns></returns>
 auto LongUI::UIScrollArea::get_layout_position() const noexcept -> Point2F {
-    const auto base = this->GetBox().GetContentPos();
+    const auto base = this->RefBox().GetContentPos();
     //const auto base = Point2F{};
     // 正向- 左上角
     if (m_state.direction == Dir_Normal) {

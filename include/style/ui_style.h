@@ -77,6 +77,8 @@ namespace LongUI {
         Style(const Style&) noexcept = delete;
         // state            [4]
         StyleState          state;
+        // state inherited  [4]
+        StyleState          inherited;
         // flex             [4]
         float               flex;
         // t-duration       [2]
@@ -100,8 +102,6 @@ namespace LongUI {
         char                accessKey;
         // extri-anima-buck [1]
         uint8_t             extra_abcount;
-        // unused u32       [4]
-        uint32_t            unused_4;
 
         // style used min size
         Size2F              minsize;

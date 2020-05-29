@@ -93,6 +93,10 @@ namespace LongUI {
         ~CUINativeStyleWindows10() noexcept { this->release_all_resources(); }
         // recreate_device resources
         auto Recreate() noexcept->Result;
+        // get native fg color
+        auto NativeFgColor(StyleState) noexcept->uint32_t;
+        // get native dur
+        auto NativeStyleDuration(const GetDurationArgs args)  noexcept->uint32_t;
         // draw native
         void DrawNative(const NativeDrawArgs& args) noexcept;
         // draw native

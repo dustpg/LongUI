@@ -47,10 +47,10 @@ namespace LongUI {
     public:
 #ifndef LUI_DISABLE_STYLE_SUPPORT
         // start extra animation
-        void StartExtraAnimation(UIControl&, StyleStateTypeChange) noexcept;
+        void StartExtraAnimation(UIControl&, StyleStateChange) noexcept;
 #endif
         // start basic animation
-        void StartBasicAnimation(UIControl&, StyleStateTypeChange) noexcept;
+        void StartBasicAnimation(UIControl&, StyleStateChange) noexcept;
         // find basic animation
         auto FindBasicAnimation(const UIControl&) const noexcept -> const ControlAnimationBasic*;
     public:

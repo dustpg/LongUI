@@ -17,6 +17,12 @@
 #include <algorithm>
 
 
+#ifndef NDEBUG
+static bool sg_bDebugFlag = false;
+#endif // !NDEBUG
+
+
+
 namespace LongUI {
 #ifndef LUI_DISABLE_STYLE_SUPPORT
     // delete style sheet
@@ -26,9 +32,9 @@ namespace LongUI {
     // make style sheet
     auto MakeStyleSheetFromFile(U8View view, SSPtr old) noexcept->SSPtr;
     // get data from block
-    auto GetValuesFromBlock(uintptr_t id) noexcept ->const SSValues&;
+    auto RefValuesFromBlock(uintptr_t id) noexcept ->const SSValues&;
     // get data from block
-    auto GetControlsFromBlock(uintptr_t id) noexcept ->const UIControls&;
+    auto RefControlsFromBlock(uintptr_t id) noexcept ->const UIControls&;
 #endif
 }
 
@@ -95,7 +101,7 @@ struct LongUI::CUIControlControl::Private {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIControlControl::swap_init_list(CUILocker& locker) noexcept {
-#ifdef LUI_BETA_CTOR_LOCKER
+#ifdef LUI_USING_CTOR_LOCKER
     auto& obj = cc();
     // 尝试进入, 失败就下帧处理, 控件创建不会阻塞
     if (locker.TryLock()) {
@@ -107,9 +113,7 @@ void LongUI::CUIControlControl::swap_init_list(CUILocker& locker) noexcept {
         locker.Unlock();
     }
 #ifndef NDEBUG
-    else {
-        LUIDebug(Hint) << "Ctor locker locked in other thread" << endl;
-    }
+    else LUIDebug(Hint) << "Ctor locker locked in other thread" << endl;
 #endif // !NDEBUG
 #endif
 }
@@ -642,7 +646,7 @@ void LongUI::CUIControlControl::InvalidateControl(UIControl& ctrl, const RectF* 
 /// <returns></returns>
 bool LongUI::CUIControlControl::init_control_in_list() noexcept {
     auto& cc = this->cc();
-#ifdef LUI_BETA_CTOR_LOCKER
+#ifdef LUI_USING_CTOR_LOCKER
     auto node = cc.init_list.first;
     cc.init_list = { nullptr, nullptr };
 #else
@@ -657,8 +661,19 @@ bool LongUI::CUIControlControl::init_control_in_list() noexcept {
         ctrl->m_oManager.next_delinitupd = nullptr;
         // 尝试初始化
         assert(!ctrl->is_inited() && "has been inited");
-        // TODO: 错误处理
+#ifndef NDEBUG
+        if (ctrl->GetParent()) {
+            if (!std::strcmp(ctrl->GetParent()->name_dbg, "root")) {
+                int bk = 9;
+            }
+        }
+        sg_bDebugFlag = true;
+#endif
         ctrl->init();
+#ifndef NDEBUG
+        sg_bDebugFlag = false;
+#endif
+        assert(ctrl->m_oManager.next_delinitupd == nullptr);
         // 添加到更新列表
         if (ctrl->m_state.reason)
             cc.add_into_update_list(*ctrl);
@@ -797,7 +812,7 @@ void LongUI::CUIControlControl::dirty_update() noexcept {
         // 标记两次矩形位置
         impl::mark_two_rect_dirty(
             x.rect,
-            x.ctrl->GetBox().visible,
+            x.ctrl->RefBox().visible,
             window->RefViewport().GetRealSize(),
             *window
         );
@@ -893,7 +908,7 @@ void LongUI::CUIControlControl::update_extra_animation(uint32_t delta)noexcept {
             x.ctrl = nullptr;
         }
         // 获取比率P
-        const auto at = static_cast<AnimationType>(ctrl.GetStyle().tfunction);
+        const auto at = static_cast<AnimationType>(ctrl.RefStyle().tfunction);
         const auto p0 = LongUI::EasingFunction(at, x.GetRate());
         for (uint32_t i = 0; i != x.length; ++i) {
             const auto ind = LongUI::IndeterminateValue(x.list[i], p0);
@@ -951,14 +966,14 @@ auto LongUI::CUIControlControl::FindBasicAnimation(
 /// <returns></returns>
 void LongUI::CUIControlControl::StartBasicAnimation(
     UIControl& ctrl, 
-    StyleStateTypeChange type) noexcept {
+    StyleStateChange type) noexcept {
     // 检测类型
     const auto native_type = ctrl.m_oStyle.appearance;
     assert(native_type != AttributeAppearance::Appearance_None);
     // 获取动画时间
     const auto dur = LongUI::NativeStyleDuration({ native_type });
     // 没有动画
-    if (!dur) return static_cast<void>(ctrl.start_animation_change(type));
+    if (!dur) { ctrl.change_state(type); return; }
     // TODO: 整理代码, 比如先保证vector有效性
     auto& anima = cc().basic_anima;
     using cab_t = ControlAnimationBasic * ;
@@ -973,7 +988,7 @@ void LongUI::CUIControlControl::StartBasicAnimation(
         anima.push_back(init_ca);
         // OOM处理: 变了就不管了
         if (!anima.is_ok()) {
-            ctrl.start_animation_change(type);
+            ctrl.change_state(type);
             //ctrl.NeedUpdate();
             return;
         };
@@ -985,7 +1000,7 @@ void LongUI::CUIControlControl::StartBasicAnimation(
         cab->done = 0;
     }
     cab->duration = dur;
-    ctrl.start_animation_change(type);
+    ctrl.change_state(type);
     // 获取目标前景色
     cab->fgcolor2 = LongUI::NativeFgColor(ctrl.m_oStyle.state);
     // 标记动画中
@@ -1054,9 +1069,8 @@ void LongUI::UIControl::make_off_initstate(
         // 检测长度 
         const auto len = pcl.length; assert(len > 1 && "bad size");
         // 匹配状态
-        static_assert(sizeof(StyleState) == sizeof(uint32_t), "must be same");
-        const auto yes = reinterpret_cast<const uint32_t&>(pcl.yes);
-        const auto noo = reinterpret_cast<const uint32_t&>(pcl.noo);
+        const auto yes = pcl.yes;
+        const auto noo = pcl.noo;
         const auto matched = (state & yes) == yes && (state & noo) == 0;
         // 额外计算
         if (matched) {
@@ -1086,12 +1100,12 @@ void LongUI::UIControl::make_off_initstate(
         );
         // 遍历
         for (auto itr = trigger_buf; itr != end_buf; ++itr) {
-            const auto now = reinterpret_cast<const uint32_t&>(trigger->m_oStyle.state);
-            const uint32_t yes = itr->yes;
-            const uint32_t noo = itr->noo;
+            const auto now = trigger->m_oStyle.state;
+            const auto yes = itr->yes;
+            const auto noo = itr->noo;
             const auto matched = (now & yes) == yes && (now & noo) == 0;
             if (!matched) continue;
-            const auto list = LongUI::GetValuesFromBlock(itr->tid);
+            const auto list = LongUI::RefValuesFromBlock(itr->tid);
             for (const auto& z : list) {
                 const auto index = static_cast<uint32_t>(z.type);
                 buf4[index] = z.data4;
@@ -1109,7 +1123,7 @@ void LongUI::UIControl::make_off_initstate(
                 const uint32_t noo = y.noo;
                 const auto matched = (now & yes) == yes && (now & noo) == 0;
                 if (!matched) continue;
-                const auto list = LongUI::GetValuesFromBlock(y.tid);
+                const auto list = LongUI::RefValuesFromBlock(y.tid);
                 for (const auto& z : list) {
                     const auto index = static_cast<uint32_t>(z.type);
                     buf4[index] = z.data4;
@@ -1129,7 +1143,7 @@ void LongUI::UIControl::make_off_initstate(
 /// <param name="blocks">The blocks.</param>
 /// <returns></returns>
 void LongUI::UIControl::extra_animation_callback(
-    StyleStateTypeChange change, 
+    StyleStateChange change,
     void* ptr, 
     void* blocks) noexcept {
     // 检测参数有效性
@@ -1142,16 +1156,17 @@ void LongUI::UIControl::extra_animation_callback(
     // 检测状态
     const auto from_state = m_oStyle.state;
     // 没变就算了
-    if (!this->start_animation_change(change)) return;
+    if (!this->will_change_state(change)) return;
+    this->change_state(change);
     // 记录目标状态
     const auto to_state = m_oStyle.state;
     // 触发器
     for (const auto& x : m_oStyle.trigger) {
         if (x.tid & 1) continue;
-        const auto now = reinterpret_cast<const uint32_t&>(from_state);
-        const auto too = reinterpret_cast<const uint32_t&>(to_state);
-        const auto yes = reinterpret_cast<const uint32_t&>(x.yes);
-        const auto noo = reinterpret_cast<const uint32_t&>(x.noo);
+        const auto now = from_state;
+        const auto too = to_state;
+        const auto yes = x.yes;
+        const auto noo = x.noo;
         const auto matched1 = (now & yes) == yes && (now & noo) == 0;
         const auto matched2 = (too & yes) == yes && (too & noo) == 0;
         if (matched1 != matched2)
@@ -1172,8 +1187,8 @@ void LongUI::UIControl::extra_animation_callback(
     // 优化flag
     bool need_state_buf = false;
     // OFF SET
-    if (!change.change) {
-        const auto now = reinterpret_cast<const uint32_t&>(to_state);
+    if (!change.state_change) {
+        const auto now = to_state;
         this->make_off_initstate(nullptr, now, state_buf, state_buf_ex);
     }
     // 判断匹配规则
@@ -1185,11 +1200,10 @@ void LongUI::UIControl::extra_animation_callback(
         // 检测长度 
         const auto len = pcl.length; assert(len > 1 && "bad size");
         // 匹配状态
-        static_assert(sizeof(StyleState) == sizeof(uint32_t), "must be same");
-        const auto now = reinterpret_cast<const uint32_t&>(from_state);
-        const auto too = reinterpret_cast<const uint32_t&>(to_state);
-        const auto yes = reinterpret_cast<const uint32_t&>(pcl.yes);
-        const auto noo = reinterpret_cast<const uint32_t&>(pcl.noo);
+        const auto now = from_state;
+        const auto too = to_state;
+        const auto yes = pcl.yes;
+        const auto noo = pcl.noo;
         // XXX: [优化]
         // matched1 有效表示取消该状态, TO状态需要额外计算
         const auto matched1 = (now & yes) == yes && (now & noo) == 0;
@@ -1264,7 +1278,7 @@ void LongUI::UIControl::extra_animation_callback(
     bool need_state_buf = false;
     // OFF SET
     if (!set) {
-        const auto state = reinterpret_cast<const uint32_t&>(m_oStyle.state);
+        const auto state = m_oStyle.state;
         this->make_off_initstate(&trigger, state, state_buf, state_buf_ex);
     }
     // 额外规则
@@ -1337,13 +1351,12 @@ auto LongUI::UIControl::animation_property_filter(void*ptr)noexcept->uint32_t{
 /// <remarks>
 /// Extra动画允许多个动画不同时间段并行处理
 /// </remarks>
-void LongUI::CUIControlControl::StartExtraAnimation(
-    UIControl& ctrl, StyleStateTypeChange type) noexcept {
+void LongUI::CUIControlControl::StartExtraAnimation(UIControl& ctrl, StyleStateChange type) noexcept {
     // 断言类型
     //assert(ctrl.m_oStyle.appearance == AttributeAppearance::Appearance_None);
     // 先判断有没有匹配规则
-    if (ctrl.GetStyle().matched.empty() && ctrl.GetStyle().trigger.empty()) {
-        ctrl.start_animation_change(type);
+    if (ctrl.RefStyle().matched.empty() && ctrl.RefStyle().trigger.empty()) {
+        ctrl.change_state(type);
         return;
     }
     const auto cacheptr = this->GetStyleCachedControlList();
@@ -1359,8 +1372,8 @@ void LongUI::CUIControlControl::StartExtraAnimation(
         for (const auto block : blocks) {
             const bool set = block & 1;
             const auto ptr = block & (~uintptr_t(1));
-            const auto& values = LongUI::GetValuesFromBlock(ptr);
-            const auto& ctrls = LongUI::GetControlsFromBlock(ptr);
+            const auto& values = LongUI::RefValuesFromBlock(ptr);
+            const auto& ctrls = LongUI::RefControlsFromBlock(ptr);
             for (const auto x : ctrls) {
                 if (x->IsDescendantOrSiblingFor(ctrl)) {
                     from_to_list.clear();
@@ -1428,7 +1441,7 @@ void LongUI::CUIControlControl::do_animation_in_from_to(UIControl & ctrl) noexce
         }
 #endif
         x.done = 0;
-        x.duration = ctrl.GetStyle().tduration;
+        x.duration = ctrl.RefStyle().tduration;
         x.length = len_remain > EXTRA_FROM_TO_LIST_LENGTH
             ? EXTRA_FROM_TO_LIST_LENGTH : len_remain;
         // 写入数组
@@ -1441,18 +1454,28 @@ void LongUI::CUIControlControl::do_animation_in_from_to(UIControl & ctrl) noexce
 #endif
 
 /// <summary>
-/// Starts the but no animation.
+/// will change?
+/// </summary>
+/// <param name="change"></param>
+/// <returns></returns>
+bool LongUI::UIControl::will_change_state(StyleStateChange change) const noexcept {
+    const auto mask = ~change.state_mask;
+    const auto state1 = m_oStyle.state;
+    const auto state2 = (state1 & mask) | change.state_change;
+    return state1 != state2;
+}
+
+/// <summary>
+/// just change the state
 /// </summary>
 /// <param name="change">The change.</param>
 /// <returns></returns>
-bool LongUI::UIControl::start_animation_change(StyleStateTypeChange change) noexcept {
-    // 没有改变?
-    const auto changed = m_oStyle.state.Change(change);
+void LongUI::UIControl::change_state(StyleStateChange change) noexcept {
+    const auto mask = ~change.state_mask;
+    const auto state = m_oStyle.state;
+    m_oStyle.state = (state & mask) | change.state_change;
 #ifndef NDEBUG
-    if (!changed) {
-        if (change.type == StyleStateType::Type_Focus) {
-            int bk = 9;
-        }
+    if (m_oStyle.state == state) {
         LUIDebug(Warning) LUI_FRAMEID
             << this
             << "not changed("
@@ -1461,7 +1484,7 @@ bool LongUI::UIControl::start_animation_change(StyleStateTypeChange change) noex
             << endl;
     }
 #endif // !NDEBUG
-    return changed;
+    //return m_oStyle.state != state;
 }
 
 // XML 解析

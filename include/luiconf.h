@@ -34,10 +34,8 @@
 // [unused yet]LongUI::POD::Vector::size_type use uint32_t
 //#define LUI_VECTOR_SIZE_USE_UINT32
 
-
-
-// [BETA] NOT IMPL
-//#define LUI_BETA_CTOR_LOCKER
+// using ctor locker to avoid blocking the rendering-thread
+//#define LUI_USING_CTOR_LOCKER
 
 // ----------------------------------------------------------------------------
 

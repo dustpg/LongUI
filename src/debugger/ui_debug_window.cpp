@@ -114,7 +114,7 @@ namespace LongUI {
                 checkbox->_onCommand(), [&flag](UIControl& control) noexcept {
                 const auto box = longui_cast<UICheckBox*>(&control);
                 auto& mflag = const_cast<ConfigureFlag&>(flag);
-                if (box->GetChecked()) mflag = mflag | ConfigureFlag::Flag_DbgDrawDirtyRect;
+                if (box->IsChecked()) mflag = mflag | ConfigureFlag::Flag_DbgDrawDirtyRect;
                 else mflag = mflag & ConfigureFlag(~ConfigureFlag::Flag_DbgDrawDirtyRect);
                 return Event_Accept;
             });
@@ -129,7 +129,7 @@ namespace LongUI {
                 checkbox->_onCommand(), [&flag](UIControl& control) noexcept {
                 const auto box = longui_cast<UICheckBox*>(&control);
                 auto& mflag = const_cast<ConfigureFlag&>(flag);
-                if (box->GetChecked()) mflag = mflag | ConfigureFlag::Flag_DbgDrawTextCell;
+                if (box->IsChecked()) mflag = mflag | ConfigureFlag::Flag_DbgDrawTextCell;
                 else mflag = mflag & ConfigureFlag(~ConfigureFlag::Flag_DbgDrawTextCell);
                 return Event_Accept;
             });

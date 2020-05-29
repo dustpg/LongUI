@@ -163,7 +163,7 @@ namespace LongUI {
         // recreate/init device(gpu) resource
         virtual auto Recreate(bool release_only) noexcept->Result;
     protected:
-        // add child[child maybe in ctor, cannot call method except under UIControl]
+        // add child ini
         virtual void add_child(UIControl& child) noexcept;
         // get sub element ::before
         //virtual auto get_subelement(U8View name) noexcept->UIControl*;
@@ -221,10 +221,12 @@ namespace LongUI {
         void Invalidate() noexcept;
         // is top level of tree? -> no parent
         bool IsTopLevel() const noexcept { return !m_pParent; }
-        // get style model
-        auto&GetStyle() const noexcept { return m_oStyle; }
-        // get box model
-        auto&GetBox() const noexcept { return m_oBox; }
+        // ref style model
+        auto&RefStyle() const noexcept { return m_oStyle; }
+        // ref box model
+        auto&RefBox() const noexcept { return m_oBox; }
+        // ref style inherited state mask
+        auto&RefInheritedMask() noexcept { return m_oStyle.inherited; }
     public:
         // is ancestor for this
         bool IsAncestorForThis(const UIControl& node) const noexcept;
@@ -294,17 +296,19 @@ namespace LongUI {
         // get postion of control [Relative to parent]
         auto GetPos() const noexcept { return m_oBox.pos; }
         // get world matrix [Relative to window]
-        auto&GetWorld() const noexcept { return m_mtWorld; }
+        auto&RefWorld() const noexcept { return m_mtWorld; }
         // get tree level
         auto GetLevel() const noexcept { return m_state.level; }
         // is enabled
-        bool IsEnabled() const noexcept { return !m_oStyle.state.disabled; }
+        auto IsEnabled() const noexcept { return !(m_oStyle.state & State_Disabled); }
         // is disabled
-        bool IsDisabled() const noexcept { return m_oStyle.state.disabled; }
+        auto IsDisabled() const noexcept { return m_oStyle.state & State_Disabled; }
         // is visible
         bool IsVisible() const noexcept { return m_state.visible; }
-        // is visible to root
-        bool IsVisibleToRoot() const noexcept;
+        // is visible ex - check ancestor's visible
+        bool IsVisibleEx() const noexcept;
+        // is active
+        auto IsActive() const noexcept { return m_oStyle.state & State_Active; }
         // set hidden
         void SetHidden(bool hidden) noexcept { this->SetVisible(!hidden); }
         // set this and all descendant enabled/disabled
@@ -312,7 +316,7 @@ namespace LongUI {
         // set this and all descendant enabled/disabled
         void SetEnabled(bool enable) noexcept { this->SetDisabled(!enable); }
         // start state animation [do not use this to change state, use SetXXX instead]
-        void StartAnimation(StyleStateTypeChange) noexcept;
+        void StartAnimation(StyleStateChange) noexcept;
         // start general animation
 
     public:
@@ -322,9 +326,9 @@ namespace LongUI {
         void KillTimer(uint32_t id0_7) noexcept;
     public:
         // get style classes
-        auto&GetStyleClasses() const noexcept { return m_classesStyle; }
+        auto&RefStyleClasses() const noexcept { return m_classesStyle; }
         // get meta info
-        auto&GetMetaInfo() const noexcept { return m_refMetaInfo; }
+        auto&RefMetaInfo() const noexcept { return m_refMetaInfo; }
         // add style class
         void AddStyleClass(U8View) noexcept;
         // remove style class
@@ -352,6 +356,8 @@ namespace LongUI {
         auto MapToWindowEx(Point2F&& point) const noexcept {
             this->MapToWindow(point); return point; }
     protected:
+        // make text-font-offset from direct-child
+        void make_offset_tf_direct(UIControl& child) noexcept;
         // clear parent
         void clear_parent() noexcept;
         // mark minsize changed
@@ -360,12 +366,12 @@ namespace LongUI {
         auto take_clicked() noexcept -> UIControl*;
         // remove child
         void remove_child(UIControl& child) noexcept;
+#if 0
         // start animation: bottom-up
-        void start_animation_b2u(StyleStateTypeChange) noexcept;
+        void start_animation_b2u(StyleStateChange) noexcept;
         // start animation: up-bottom
-        void start_animation_children(StyleStateTypeChange) noexcept;
-        // do mouse under atomicity
-        auto mouse_under_atomicity(const MouseEventArg& e) noexcept ->EventAccept;
+        void start_animation_children(StyleStateChange) noexcept;
+#endif
         // calculate child index
         auto calculate_child_index(const UIControl&) const noexcept->uint32_t;
         // calculate child at
@@ -386,7 +392,7 @@ namespace LongUI {
         void make_off_initstate(UIControl* ,uint32_t, UniByte4[], UniByte8[]) const noexcept;
         // extra animation callback
         void extra_animation_callback(
-            StyleStateTypeChange changed, 
+            StyleStateChange changed,
             void* out_values, 
             void* out_blocks
         ) noexcept;
@@ -402,8 +408,10 @@ namespace LongUI {
         // animation property filter
         auto animation_property_filter(void*) noexcept->uint32_t;
 #endif
-        // start animation change
-        bool start_animation_change(StyleStateTypeChange) noexcept;
+        // will change?
+        bool will_change_state(StyleStateChange) const noexcept;
+        // change the state
+        void change_state(StyleStateChange) noexcept;
         // set window - force
         void set_window_force(CUIWindow*) noexcept;
     protected:
@@ -530,6 +538,8 @@ namespace LongUI {
         // rend iterator
         auto rend()const noexcept->CRIterator { return{ static_cast<const UIControl*>(&m_oHead) }; }
     protected:
+        // is added children before init
+        auto is_added_before_init() const noexcept { return m_state.added_to_this; }
         // mark world changed
         void mark_world_changed() noexcept;
         // is inited?

@@ -25,6 +25,8 @@ namespace LongUI {
         Event_Splitter,
         // implicit radio group member checked
         Event_ImplicitGroupChecked,
+        // get indirect TextFont pointer
+        Event_IndirectTextFont,
 
 
         // ----------------

@@ -42,6 +42,8 @@ namespace LongUI {
         // ctor
         UITree(UIControl* parent, const MetaControl&) noexcept;
     public:
+        // private impl
+        struct Private;
         // class meta
         static const  MetaControl   s_meta;
         // dtor

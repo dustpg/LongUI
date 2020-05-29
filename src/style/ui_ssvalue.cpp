@@ -60,7 +60,7 @@ namespace LongUI {
     /// </summary>
     /// <param name="id">The identifier.</param>
     /// <returns></returns>
-    auto GetValuesFromBlock(uintptr_t id) noexcept ->const SSValues& {
+    auto RefValuesFromBlock(uintptr_t id) noexcept ->const SSValues& {
         const auto block = reinterpret_cast<const SSBlock*>(id);
         return block->list;
     }
@@ -69,7 +69,7 @@ namespace LongUI {
     /// </summary>
     /// <param name="id">The identifier.</param>
     /// <returns></returns>
-    auto GetControlsFromBlock(uintptr_t id) noexcept ->const UIControls& {
+    auto RefControlsFromBlock(uintptr_t id) noexcept ->const UIControls& {
         assert((id & 1) == 0);
         const auto block = reinterpret_cast<const SSBlock*>(id);
         return block->triggered;
@@ -378,117 +378,100 @@ namespace LongUI {
         m_values.reserve(16);
         m_mainList.clear();
     }
-}
-
-
-/// <summary>
-/// Initializes a new instance of the <see cref="SSBlock" /> struct.
-/// </summary>
-/// <param name="len">The length.</param>
-LongUI::SSBlock::SSBlock(uint32_t len) noexcept: main_len(len) {
-    std::memset(&this->main, 0, sizeof(this->main) * len);
-}
-
-
-namespace LongUI { namespace detail { 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SSBlock" /> struct.
+    /// </summary>
+    /// <param name="len">The length.</param>
+    SSBlock::SSBlock(uint32_t len) noexcept : main_len(len) {
+        std::memset(&this->main, 0, sizeof(this->main) * len);
+    }
     // release res via id
-    void release_res(uintptr_t handle) noexcept;
-} }
-
-/// <summary>
-/// Finalizes an instance of the <see cref="SSBlock"/> class.
-/// </summary>
-/// <returns></returns>
-LongUI::SSBlock::~SSBlock() noexcept {
-    // XXX: 释放表中的图像引用
-    for (const auto x : this->list) {
-        if (LongUI::IsImageType(x.type)) {
-            if (const auto id = x.data8.handle) detail::release_res(id);
+    namespace detail { void release_res(uintptr_t handle) noexcept;} 
+    /// <summary>
+    /// Finalizes an instance of the <see cref="SSBlock"/> class.
+    /// </summary>
+    /// <returns></returns>
+    SSBlock::~SSBlock() noexcept {
+        // XXX: 释放表中的图像引用
+        for (const auto x : this->list) {
+            if (LongUI::IsImageType(x.type)) {
+                if (const auto id = x.data8.handle) detail::release_res(id);
+            }
+        }
+        // 释放被触发器
+        for (auto* const ctrl : this->triggered) {
+            // HACK: SSBlock释放的场合直接情况即可
+            UIControlPrivate::RefStyleTrigger(*ctrl).clear();
+        }
+        // 释放选择器
+        LongUI::FreeSelector(this->main, this->main_len);
+    }
+    /// <summary>
+    /// Creates the specified length.
+    /// </summary>
+    /// <param name="len">The length.</param>
+    /// <returns></returns>
+    auto SSBlock::Create(uint32_t len) noexcept -> SSBlock* {
+        assert(len > 0 && "bad len");
+        const auto size = sizeof(SSBlock) - sizeof(SSSelector) 
+            + sizeof(SSSelector) * len;
+        if (const auto ptr = LongUI::SmallAlloc(size)) {
+            detail::ctor_dtor<SSBlock>::create(ptr, len);
+            return static_cast<SSBlock*>(ptr);
+        }
+        return nullptr;
+    }
+    /// <summary>
+    /// Disposes the specified .
+    /// </summary>
+    /// <returns></returns>
+    void SSBlock::Dispose() noexcept {
+        assert(this && "bad ptr");
+        detail::ctor_dtor<SSBlock>::delete_obj(this);
+        LongUI::SmallFree(this);
+    }
+    /// <summary>
+    /// Frees the blocks.
+    /// </summary>
+    /// <param name="head">The head.</param>
+    /// <returns></returns>
+    void FreeBlocks(SSBlock* head) noexcept {
+        // 遍历链表
+        while (head) {
+            const auto old_ptr = head;
+            head = head->next;
+            old_ptr->Dispose();
         }
     }
-    // 释放被触发器
-    for (auto* const ctrl : this->triggered) {
-        // HACK: SSBlock释放的场合直接情况即可
-        UIControlPrivate::RefStyleTrigger(*ctrl).clear();
+    /// <summary>
+    /// Deletes the style sheet.
+    /// </summary>
+    /// <param name="ptr">The PTR.</param>
+    /// <returns></returns>
+    void DeleteStyleSheet(CUIStyleSheet* ptr) noexcept {
+        LongUI::FreeBlocks(reinterpret_cast<SSBlock*>(ptr));
     }
-    // 释放选择器
-    LongUI::FreeSelector(this->main, this->main_len);
-}
-
-/// <summary>
-/// Creates the specified length.
-/// </summary>
-/// <param name="len">The length.</param>
-/// <returns></returns>
-auto LongUI::SSBlock::Create(uint32_t len) noexcept -> SSBlock* {
-    assert(len > 0 && "bad len");
-    const auto size = sizeof(SSBlock) - sizeof(SSSelector) 
-        + sizeof(SSSelector) * len;
-    if (const auto ptr = LongUI::SmallAlloc(size)) {
-        detail::ctor_dtor<SSBlock>::create(ptr, len);
-        return static_cast<SSBlock*>(ptr);
-    }
-    return nullptr;
-}
-
-/// <summary>
-/// Disposes the specified .
-/// </summary>
-/// <returns></returns>
-void LongUI::SSBlock::Dispose() noexcept {
-    assert(this && "bad ptr");
-    detail::ctor_dtor<SSBlock>::delete_obj(this);
-    LongUI::SmallFree(this);
-}
-
-/// <summary>
-/// Frees the blocks.
-/// </summary>
-/// <param name="head">The head.</param>
-/// <returns></returns>
-void LongUI::FreeBlocks(SSBlock* head) noexcept {
-    // 遍历链表
-    while (head) {
-        const auto old_ptr = head;
-        head = head->next;
-        old_ptr->Dispose();
-    }
-}
-
-/// <summary>
-/// Deletes the style sheet.
-/// </summary>
-/// <param name="ptr">The PTR.</param>
-/// <returns></returns>
-void LongUI::DeleteStyleSheet(CUIStyleSheet* ptr) noexcept {
-    LongUI::FreeBlocks(reinterpret_cast<SSBlock*>(ptr));
-}
-
-/// <summary>
-/// Frees the selector.
-/// </summary>
-/// <param name="sss">The SSS.</param>
-/// <param name="len">The length.</param>
-/// <returns></returns>
-void LongUI::FreeSelector(SSSelector sss[], uint32_t len) noexcept {
-    const auto this_len = len;
-    auto this_main = sss;
-    // 遍历主键
-    for (uint32_t i = 0; i != this_len; ++i) {
-        auto selector = this_main->next;
-        ++this_main;
-        // 释放链表
-        while (selector) {
-            const auto old_ptr = selector;
-            selector = selector->next;
-            LongUI::SmallFree(old_ptr);
+    /// <summary>
+    /// Frees the selector.
+    /// </summary>
+    /// <param name="sss">The SSS.</param>
+    /// <param name="len">The length.</param>
+    /// <returns></returns>
+    void FreeSelector(SSSelector sss[], uint32_t len) noexcept {
+        const auto this_len = len;
+        auto this_main = sss;
+        // 遍历主键
+        for (uint32_t i = 0; i != this_len; ++i) {
+            auto selector = this_main->next;
+            ++this_main;
+            // 释放链表
+            while (selector) {
+                const auto old_ptr = selector;
+                selector = selector->next;
+                LongUI::SmallFree(old_ptr);
+            }
         }
     }
-}
-
-
-
-namespace LongUI {
     /// <summary>
     /// Makes the style sheet.
     /// </summary>
@@ -526,7 +509,7 @@ namespace LongUI {
         bool match_basic(UIControl& c, const SSSelector& s) noexcept {
             // 类型选择器  <->  XUL 类型
             if (s.stype) {
-                const auto name = c.GetMetaInfo().element_name;
+                const auto name = c.RefMetaInfo().element_name;
                 // XUL 储存在 一开始的静态文本区
                 // 类型选择器中类型是动态申请的
                 // 使用strcmp比较
@@ -534,7 +517,7 @@ namespace LongUI {
             }
             // 类名选择器  <->  控件样式类
             if (s.sclass) {
-                const auto& classes = c.GetStyleClasses();
+                const auto& classes = c.RefStyleClasses();
                 // 都是动态申请的Unique Text, 使用 == 比较
                 const auto eitr = classes.end();
                 const auto nitr = std::find(classes.begin(), eitr, s.sclass);
@@ -684,7 +667,7 @@ void LongUI::SSBlock::AddTrigger(const UIControls& list, const SSSelector& selec
     };
     for (auto* const ptr : list) {
         SSBlock::PushTriggerData(*ptr, this_triggerr);
-        const auto state = ptr->GetStyle().state;
+        const auto state = ptr->RefStyle().state;
         const auto now = reinterpret_cast<const uint32_t&>(state);
         if ((now & this_triggerr.yes) == this_triggerr.yes && (now & this_triggerr.noo) == 0) {
             matched = true;
@@ -816,7 +799,7 @@ void LongUI::MatchStyleSheet(UIControl& ctrl, CUIStyleSheet* ptr) noexcept {
 #endif // !NDEBUG
                     block->MatchNormal(ctrl, this_main);
                     // 处理匹配
-                    const auto state = ctrl.GetStyle().state;
+                    const auto state = ctrl.RefStyle().state;
                     const auto now = reinterpret_cast<const uint32_t&>(state);
                     const auto yes = reinterpret_cast<const uint32_t&>(this_main.pc.yes);
                     const auto noo = reinterpret_cast<const uint32_t&>(this_main.pc.noo);

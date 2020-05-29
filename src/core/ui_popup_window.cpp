@@ -90,7 +90,7 @@ void LongUI::PopupWindowFromViewport(
     {
     case LongUI::PopupType::Type_Exclusive:
         //LUIDebug(Hint) << "Type_Exclusive" << endl;
-        area.width = hoster.GetBox().GetBorderSize().width;
+        area.width = hoster.RefBox().GetBorderSize().width;
         mode = impl::mode_flip_v;
         break;
     case LongUI::PopupType::Type_PopupH:
@@ -110,7 +110,7 @@ void LongUI::PopupWindowFromViewport(
     case LongUI::PopupType::Type_Tooltip:
         //LUIDebug(Hint) << "Type_Tooltip" << endl;
         // XXX: 简单增加 字体高度 + 10?
-        pointer.y += UIManager.GetDefaultFont().size + 10.f;
+        pointer.y += UIManager.RefDefaultFont().size + 10.f;
         break;
     }
     // 新的主持
@@ -127,7 +127,7 @@ void LongUI::PopupWindowFromViewport(
     // 调整位置
     const auto work = impl::work_area_from(this_window->GetHwnd());
     const auto rect = [=, &hoster]() noexcept {
-        RectF rect = hoster.GetBox().visible;
+        RectF rect = hoster.RefBox().visible;
         RectL rv;
         rv.left = int32_t(rect.left);
         rv.top = int32_t(rect.top);

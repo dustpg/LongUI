@@ -155,7 +155,7 @@ void LongUI::UIControlPrivate::UpdateWorldForce(UIControl & ctrl) noexcept {
     ctrl.m_state.world_changed = false;
     Matrix3X2F matrix;
     const auto parent = ctrl.GetParent();
-    matrix = parent->GetWorld();
+    matrix = parent->RefWorld();
     matrix._31 += ctrl.GetPos().x * matrix._11;
     matrix._32 += ctrl.GetPos().y * matrix._22;
     // 固定位置? 不是!
@@ -166,10 +166,10 @@ void LongUI::UIControlPrivate::UpdateWorldForce(UIControl & ctrl) noexcept {
     ctrl.m_mtWorld = matrix;
 
     auto& box = ctrl.m_oBox;
-    auto ctrl_rect = ctrl.GetBox().GetSafeBorderEdge();
+    auto ctrl_rect = ctrl.RefBox().GetSafeBorderEdge();
     ctrl.MapToWindow(ctrl_rect);
     // 检查父控件
-    const auto ctn = parent->GetBox().visible;
+    const auto ctn = parent->RefBox().visible;
     ctrl_rect.top = std::max(ctn.top, ctrl_rect.top);
     ctrl_rect.left = std::max(ctn.left, ctrl_rect.left);
     ctrl_rect.right = std::min(ctn.right, ctrl_rect.right);

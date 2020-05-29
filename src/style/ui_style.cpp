@@ -162,10 +162,10 @@ auto LongUI::Box::GetContentPos() const noexcept -> Point2F {
 /// <returns></returns>
 LongUI::Style::Style() noexcept {
     //constexpr auto a = sizeof(Style);
-    state.Init();
+    state = State_Non;
+    inherited = State_Disabled;
     pack = Pack_Start;
     tduration = 0;
-    unused_4 = 0;
     accessKey = 0;
     extra_abcount = 0;
     align = Align_Stretcht;

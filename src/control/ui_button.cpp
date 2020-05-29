@@ -52,8 +52,9 @@ LongUI::UIButton::UIButton(UIControl* parent, const MetaControl& meta) noexcept
     m_state.focusable = true;
     m_state.tabstop = true;
     m_state.defaultable = true;
-    // 原子性, 子控件为本控件的组成部分
-    m_state.atomicity = true;
+    // 阻隔鼠标事件
+    m_state.mouse_continue = false;
+    this->make_offset_tf_direct(m_oLabel);
 #ifdef LUI_ACCESSIBLE
     // 没有逻辑子控件
     m_pAccCtrl = nullptr;
@@ -233,7 +234,7 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
     case NoticeEvent::Event_Initialize:
         UIControlPrivate::SetAppearanceIfNotSet(*this, Appearance_Button);
         // 没子控件
-        if (!this->GetChildrenCount()) {
+        if (!this->is_added_before_init()) {
             // TODO: 没有文本时候的处理
             m_oLabel.SetAsDefaultMinsize();
             this->add_private_child();
@@ -260,8 +261,7 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
         // 弹出窗口关闭
         m_bPopupShown = false;
         if (sender == m_pMenuPopup) {
-            constexpr auto ct = StyleStateType::Type_Checked;
-            this->StartAnimation({ ct, false });
+            this->StartAnimation({ State_Checked, State_Non});
         }
         return Event_Accept;
     case NoticeEvent::Event_ImplicitGroupChecked:
@@ -269,11 +269,11 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
         if (sender == this) return Event_Ignore;
         if (this->IsDisabled()) return Event_Ignore;
         if (!this->IsChecked()) return Event_Ignore;
-        if (m_type != UIButton::Type_Radio) return Event_Ignore;
+        if (m_type != BehaviorType::Type_Radio) return Event_Ignore;
         if (m_pGroup != static_cast<group_t&>(e).group_name)
             return Event_Ignore;
         // 是CHECKBOX类型?
-        this->StartAnimation({ StyleStateType::Type_Checked, false });
+        this->StartAnimation({ State_Checked, State_Non });
         // 取消不触发command事件
         // 触发修改GUI事件
         //this->TriggerEvent(_checkedChanged());
@@ -287,22 +287,27 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
 }
 
 
-#ifdef LUI_DRAW_FOCUS_RECT
 /// <summary>
 /// render this
 /// </summary>
 /// <returns></returns>
 void LongUI::UIButton::Update(UpdateReason reason) noexcept {
+    // 将文本消息传递给Label
+    if (const auto r = reason & Reason_TextFontChanged)
+        m_oLabel.Update(r);
+#ifdef LUI_DRAW_FOCUS_RECT
     // 渲染焦点框
-    if (this->m_oStyle.state.focus) {
+    if (this->m_oStyle.state & State_Focus) {
         // 成本较低就不用进一步判断
         assert(m_pWindow);
         // 按钮的焦点矩形在里面
         this->UpdateFocusRect();
     }
+#endif
     Super::Update(reason);
 }
 
+#ifdef LUI_DRAW_FOCUS_RECT
 /// <summary>
 /// render this
 /// </summary>
@@ -346,26 +351,28 @@ void LongUI::UIButton::Click() noexcept {
     // 分类讨论
     switch (m_type)
     {
-    case UIButton::Type_Normal:
+        StyleState state;
+    case BehaviorType::Type_Normal:
         // 普通按钮: 触发修改GUI事件
         this->TriggerEvent(this->_onCommand());
 #ifdef LUI_ACCESSIBLE
         LongUI::Accessible(m_pAccessible, LongUI::Callback_Invoked);
 #endif
         break;
-    case UIButton::Type_Checkbox:
+    case BehaviorType::Type_Checkbox:
         // 是CHECKBOX类型?
-        this->StartAnimation({ StyleStateType::Type_Checked, !this->IsChecked() });
+        state = (m_oStyle.state ^ State_Checked) & State_Checked;
+        this->StartAnimation({ State_Checked, state });
         // 触发修改GUI事件
         this->TriggerEvent(this->_onCommand());
 #ifdef LUI_ACCESSIBLE
         // TODO: ACCESSIBLE
 #endif
         break;
-    case UIButton::Type_Radio:
+    case BehaviorType::Type_Radio:
         // 是RADIO类型?
         if (!this->IsChecked()) {
-            this->StartAnimation({ StyleStateType::Type_Checked, true });
+            this->StartAnimation({ State_Checked, State_Checked });
             this->TriggerEvent(_onCommand());
             LongUI::DoImplicitGroupGuiArg(*this, m_pGroup);
 #ifdef LUI_ACCESSIBLE
@@ -373,14 +380,13 @@ void LongUI::UIButton::Click() noexcept {
 #endif
         }
         break;
-    case UIButton::Type_Menu:
+    case BehaviorType::Type_Menu:
         // 是MENU类型?
         if (m_pMenuPopup) {
             // CHECK状态
-            constexpr auto ct = StyleStateType::Type_Checked;
-            this->StartAnimation({ ct, true });
+            this->StartAnimation({ State_Checked, State_Checked });
             // 出现在左下角
-            const auto edge = this->GetBox().GetBorderEdge();
+            const auto edge = this->RefBox().GetBorderEdge();
             const auto y = this->GetSize().height - edge.top;
             const auto pos = this->MapToWindowEx({ edge.left, y });
             LongUI::PopupWindowFromViewport(
@@ -427,8 +433,12 @@ void LongUI::UIButton::add_attribute(uint32_t key, U8View value) noexcept {
         Unsafe::AddAttrUninited(m_oImage, BKDR_SRC, value);
         break;
     case BKDR_TYPE:
-        // type  : BUTTON类型
-        m_type = this->parse_button_type(value);
+        // type  : 行为类型
+        //      : normal
+        //      : checkbox
+        //      : radio
+        //      : menu (?)
+        m_type = LongUI::ParseBehaviorType(value);
         break;
     case BKDR_GROUP:
         // group : 按键组
@@ -446,16 +456,16 @@ void LongUI::UIButton::add_attribute(uint32_t key, U8View value) noexcept {
 /// </summary>
 /// <param name="view">The view.</param>
 /// <returns></returns>
-auto LongUI::UIButton::parse_button_type(U8View view)noexcept->ButtonType {
+auto LongUI::ParseBehaviorType(U8View view)noexcept->BehaviorType {
     if (view.end() > view.begin()) {
         switch (*view.begin())
         {
-        case 'c': return UIButton::Type_Checkbox;
-        case 'r': return UIButton::Type_Radio;
-        case 'm': return UIButton::Type_Menu;
+        case 'c': return BehaviorType::Type_Checkbox;
+        case 'r': return BehaviorType::Type_Radio;
+        case 'm': return BehaviorType::Type_Menu;
         }
     }
-    return UIButton::Type_Normal;
+    return BehaviorType::Type_Normal;
 }
 
 #ifdef LUI_ACCESSIBLE

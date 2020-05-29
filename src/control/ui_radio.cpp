@@ -30,8 +30,9 @@ LongUI::UIRadio::UIRadio(UIControl* parent, const MetaControl& meta) noexcept
     m_state.focusable = true;
     m_state.orient = Orient_Horizontal;
     m_oStyle.align = AttributeAlign::Align_Center;
-    // 原子性, 子控件为本控件的组成部分
-    m_state.atomicity = true;
+    // 阻隔鼠标事件
+    m_state.mouse_continue = false;
+    this->make_offset_tf_direct(m_oLabel);
     // 没有逻辑子控件
 #ifdef LUI_ACCESSIBLE
     m_pAccCtrl = nullptr;
@@ -70,14 +71,17 @@ LongUI::UIRadio::~UIRadio() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIRadio::Update(UpdateReason reason) noexcept {
+    // 将文本消息传递给Label
+    if (const auto r = reason & Reason_TextFontChanged)
+        m_oLabel.Update(r);
     // 父节点修改了?
     if (reason & Reason_ParentChanged) {
         // uisafe_cast 空指针安全
         m_pRadioGroup = uisafe_cast<UIRadioGroup>(m_pParent);
     }
 #ifdef LUI_DRAW_FOCUS_RECT
-    // 渲染焦点框
-    if (this->m_oStyle.state.focus) {
+    // 渲染焦点框 XXX: IsFocus()
+    if (this->m_oStyle.state & State_Focus) {
         // 成本较低就不用进一步判断
         assert(m_pWindow);
         this->UpdateFocusRect();
@@ -120,16 +124,14 @@ void LongUI::UIRadio::init_radio() noexcept {
         UIControlPrivate::SetAppearance(*this, Appearance_CheckBoxContainer);
         UIControlPrivate::SetAppearance(m_oImage, Appearance_Radio);
     }
+    // 同步checked-disable状态
+    auto& target = UIControlPrivate::RefStyleState(m_oImage);
+    target = target | (m_oStyle.state & (State_Checked | State_Disabled));
     // 在attr中设置了checked状态?
-    if (m_oStyle.state.checked) {
-        UIControlPrivate::RefStyleState(m_oImage).checked = true;
+    if (m_oStyle.state & State_Checked) {
         if (const auto group = uisafe_cast<UIRadioGroup>(m_pParent)) {
             group->SetChecked(*this);
         }
-    }
-    // 同步image-disable状态
-    if (m_oStyle.state.disabled) {
-        UIControlPrivate::RefStyleState(m_oImage).disabled = true;
     }
 }
 
@@ -162,7 +164,7 @@ auto LongUI::UIRadio::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
 /// <returns></returns>
 void LongUI::UIRadio::UpdateFocusRect() const noexcept {
     // 单选框的焦点框在文本边上
-    auto rect = m_oLabel.GetBox().GetBorderEdge();
+    auto rect = m_oLabel.RefBox().GetBorderEdge();
     const auto pos = m_oLabel.GetPos();
     rect.left += pos.x;
     rect.top += pos.y;
@@ -238,11 +240,10 @@ void LongUI::UIRadio::add_attribute(uint32_t key, U8View value) noexcept {
 void LongUI::UIRadio::SetChecked(bool checked) noexcept {
     // 禁用状态
     if (this->IsDisabled()) return;
-    if (this->GetStyle().state.checked == checked) return;
+    if (!!this->IsChecked() == checked) return;
     // 修改状态
-    const auto statetp = StyleStateType::Type_Checked;
-    this->StartAnimation({ statetp , checked });
-    m_oImage.StartAnimation({ statetp , checked });
+    const auto target = checked ? State_Checked : State_Non;
+    this->StartAnimation({ State_Checked , target });
     // 检查回馈
     if (checked && m_pRadioGroup) {
         this->TriggerEvent(this->_onCommand());

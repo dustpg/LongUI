@@ -41,14 +41,15 @@ LongUI::UIMenuItem::UIMenuItem(UIControl* parent, const MetaControl& meta) noexc
     m_oStyle.align = AttributeAlign::Align_Stretcht;
     //m_oBox.margin = { 4, 2, 4, 2 };
     m_oBox.padding = { 4, 1, 2, 1 };
-    // 原子控件
-    m_state.atomicity = true;
+    // 阻隔鼠标事件
+    m_state.mouse_continue = false;
+    this->make_offset_tf_direct(m_oLabel);
     // 将事件传送给父节点
     UIControlPrivate::SetGuiEvent2Parent(*this);
     // 私有实现
     //UIControlPrivate::SetFocusable(image, false);
     //UIControlPrivate::SetFocusable(label, false);
-    const_cast<RectF&>(m_oImage.GetBox().margin) = { 2.f, 2.f, 2.f, 2.f };
+    const_cast<RectF&>(m_oImage.RefBox().margin) = { 2.f, 2.f, 2.f, 2.f };
     m_oImage.JustSetAsIcon();
 #ifndef NDEBUG
     m_oImage.name_dbg = "menuitem::image";
@@ -149,10 +150,8 @@ auto LongUI::UIMenuItem::DoEvent(
 /// <returns></returns>
 void LongUI::UIMenuItem::SetChecked(bool checked) noexcept {
     //if (this->IsChecked() == checked) return;
-
-    const auto statetp = StyleStateType::Type_Checked;
-    this->StartAnimation({ statetp , checked });
-    m_oImage.StartAnimation({ statetp , checked });
+    const auto target = checked ? State_Checked : State_Non;
+    this->StartAnimation({ State_Checked , target });
 }
 
 /// <summary>
@@ -232,15 +231,19 @@ void LongUI::UIMenuItem::init_menuitem() noexcept {
     if (const auto ptr = longui_cast<UIMenuPopup*>(m_pParent)) {
         // 不是COMBOBOX
         if (ptr->HasPaddingForItem()) {
+            const auto init_state = [this]() noexcept {
+                auto& state = UIControlPrivate::RefStyleState(m_oImage);
+                state = state | (m_oStyle.state & State_Checked);
+            };
             switch (m_type)
             {
             case LongUI::UIMenuItem::Type_CheckBox:
                 UIControlPrivate::SetAppearanceIfNotSet(m_oImage, Appearance_MenuCheckBox);
-                UIControlPrivate::RefStyleState(m_oImage).checked = m_oStyle.state.checked;
+                init_state();
                 break;
             case LongUI::UIMenuItem::Type_Radio:
                 UIControlPrivate::SetAppearanceIfNotSet(m_oImage, Appearance_MenuRadio);
-                UIControlPrivate::RefStyleState(m_oImage).checked = m_oStyle.state.checked;
+                init_state();
                 break;
             }
             // XXX: 标准化
@@ -262,10 +265,8 @@ void LongUI::UIMenuItem::init_menuitem() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIMenuItem::do_checkbox() noexcept {
-    const auto statetp = StyleStateType::Type_Checked;
-    const auto checked = !this->GetStyle().state.checked;
-    this->StartAnimation({ statetp , checked });
-    m_oImage.StartAnimation({ statetp , checked });
+    const auto target = ~m_oStyle.state & State_Checked;
+    this->StartAnimation({ State_Checked, target });
 }
 
 /// <summary>
@@ -273,11 +274,23 @@ void LongUI::UIMenuItem::do_checkbox() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIMenuItem::do_radio() noexcept {
-    if (m_oStyle.state.checked) return;
+    if (m_oStyle.state & State_Checked) return;
     this->SetChecked(true);
     LongUI::DoImplicitGroupGuiArg(*this, m_pName);
 }
 
+
+/// <summary>
+/// update with reason
+/// </summary>
+/// <param name="reason"></param>
+/// <returns></returns>
+void LongUI::UIMenuItem::Update(UpdateReason reason) noexcept {
+    // 将文本消息传递给Label
+    if (const auto r = reason & Reason_TextFontChanged)
+        m_oLabel.Update(r);
+    return Super::Update(reason);
+}
 
 /// <summary>
 /// Does the mouse event.
@@ -340,10 +353,11 @@ LongUI::UIMenuList::UIMenuList(UIControl* parent, const MetaControl& meta) noexc
     m_oImage(this), m_oLabel(this), m_oMarker(this) {
     m_state.focusable = true;
     m_state.defaultable = true;
-    // 原子性, 子控件为本控件的组成部分
-    m_state.atomicity = true;
+    // 阻隔鼠标事件
+    m_state.mouse_continue = false;
+    this->make_offset_tf_direct(m_oLabel);
     // 默认是处于关闭状态
-    m_oStyle.state.closed = true;
+    m_oStyle.state = m_oStyle.state | State_Closed;
     // 布局方向
     m_oStyle.align = Align_Center;
     // 垂直布局
@@ -418,6 +432,19 @@ void LongUI::UIMenuList::init_menulist() {
     if (m_pMenuPopup && !m_pMenuPopup->GetLastSelected()) {
         m_pMenuPopup->SelectFirstItem();
     }
+}
+
+
+/// <summary>
+/// update with reason
+/// </summary>
+/// <param name="reason"></param>
+/// <returns></returns>
+void LongUI::UIMenuList::Update(UpdateReason reason) noexcept {
+    // 将文本消息传递给Label
+    if (const auto r = reason & Reason_TextFontChanged)
+        m_oLabel.Update(r);
+    return Super::Update(reason);
 }
 
 /// <summary>
@@ -524,7 +551,6 @@ void LongUI::UIMenuList::SetText(const CUIString& text) noexcept {
 void LongUI::UIMenuList::add_child(UIControl& child) noexcept {
     // 检查是不是 Menu Popup
     if (const auto ptr = uisafe_cast<UIMenuPopup>(&child)) {
-        // HACK: ptr目前可能只是UIControl, 但是现在修改的正是UIControl
         ptr->save_selected_true();
         m_pMenuPopup = ptr;
         // 仅仅是弱引用, 直接返回
@@ -541,7 +567,7 @@ void LongUI::UIMenuList::ShowPopup() noexcept {
     // 有窗口?
     if (m_pMenuPopup && m_pMenuPopup->GetChildrenCount()) {
         // 出现在左下角
-        const auto edge = this->GetBox().GetBorderEdge();
+        const auto edge = this->RefBox().GetBorderEdge();
         const auto y = this->GetSize().height - edge.top;
         const auto pos = this->MapToWindowEx({ edge.left, y });
         LongUI::PopupWindowFromViewport(
@@ -694,7 +720,7 @@ auto LongUI::UIMenuPopup::DoMouseEvent(const MouseEventArg&e)noexcept->EventAcce
                 mp->m_bMouseIn = false;
                 mp->m_pPerSelected = menu;
                 constexpr auto c = StyleStateType::Type_Selected;
-                if (!menu->GetStyle().state.selected)
+                if (!menu->RefStyle().state.selected)
                     menu->StartAnimation({ c, true });
 #endif
             }
@@ -768,7 +794,7 @@ void LongUI::UIMenuPopup::SelectFirstItem() noexcept {
 /// <returns></returns>
 void LongUI::UIMenuPopup::ClearSelected() noexcept {
     if (const auto per = m_pPerSelected)
-        per->StartAnimation({ StyleStateType::Type_Selected, false });
+        per->StartAnimation({ State_Selected, State_Non });
     m_pLastSelected = nullptr;
     m_pPerSelected = nullptr;
     m_iSelected = -1;
@@ -928,6 +954,6 @@ void LongUI::UIMenuPopup::add_attribute(uint32_t key, U8View view) noexcept {
 /// <returns></returns>
 void LongUI::UIMenuPopup::change_select(UIControl* old, UIControl* now) noexcept {
     assert(old || now);
-    if (old) old->StartAnimation({ StyleStateType::Type_Selected, false });
-    if (now) now->StartAnimation({ StyleStateType::Type_Selected, true });
+    if (old) old->StartAnimation({ State_Selected, State_Non });
+    if (now) now->StartAnimation({ State_Selected, State_Selected });
 }

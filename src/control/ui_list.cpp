@@ -86,8 +86,8 @@ LongUI::UIListBox::UIListBox(UIControl* parent, const MetaControl& meta) noexcep
     // 默认为列表框
     m_oStyle.appearance = Appearance_ListBox;
     // 默认样式
-    m_oBox.border = { 1.f, 1.f, 1.f, 1.f };
-    m_oBox.margin = { 4.f, 2.f, 4.f, 2.f };
+    m_oBox.border = { 1, 1, 1, 1 };
+    m_oBox.margin = { 4, 2, 4, 2 };
     // 至少一个
     m_selected.reserve(1);
     // TODO: OOM处理
@@ -133,8 +133,8 @@ void LongUI::UIListBox::Update(UpdateReason reason) noexcept {
 /// <returns></returns>
 void LongUI::UIListBox::relayout() noexcept {
     // 获取左上角位置
-    auto lt = this->GetBox().GetContentPos();
-    auto ctsize = this->GetBox().GetContentSize();
+    auto lt = this->RefBox().GetContentPos();
+    auto ctsize = this->RefBox().GetContentSize();
     const auto xofffset = lt.x;
 
     // 先布局列对象(有面积!)
@@ -224,11 +224,13 @@ void LongUI::UIListBox::add_attribute(uint32_t key, U8View value) noexcept {
 /// <returns></returns>
 void LongUI::UIListBox::add_child(UIControl& child) noexcept {
     // 是ListItem
-    if (uisafe_cast<UIListItem>(&child)) {
-        const auto ptr = static_cast<UIListItem*>(&child);
-        m_list.push_back(ptr);
+    if (const auto item = uisafe_cast<UIListItem>(&child)) {
+        m_list.push_back(item);
         this->mark_need_refresh_index();
-        return UIControlPrivate::CallAddChild(m_oListboxBody, child);
+        child.SetParent(m_oListboxBody);
+        if (item->IsSelectedBeforeInit())
+            this->SelectItem(*item, false);
+        return;
     }
     // 是ListCols
     else if (uisafe_cast<UIListCols>(&child)) {
@@ -267,7 +269,7 @@ auto LongUI::UIListBox::InsertItem(uint32_t index, const CUIString &) noexcept -
 /// <returns></returns>
 void LongUI::UIListBox::ClearAllSelected() noexcept {
     for (auto* item : m_selected) {
-        item->StartAnimation({ StyleStateType::Type_Selected, false });
+        item->StartAnimation({ State_Selected, State_Non });
     }
     m_selected.clear();
 }
@@ -281,7 +283,7 @@ void LongUI::UIListBox::ClearSelected(UIListItem& item) noexcept {
     const auto enditr = m_selected.end();
     const auto itr = std::find(m_selected.begin(), enditr, &item);
     m_selected.erase(itr);
-    item.StartAnimation({ StyleStateType::Type_Selected, false });
+    item.StartAnimation({ State_Selected, State_Non });
 }
 
 /// <summary>
@@ -311,7 +313,7 @@ void LongUI::UIListBox::select_item(UIListItem& item) noexcept {
     // 写入表内
     // TODO: 链表实现m_selected
     m_selected.push_back(&item);
-    item.StartAnimation({ StyleStateType::Type_Selected, true });
+    item.StartAnimation({ State_Selected, State_Selected });
 }
 
 
@@ -452,7 +454,7 @@ void LongUI::UIListBox::refresh_cols_minsize() noexcept {
 void LongUI::UIListBox::refresh_minsize() noexcept {
     Size2F msize = { 0.f };
     // 先确定Head
-    if (m_pHead) msize = m_pHead->GetBox().minsize;
+    if (m_pHead) msize = m_pHead->RefBox().minsize;
     // 再确定Body
     const auto line_height = m_oListboxBody.line_size.height;
     msize.height += m_displayRow * line_height;
@@ -476,6 +478,22 @@ namespace LongUI {
 /// <returns></returns>
 auto LongUI::UIListItem::GetText() const noexcept -> const char16_t* {
     return m_oLabel.GetText();
+}
+
+
+/// <summary>
+/// set checked
+/// </summary>
+/// <param name="checked"></param>
+/// <returns></returns>
+void LongUI::UIListItem::SetChecked(bool checked) noexcept {
+    // 禁用状态
+    if (this->IsDisabled()) return;
+    if (!!this->IsChecked() == checked) return;
+    // TODO: 第三状态?
+    //if (this->IsIndeterminate()) 
+    const auto state = (m_oStyle.state & State_Checked) ;
+    this->StartAnimation({ State_Checked , state ^ State_Checked });
 }
 
 /// <summary>
@@ -507,10 +525,13 @@ LongUI::UIListItem::UIListItem(UIControl* parent, const MetaControl& meta) noexc
     : Super(impl::ctor_lock(parent), meta),
     m_oImage(nullptr), m_oLabel(nullptr) {
     //m_state.focusable = true;
-    // 原子性, 子控件为本控件的组成部分
-    //m_state.atomicity = true;
+    m_oBox.padding = { 2, 0, 2, 0 };
+    // 阻隔鼠标事件
+    m_state.mouse_continue = false;
+    this->make_offset_tf_direct(m_oLabel);
     // 水平布局
     m_state.orient = Orient_Horizontal;
+    m_oStyle.align = AttributeAlign::Align_Center;
     // 列表项目
     m_oStyle.appearance = Appearance_ListItem;
     // 私有实现
@@ -552,6 +573,7 @@ void LongUI::UIListItem::add_private_child() noexcept {
     if (!m_oImage.GetParent()) {
         m_oImage.SetParent(*this);
         m_oLabel.SetParent(*this);
+        //m_state.atomicity = true;
     }
 }
 
@@ -574,7 +596,7 @@ void LongUI::UIListItem::relayout() noexcept {
         }
     }
     // 默认的水平布局
-    //this->relayout_h();
+    else this->relayout_h();
 }
 
 
@@ -606,6 +628,10 @@ auto LongUI::UIListItem::DoMouseEvent(const MouseEventArg& e) noexcept -> EventA
     switch (e.type)
     {
     case LongUI::MouseEvent::Event_LButtonDown:
+        // 复选框
+        if (m_type == BehaviorType::Type_Checkbox) {
+            this->SetChecked(!this->IsChecked());
+        }
         // 存在ListBox
         if (const auto list = m_pListBox) {
             // 判断SHIFT
@@ -649,6 +675,9 @@ void LongUI::UIListItem::SetText(CUIString&& text) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIListItem::Update(UpdateReason reason) noexcept {
+    // 将文本消息传递给Label
+    if (const auto r = reason & Reason_TextFontChanged)
+        m_oLabel.Update(r);
     // 获取listbox
     if (reason & Reason_ParentChanged) {
         UIListBox* listbox = nullptr;
@@ -688,19 +717,33 @@ auto LongUI::UIListItem::DoEvent(UIControl * sender,
     case NoticeEvent::Event_RefreshBoxMinSize:
         Super::DoEvent(sender, e);
         if (const auto list = m_pListBox)
-            list->SetLineSize(this->GetBox().minsize);
+            list->SetLineSize(this->RefBox().minsize);
         return Event_Accept;
     case NoticeEvent::Event_Initialize:
         // 没子控件
-        if (!this->GetChildrenCount()) {
+        if (!this->is_added_before_init()) {
             // TODO: 没有文本时候的处理
             m_oLabel.SetAsDefaultMinsize();
             this->add_private_child();
         }
+        this->init_behavior();
         break;
     }
     // 基类处理
     return Super::DoEvent(sender, e);
+}
+
+/// <summary>
+/// init with behavior
+/// </summary>
+/// <returns></returns>
+void LongUI::UIListItem::init_behavior() noexcept {
+    // UIListItem支持checkedbox
+    if (m_type == BehaviorType::Type_Checkbox) {
+        const auto app = Appearance_CheckBox;
+        UIControlPrivate::SetAppearance(m_oImage, app);
+        UIControlPrivate::RefStyleState(m_oImage) = m_oStyle.state;
+    }
 }
 
 
@@ -712,13 +755,25 @@ auto LongUI::UIListItem::DoEvent(UIControl * sender,
 /// <returns></returns>
 void LongUI::UIListItem::add_attribute(uint32_t key, U8View value) noexcept {
     // 新增属性列表
-    constexpr auto BKDR_VALUE = 0x246df521_ui32;
+    constexpr auto BKDR_TYPE        = 0x0fab1332_ui32;
+    constexpr auto BKDR_VALUE       = 0x246df521_ui32;
+    constexpr auto BKDR_SELECTED    = 0x03481b1f_ui32;
     // 分类讨论
     switch (key)
     {
     case "label"_bkdr:
         // 传递给子控件
         Unsafe::AddAttrUninited(m_oLabel, BKDR_VALUE, value);
+        break;
+    case BKDR_TYPE:
+        // type : 行为类型
+        //      : normal
+        //      : checkbox
+        m_type = LongUI::ParseBehaviorType(value);
+        break;
+    case BKDR_SELECTED:
+        // 初始化状态
+        m_bSelInit = value.ToBool();
         break;
     default:
         // 其他情况, 交给基类处理
@@ -742,11 +797,11 @@ namespace LongUI {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIListCols::UIListCols(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+    : Super(impl::ctor_lock(parent), meta) {
     // 水平布局
     m_state.orient = Orient_Horizontal;
     // 构造锁
-    //impl::ctor_unlock();
+    impl::ctor_unlock();
 }
 
 /// <summary>
@@ -787,7 +842,7 @@ bool LongUI::UIListCols::WillRelayout() const noexcept {
 /// <param name="container">The container.</param>
 /// <returns></returns>
 void LongUI::UIListCols::MatchLayout(UIControl& container) noexcept {
-    const auto height = container.GetBox().GetContentSize().height;
+    const auto height = container.RefBox().GetContentSize().height;
     auto itr = container.begin();
     const auto end = container.end();
     // 遍历cols
@@ -801,6 +856,7 @@ void LongUI::UIListCols::MatchLayout(UIControl& container) noexcept {
         const auto width = col.GetSize().width;
         UIControl::resize_child(cchild, { width, height });
         cchild.SetPos(col.GetPos());
+        //LUIDebug(Hint) << (void*)&cchild << cchild.GetPos() << endl;
         // 递进
         ++itr;
     }

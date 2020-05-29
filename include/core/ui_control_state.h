@@ -56,6 +56,11 @@ namespace LongUI {
         Reason_HoveredChanged           = 1 << 9,
 
 
+        Reason_TextFontChanged
+            = Reason_TextFontDisplayChanged
+            | Reason_TextFontLayoutChanged
+        ,
+
         // basic relayout reason
         Reason_BasicRelayout 
             = Reason_ParentChanged
@@ -88,13 +93,12 @@ namespace LongUI {
         bool            visible : 1;
 
 
-
+        // mouse event continue
+        bool        mouse_continue : 1;
         // gui event to parent[true to parent, false to viewport]
         bool        gui_event_to_parent : 1;
         // defaultable
         bool        defaultable : 1;
-        // atomicity (children will keep same input-state with parent)
-        bool        atomicity : 1;
         // attachment 
         bool        attachment : 1;
         // focusable
@@ -115,6 +119,10 @@ namespace LongUI {
         bool        tooltip_shown : 1;
         // is delete later?
         bool        delete_later : 1;
+        // added to parent
+        bool        added_to_parent : 1;
+        // addto to this[using this during init]
+        bool        added_to_this : 1;
         // inner data
         //  - UIMenuPopup: save last select
         bool        inner_data : 1;

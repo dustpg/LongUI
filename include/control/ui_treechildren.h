@@ -58,10 +58,8 @@ namespace LongUI {
         //// recreate/init device(gpu) resource
         //auto Recreate() noexcept->Result override;
     protected:
-#ifndef NDEBUG
         // add child for debug
         void add_child(UIControl& child) noexcept override;
-#endif
         // relayout this
         //void relayout_this() noexcept;
         // refresh minsize

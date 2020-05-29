@@ -90,7 +90,7 @@ namespace LongUI {
         // create ctl text
         auto CreateCtlText(const TextArg&, I::Text*&) noexcept->Result;
         // get default font data
-        auto GetDefaultFont() const noexcept -> const FontArg&;
+        auto RefDefaultFont() const noexcept -> const FontArg&;
     public:
         // set alpha ch. premultiply for reading image
         void SetAlphaMode(bool premultiply) noexcept;

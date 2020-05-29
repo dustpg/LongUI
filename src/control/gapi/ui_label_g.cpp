@@ -19,13 +19,13 @@ void LongUI::UILabel::Render() const noexcept {
     //        << this->GetPos() 
     //        << ' ' << m_mtWorld._31
     //        << endl;
-    //    const auto rect = this->GetBox().GetContentEdge();
+    //    const auto rect = this->RefBox().GetContentEdge();
     //    auto& brush = UIManager.RefCCBrush({ 1,0,0,1 });
     //    rdr.FillRectangle(auto_cast(&rect), &brush);
     //}
 
     // 前景文本
-    const auto rect = this->GetBox().GetContentEdge();
+    const auto rect = this->RefBox().GetContentEdge();
     //ColorF color; ColorF::FromRGBA_RT(color, this->GetFgColor());
     auto color = m_tfBuffer.text.color;
     // XXX: 默认控件而且是HREF模式

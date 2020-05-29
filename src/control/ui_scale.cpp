@@ -70,7 +70,7 @@ void LongUI::UIScale::Update(UpdateReason reason) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIScale::refresh_thumb_postion() noexcept {
-    const auto csize = this->GetBox().GetContentSize();
+    const auto csize = this->RefBox().GetContentSize();
     const auto ssize = this->thumb.GetSize();
     assert(m_fValue >= m_fMin && m_fValue <= m_fMax && "out of range");
     const auto normalization = (m_fValue - m_fMin) / (m_fMax - m_fMin);
@@ -96,9 +96,9 @@ void LongUI::UIScale::refresh_thumb_postion() noexcept {
 /// <returns></returns>
 void LongUI::UIScale::refresh_thumb_size() noexcept {
     const auto length = m_fMax - m_fMin;
-    const auto csize = this->GetBox().GetContentSize();
+    const auto csize = this->RefBox().GetContentSize();
     const auto ratio = m_fPageIncrement / (m_fPageIncrement + length);
-    const auto xsize = this->thumb.GetStyle().maxsize;
+    const auto xsize = this->thumb.RefStyle().maxsize;
     Size2F size = this->thumb.GetMinSize();
     // 水平方向
     if (this->GetOrient() == Orient_Horizontal) {
@@ -198,7 +198,7 @@ auto LongUI::UIScale::DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept
     auto hold_lbtn_move = [this, &pt_this]() noexcept->EventAccept {
         if (m_pHovered) {
             assert(m_pHovered == &this->thumb);
-            const auto csize = this->GetBox().GetContentSize();
+            const auto csize = this->RefBox().GetContentSize();
             const auto ssize = this->thumb.GetSize();
             const int i = this->GetOrient() == Orient_Horizontal ? 0 : 1;
             const auto width = i[&csize.width] - i[&ssize.width];
