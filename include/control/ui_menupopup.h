@@ -96,17 +96,17 @@ namespace LongUI {
         // add attribute
         void add_attribute(uint32_t key, U8View view) noexcept override;
         // add child
-        //void add_child(UIControl& child) noexcept override;
+        void add_child(UIControl& child) noexcept override;
         // select child
         void select(UIControl* child) noexcept;
         // change select
         static void change_select(UIControl* old, UIControl* now) noexcept;
         // save selected?
-        auto is_save_selected() const noexcept { return m_state.inner_data; }
+        auto is_save_selected() const noexcept { return m_bSaveSel; }
         // save selected: true
-        auto save_selected_true() noexcept { m_state.inner_data = true; }
+        auto save_selected_true() noexcept { m_bSaveSel = true; }
         // save selected: false
-        auto save_selected_false() noexcept { m_state.inner_data = false; }
+        auto save_selected_false() noexcept { m_bSaveSel = false; }
         // init clear color for defualt ctxmenu
         void init_clear_color_for_default_ctxmenu() noexcept;
         // init clear color for defualt combobox
@@ -131,6 +131,8 @@ namespace LongUI {
         bool                    m_bMouseIn = false;
         // no delay closed once
         bool                    m_bNoClosedOnce = false;
+        // save sel
+        bool                    m_bSaveSel = false;
     };
     // get meta info for UIMenuPopup
     LUI_DECLARE_METAINFO(UIMenuPopup);

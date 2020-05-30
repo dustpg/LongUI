@@ -74,6 +74,12 @@ void LongUI::UIRadio::Update(UpdateReason reason) noexcept {
     // 将文本消息传递给Label
     if (const auto r = reason & Reason_TextFontChanged)
         m_oLabel.Update(r);
+    // 新创建
+    if (m_bNewImage) {
+        assert(m_pImageChild);
+        UIControl::SwapChildren(*m_pImageChild, m_oLabel);
+        m_bNewImage = false;
+    }
     // 父节点修改了?
     if (reason & Reason_ParentChanged) {
         // uisafe_cast 空指针安全
@@ -261,8 +267,8 @@ void LongUI::UIRadio::SetImageSource(U8View src) noexcept {
     if (!m_pImageChild) {
         const auto img = new(std::nothrow) UIImage{ this };
         if (!img) return;
-        Super::SwapChildren(*img, m_oLabel);
         m_pImageChild = img;
+        m_bNewImage = true;
     }
     m_pImageChild->SetSource(src);
 }

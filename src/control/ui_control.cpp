@@ -360,6 +360,7 @@ auto LongUI::UIControl::init() noexcept -> Result {
     assert(m_state.inited == false && "this control has been inited");
     // 加入父节点
     if (!m_state.added_to_parent) {
+        // FIXME: m_pParent 可能已经释放
         if (m_pParent) {
             const auto parent = m_pParent;
             m_pParent = nullptr;
@@ -1261,7 +1262,7 @@ bool LongUI::UIControl::IsAncestorForThis(const UIControl& node) const noexcept 
 /// </summary>
 /// <param name="parent">The parent.</param>
 /// <returns></returns>
-void LongUI::UIControl::SetParent(UIControl& parent) noexcept {
+void LongUI::UIControl::SetParentImmediately(UIControl& parent) noexcept {
     assert(this && "bad this ptr");
     parent.add_child(*this);
 }
@@ -1645,11 +1646,7 @@ void LongUI::UIControl::mark_window_minsize_changed() noexcept {
 /// <returns></returns>
 void LongUI::UIControl::add_child(UIControl& child) noexcept {
     // 视口?
-    if (LongUI::IsViewport(child)) {
-        assert(m_pWindow && "add subwindow must be vaild window");
-        LongUI::AddSubViewport(*m_pWindow, child);
-        return;
-    }
+    if (LongUI::IsViewport(child)) return;
     // 无需再次添加
     if (child.m_pParent == this) return;
     // 鼠标信息隔断默认会继承所有状态

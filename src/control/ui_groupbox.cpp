@@ -102,7 +102,7 @@ void LongUI::UIGroupBox::add_child(UIControl& child) noexcept {
     // 其他控件
     else target = &m_oBodyLayout;
     // 添加给目标
-    child.SetParent(*target);
+    UIControlPrivate::AddChild(*target, child);
 }
 
 

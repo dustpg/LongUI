@@ -230,8 +230,6 @@ auto LongUI::UITextBox::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
         this->private_down();
         break;
 #endif
-    default:
-        return Super::DoInputEvent(e);
     }
     // XXX: 其他方式?
     if (!op_ok) ::longui_error_beep();

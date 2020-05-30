@@ -35,10 +35,12 @@
 #ifndef PCN_NOINLINE
 
 #if  LUI_COMPILER == LUI_COMPILER_MSVC
+#define PCN_FOINLINE __forceinline
 #define PCN_NOINLINE __declspec(noinline)
 #define PCN_NOVTABLE __declspec(novtable)
 #define PCN_DLLEXPRT
 #else
+#define PCN_FOINLINE __inline__ __attribute__((always_inline))
 #define PCN_NOINLINE __attribute__((noinline))
 #define PCN_NOVTABLE
 #define PCN_DLLEXPRT

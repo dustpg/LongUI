@@ -26,6 +26,7 @@
 
 // super
 #include "ui_boxlayout.h"
+#include "../style/ui_behavior_type.h"
 // base
 #include "ui_image.h"
 #include "ui_label.h"
@@ -57,18 +58,11 @@ namespace LongUI {
         void SetText(CUIString&&) noexcept;
         // set text
         void SetText(U16View) noexcept;
+        // Is selected before init
+        auto IsSelectedBeforeInit() const noexcept { return m_bSelInit; }
     public:
         // ICON WIDTH
         enum : uint32_t { ICON_WIDTH = 28 };
-        // item type
-        enum ItemType : uint32_t {
-            // normal type
-            Type_Normal = 0,
-            // checkbox
-            Type_CheckBox,
-            // radio
-            Type_Radio,
-        };
         // class meta
         static const  MetaControl   s_meta;
         // dtor
@@ -87,8 +81,6 @@ namespace LongUI {
         void add_attribute(uint32_t key, U8View value) noexcept override;
         // re-layout
         //void relayout() noexcept override;
-        // view to type
-        static auto view2type(U8View) noexcept->ItemType;
         // do check box
         void do_checkbox() noexcept;
         // do radio
@@ -102,7 +94,9 @@ namespace LongUI {
         // group name
         const char*         m_pName = nullptr;
         // item type
-        ItemType            m_type = Type_Normal;
+        BehaviorType        m_type = BehaviorType::Type_Normal;
+        // selected before init
+        bool                m_bSelInit = false;
     };
     // get meta info for UIMenuItem
     LUI_DECLARE_METAINFO(UIMenuItem);

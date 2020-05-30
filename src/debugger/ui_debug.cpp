@@ -240,7 +240,7 @@ void LongUI::CUIDebug::OutputString(
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIDebug::RefInstance() noexcept->CUIDebug& {
-    return LongUI::CUIManager::RefInstance();
+    return LongUI::RefUIInstance();
 }
 
 

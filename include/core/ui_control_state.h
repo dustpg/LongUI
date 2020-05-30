@@ -123,9 +123,6 @@ namespace LongUI {
         bool        added_to_parent : 1;
         // addto to this[using this during init]
         bool        added_to_this : 1;
-        // inner data
-        //  - UIMenuPopup: save last select
-        bool        inner_data : 1;
         // dbg output
         bool        dbg_output : 1;
         // debug in update

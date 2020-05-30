@@ -158,6 +158,17 @@ namespace LongUI {
         {{ 0.0,-0.5 },{ 3.5, 3.0 },{ 3.5, 0.0 }},
     };
 #endif
+    // windows focus style
+    static const D2D1_STROKE_STYLE_PROPERTIES1 WIN_FOCUS_STYLE = {
+        D2D1_CAP_STYLE_FLAT,
+        D2D1_CAP_STYLE_FLAT,
+        D2D1_CAP_STYLE_FLAT,
+        D2D1_LINE_JOIN_MITER,
+        10.0f,
+        D2D1_DASH_STYLE_DASH,
+        0.0f,
+        D2D1_STROKE_TRANSFORM_TYPE_HAIRLINE
+    };
     // I::StrokeStyle
     namespace I { struct PCN_NOVTABLE StrokeStyle : ID2D1StrokeStyle1 {}; }
 }
@@ -179,7 +190,6 @@ void LongUI::CUINativeStyleWindows10::FocusNative(const RectF& rect) noexcept {
     //renderer.FillRectangle(auto_cast(rect), &bursh);
     renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
 }
-
 
 /// <summary>
 /// Initializes a new instance of the <see cref="CUINativeStyleWindows10"/> class.
@@ -211,16 +221,7 @@ LongUI::CUINativeStyleWindows10::CUINativeStyleWindows10(Result& hr) noexcept {
 #endif
     auto& factory = reinterpret_cast<ID2D1Factory1&>(UIManager.Ref2DFactory());
     hr.code = factory.CreateStrokeStyle(
-        D2D1::StrokeStyleProperties1(
-            D2D1_CAP_STYLE_FLAT,
-            D2D1_CAP_STYLE_FLAT,
-            D2D1_CAP_STYLE_FLAT,
-            D2D1_LINE_JOIN_MITER,
-            10.0f,
-            D2D1_DASH_STYLE_DASH,
-            0.0f,
-            D2D1_STROKE_TRANSFORM_TYPE_HAIRLINE
-        ), nullptr, 0,
+        &WIN_FOCUS_STYLE, nullptr, 0,
         reinterpret_cast<ID2D1StrokeStyle1**>(&m_pStrokeStyle)
     );
 }
@@ -775,11 +776,11 @@ void LongUI::CUINativeStyleWindows10::draw_textfield(const NativeDrawArgs & args
     center.bottom -= border_halfw;
     // 渲染器
     auto& renderer = UIManager.Ref2DRenderer();
-    //renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+    renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
     // 边框色彩
     auto& bursh1 = UIManager.RefCCBrush(bdcolor);
     renderer.DrawRectangle(auto_cast(center), &bursh1, border_halfw * 2.f);
-    //renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+    renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
 }
 
 

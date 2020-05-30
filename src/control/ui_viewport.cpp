@@ -4,12 +4,15 @@
 #include <core/ui_string.h>
 #include <cassert>
 
+#include "../private/ui_private_control.h"
+
 // ui namespace
 namespace LongUI {
     // UIMenuList类 元信息
     LUI_CONTROL_META_INFO_NO(UIViewport, "viewport");
     // 视口?
     bool IsViewport(const UIControl& ctrl) noexcept {
+        // XXX: [优化]
         return !!uisafe_cast<const UIViewport>(&ctrl);
     }
     // 添加视口
@@ -47,16 +50,20 @@ LongUI::UIViewport::UIViewport(
     UIControl& pseudo_parent,
     CUIWindow::WindowConfig config,
     const MetaControl& meta) noexcept 
-    : Super(impl::ctor_lock(&pseudo_parent), meta), m_pHoster(&pseudo_parent),
+    : Super(impl::ctor_lock(nullptr), meta), m_pHoster(&pseudo_parent),
     m_nSubview({ static_cast<UIControl*>(&m_nSubview), static_cast<UIControl*>(&m_nSubview) }),
     m_window(pseudo_parent.GetWindow(), config) {
-
-    assert(m_pParent == nullptr);
+    // window 节点是自己的
     m_pWindow = &m_window;
     m_state.orient = Orient_Vertical;
-
     // 构造锁
     impl::ctor_unlock();
+    // 使用数据锁
+    CUIDataAutoLocker locker;
+    // 添加给子窗口
+    const auto pwin = pseudo_parent.GetWindow();
+    pwin->RefViewport().AddSubViewport(*this);
+    this->SetParentImmediately(pseudo_parent);
 }
 
 /// <summary>

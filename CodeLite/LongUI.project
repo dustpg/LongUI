@@ -54,20 +54,8 @@
       <File Name="../src/text/ui_text_layout.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="style">
-      <VirtualDirectory Name="native">
-        <File Name="../src/style/native/ui_win10_tree.cpp"/>
-        <File Name="../src/style/native/ui_win10_tab.cpp"/>
-        <File Name="../src/style/native/ui_win10_slider.cpp"/>
-        <File Name="../src/style/native/ui_win10_radio.cpp"/>
-        <File Name="../src/style/native/ui_win10_group.cpp"/>
-        <File Name="../src/style/native/ui_win10_cbx.cpp"/>
-        <File Name="../src/style/native/ui_win10_btn.cpp"/>
-        <File Name="../src/style/native/ui_win10_bg.cpp"/>
-        <File Name="../src/style/native/ui_win10_abtn.cpp"/>
-        <File Name="../src/style/native/ui_win10.cpp"/>
-      </VirtualDirectory>
+      <File Name="../src/style/ui_win10.cpp"/>
       <File Name="../src/style/ui_style_value.cpp"/>
-      <File Name="../src/style/ui_style_state.cpp"/>
       <File Name="../src/style/ui_style.cpp"/>
       <File Name="../src/style/ui_ssvalue_list.cpp"/>
       <File Name="../src/style/ui_ssvalue.cpp"/>

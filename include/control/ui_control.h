@@ -234,10 +234,12 @@ namespace LongUI {
         auto GetParent() const noexcept { return m_pParent; }
         // get window
         auto GetWindow() const noexcept { return m_pWindow; }
-        // set a new parent
-        void SetParent(UIControl& parent) noexcept;
-        // set a new parent to null
-        void SetParent(std::nullptr_t) noexcept { this->clear_parent(); }
+        // set a new logical-parent later
+        void SetParentLater(UIControl& parent) noexcept;
+        // set a new logical-parent immediately, be careful about thread safety
+        void SetParentImmediately(UIControl& parent) noexcept;
+        // clear parent immediately, be careful about thread safety
+        void SetParentImmediately(std::nullptr_t) noexcept { this->clear_parent(); }
         // set focus of this control, return true if set
         bool SetFocus() noexcept;
         // kill focus of this control

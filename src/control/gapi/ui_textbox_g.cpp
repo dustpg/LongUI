@@ -190,7 +190,7 @@ bool LongUI::UITextBox::private_char(char32_t ch, uint16_t seq) noexcept {
         return buffer + 1;
     };
     // 输入完毕
-    //if (!seq) this->need_update();
+    if (!seq) this->need_update();
     // 使用IME输入
     if (seq || pimpl()->ime_input) {
         const auto buf = reinterpret_cast<char16_t*>(&UIManager.ime_common_buf);
@@ -206,6 +206,7 @@ bool LongUI::UITextBox::private_char(char32_t ch, uint16_t seq) noexcept {
         }
         return true;
     }
+    // 输入单字符
     else return pimpl()->document().GuiChar(ch);
 }
 

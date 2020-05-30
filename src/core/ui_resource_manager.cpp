@@ -1097,14 +1097,14 @@ auto LongUI::CUIResMgr::RefCCBrush(
     return *comb;
 }
 
+
 /// <summary>
 /// get 2d factory
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIResMgr::Ref2DFactory() noexcept -> int& {
-    CUIResMgr& manager = UIManager;
-    auto& factory = *manager.rm().d2dfactroy;
-    return reinterpret_cast<int&>(factory);
+    const auto factory = UIManager.rm().d2dfactroy;
+    return reinterpret_cast<int&>(*factory);
 }
 
 // DXGI DEBUG

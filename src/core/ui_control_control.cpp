@@ -662,8 +662,8 @@ bool LongUI::CUIControlControl::init_control_in_list() noexcept {
         // 尝试初始化
         assert(!ctrl->is_inited() && "has been inited");
 #ifndef NDEBUG
-        if (ctrl->GetParent()) {
-            if (!std::strcmp(ctrl->GetParent()->name_dbg, "root")) {
+        if (const auto p = ctrl->GetParent()) {
+            if (!std::strcmp(p->name_dbg, "root")) {
                 int bk = 9;
             }
         }
@@ -1682,7 +1682,6 @@ bool LongUI::CUIControlControl::MakeXul(UIControl& ctrl, const char* xul) noexce
     // 先去掉所有子控件
     while (ctrl.GetChildrenCount()) {
         auto& control = *ctrl.begin();
-        control.SetParent(nullptr);
         control.DeleteLater();
     }
     // 错误代码 

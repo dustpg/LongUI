@@ -126,7 +126,7 @@ auto LongUI::UIMenuItem::DoEvent(
         if (sender == this) return Event_Ignore;
         if (this->IsDisabled()) return Event_Ignore;
         if (!this->IsChecked()) return Event_Ignore;
-        if (m_type != UIMenuItem::Type_Radio) return Event_Ignore;
+        if (m_type != BehaviorType::Type_Radio) return Event_Ignore;
         if (m_pName != static_cast<group_t&>(arg).group_name)
             return Event_Ignore;
         // 是CHECKBOX类型?
@@ -183,14 +183,14 @@ void LongUI::UIMenuItem::add_attribute(uint32_t key, U8View value) noexcept {
         break;
     case BKDR_TYPE:
         // type : 类型
-        m_type = this->view2type(value);
+        //      : normal
+        //      : checkbox
+        //      : radio
+        m_type = LongUI::ParseBehaviorType(value);
         break;
     case BKDR_SELECTED:
         // selected: 选择
-        if (const auto obj = uisafe_cast<UIMenuPopup>(m_pParent)) {
-            obj->select(this);
-            obj->m_pPerSelected = this;
-        }
+        m_bSelInit = value.ToBool();
         break;
     default:
         // 其他的交给超类处理
@@ -198,20 +198,6 @@ void LongUI::UIMenuItem::add_attribute(uint32_t key, U8View value) noexcept {
     }
 }
 
-
-/// <summary>
-/// View2types the specified view.
-/// </summary>
-/// <param name="view">The view.</param>
-/// <returns></returns>
-auto LongUI::UIMenuItem::view2type(U8View view)noexcept->ItemType {
-    switch (*view.begin())
-    {
-    default: return UIMenuItem::Type_Normal;
-    case 'c': return UIMenuItem::Type_CheckBox;
-    case 'r': return UIMenuItem::Type_Radio;
-    }
-}
 
 /// <summary>
 /// Renders this instance.
@@ -237,11 +223,11 @@ void LongUI::UIMenuItem::init_menuitem() noexcept {
             };
             switch (m_type)
             {
-            case LongUI::UIMenuItem::Type_CheckBox:
+            case BehaviorType::Type_Checkbox:
                 UIControlPrivate::SetAppearanceIfNotSet(m_oImage, Appearance_MenuCheckBox);
                 init_state();
                 break;
-            case LongUI::UIMenuItem::Type_Radio:
+            case BehaviorType::Type_Radio:
                 UIControlPrivate::SetAppearanceIfNotSet(m_oImage, Appearance_MenuRadio);
                 init_state();
                 break;
@@ -307,10 +293,10 @@ auto LongUI::UIMenuItem::DoMouseEvent(const MouseEventArg & e) noexcept -> Event
     //    break;
     case LongUI::MouseEvent::Event_LButtonUp:
         // 复选框
-        if (m_type == UIMenuItem::Type_CheckBox)
+        if (m_type == BehaviorType::Type_Checkbox)
             this->do_checkbox();
         // 单选框
-        else if (m_type == UIMenuItem::Type_Radio)
+        else if (m_type == BehaviorType::Type_Radio)
             this->do_radio();
         // 事件
         this->TriggerEvent(this->_onCommand());
@@ -879,16 +865,16 @@ void LongUI::UIMenuPopup::SetDelayClosedPopup() noexcept {
 /// </summary>
 /// <param name="child">The child.</param>
 /// <returns></returns>
-//void LongUI::UIMenuPopup::add_child(UIControl& child) noexcept {
-//    // 在未初始化的时候, 记录第一个UIMenuItem
-//    if (!this->is_inited() && !m_pLastSelected) {
-//        // 会在Event_Initialize进行选择
-//        if (const auto ptr = uisafe_cast<UIMenuItem>(&child)) {
-//            m_pLastSelected = ptr;
-//        }
-//    }
-//    return Super::add_child(child);
-//}
+void LongUI::UIMenuPopup::add_child(UIControl& child) noexcept {
+    Super::add_child(child);
+    // 会在检查selected信息进行选择
+    if (const auto item = uisafe_cast<UIMenuItem>(&child)) {
+        if (item->IsSelectedBeforeInit()) {
+            this->select(item);
+            m_pPerSelected = item;
+        }
+    }
+}
 
 /// <summary>
 /// Selects the specified child.

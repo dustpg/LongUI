@@ -107,8 +107,8 @@ LongUI::UIButton::~UIButton() noexcept {
 /// <returns></returns>
 void LongUI::UIButton::add_private_child() noexcept {
     if (!m_oImage.GetParent()) {
-        m_oImage.SetParent(*this);
-        m_oLabel.SetParent(*this);
+        this->add_child(m_oImage);
+        this->add_child(m_oLabel);
     }
 }
 
@@ -399,6 +399,21 @@ void LongUI::UIButton::Click() noexcept {
         }
         break;
     }
+}
+
+/// <summary>
+/// add child for this
+/// </summary>
+/// <param name="child"></param>
+/// <returns></returns>
+void LongUI::UIButton::add_child(UIControl & child) noexcept {
+    // UIMenuPopup
+    if (const auto ptr = uisafe_cast<UIMenuPopup>(&child)) {
+        assert(m_pMenuPopup == nullptr);
+        m_pMenuPopup = ptr;
+    }
+    // 其他的
+    return Super::add_child(child);
 }
 
 

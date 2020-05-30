@@ -98,6 +98,8 @@ namespace LongUI {
         UIRadioGroup*       m_pRadioGroup = nullptr;
         // image child
         UIImage*            m_pImageChild = nullptr;
+        // a new image added
+        bool                m_bNewImage = false;
     };
     // get meta info for UIRadio
     LUI_DECLARE_METAINFO(UIRadio);

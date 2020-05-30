@@ -227,7 +227,7 @@ void LongUI::UIListBox::add_child(UIControl& child) noexcept {
     if (const auto item = uisafe_cast<UIListItem>(&child)) {
         m_list.push_back(item);
         this->mark_need_refresh_index();
-        child.SetParent(m_oListboxBody);
+        UIControlPrivate::AddChild(m_oListboxBody, child);
         if (item->IsSelectedBeforeInit())
             this->SelectItem(*item, false);
         return;
@@ -571,8 +571,8 @@ LongUI::UIListItem::~UIListItem() noexcept {
 /// <returns></returns>
 void LongUI::UIListItem::add_private_child() noexcept {
     if (!m_oImage.GetParent()) {
-        m_oImage.SetParent(*this);
-        m_oLabel.SetParent(*this);
+        this->add_child(m_oImage);
+        this->add_child(m_oLabel);
         //m_state.atomicity = true;
     }
 }

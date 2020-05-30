@@ -106,6 +106,8 @@ namespace LongUI {
     private:
         // image child
         UIImage*                m_pImageChild = nullptr;
+        // new image added
+        bool                    m_bNewImage = false;
     };
     // get meta info for UICheckBox
     LUI_DECLARE_METAINFO(UICheckBox);

@@ -46,7 +46,7 @@
 #include <thread/ui_waiter.h>
 
 // longui manager
-#define UIManager (LongUI::CUIManager::RefInstance())
+#define UIManager (LongUI::RefUIInstance())
 
 // ui namespace
 namespace LongUI {
@@ -84,8 +84,6 @@ namespace LongUI {
         // private
         struct Private;
     public:
-        // get instance
-        static inline auto RefInstance() noexcept->CUIManager&;
         // delete later for control
         void DeleteLater(UIControl&) noexcept;
         // initialize
@@ -241,21 +239,34 @@ namespace LongUI {
     inline auto IntCode(int code) noexcept -> uintptr_t {
         return static_cast<uint32_t>(static_cast<int32_t>(code));   
     }
+    /// <summary>
+    /// single instance buffer for longui manager
+    /// </summary>
+    extern std::aligned_storage<sizeof(CUIManager), alignof(CUIManager)>::type s_bufManager;
+    PCN_FOINLINE
+    /// <summary>
+    /// Gets the ui manager instance.
+    /// 获取UI管理器实例
+    /// </summary>
+    /// <returns></returns>
+    static auto RefUIInstance() noexcept -> CUIManager & {
+        return reinterpret_cast<CUIManager&>(s_bufManager);
+    }
     // auto data locker
     class CUIDataAutoLocker {
     public:
         // ctor
-        CUIDataAutoLocker() noexcept { CUIManager::RefInstance().DataLock(); }
+        CUIDataAutoLocker() noexcept { LongUI::RefUIInstance().DataLock(); }
         // dtor
-        ~CUIDataAutoLocker() noexcept { CUIManager::RefInstance().DataUnlock(); }
+        ~CUIDataAutoLocker() noexcept { LongUI::RefUIInstance().DataUnlock(); }
     };
     // auto dxgi(rendering) locker
     class CUIRenderAutoLocker {
     public:
         // ctor
-        CUIRenderAutoLocker() noexcept { CUIManager::RefInstance().RenderLock(); }
+        CUIRenderAutoLocker() noexcept { LongUI::RefUIInstance().RenderLock(); }
         // dtor
-        ~CUIRenderAutoLocker() noexcept { CUIManager::RefInstance().RenderUnlock(); }
+        ~CUIRenderAutoLocker() noexcept { LongUI::RefUIInstance().RenderUnlock(); }
     };
     // blocking gui operation auto unlocker
     class CUIBlockingGuiOpAutoUnlocker {
@@ -271,17 +282,5 @@ namespace LongUI {
         // dtor
         ~CUIBlockingGuiOpAutoUnlocker() noexcept { uninit(m_counter); }
     };
-    /// <summary>
-    /// single instance buffer for longui manager
-    /// </summary>
-    extern std::aligned_storage<sizeof(CUIManager), alignof(CUIManager)>::type s_bufManager;
-    /// <summary>
-    /// Gets the ui manager instance.
-    /// 获取UI管理器实例
-    /// </summary>
-    /// <returns></returns>
-    inline auto CUIManager::RefInstance() noexcept -> CUIManager & {
-        return reinterpret_cast<CUIManager&>(s_bufManager);
-    }
 }
 

@@ -41,8 +41,8 @@ void LongUI::UICheckBox::SetImageSource(U8View src) noexcept {
     if (!m_pImageChild) {
         const auto img = new(std::nothrow) UIImage{ this };
         if (!img) return;
-        Super::SwapChildren(*img, m_oLabel);
         m_pImageChild = img;
+        m_bNewImage = true;
     }
     m_pImageChild->SetSource(src);
 }
@@ -252,6 +252,12 @@ void LongUI::UICheckBox::Update(UpdateReason reason) noexcept {
     // 将文本消息传递给Label
     if (const auto r = reason & Reason_TextFontChanged)
         m_oLabel.Update(r);
+    // 新创建
+    if (m_bNewImage) {
+        assert(m_pImageChild);
+        UIControl::SwapChildren(*m_pImageChild, m_oLabel);
+        m_bNewImage = false;
+    }
 #ifdef LUI_DRAW_FOCUS_RECT
     // 渲染焦点框
     if (this->m_oStyle.state & State_Focus) {

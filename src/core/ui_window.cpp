@@ -175,8 +175,6 @@ void LongUI::CUIWindow::Delete() noexcept {
     delete view;
 }
 
-
-
 // ui namespace
 namespace LongUI {
     // dirty rect
@@ -1015,7 +1013,7 @@ bool LongUI::CUIWindow::SetFocus(UIControl& ctrl) noexcept {
     if (focused) this->KillFocus(*focused);
     // 设为焦点
     focused = &ctrl;
-    ctrl.StartAnimation({ State_Focus, State_Non });
+    ctrl.StartAnimation({ State_Focus, State_Focus });
     // Focus 事件
     ctrl.TriggerEvent(UIControl::_onFocus());
     return true;
@@ -2098,6 +2096,7 @@ HWND LongUI::CUIWindow::Private::Init(HWND parent, CUIWindow::WindowConfig confi
         if (config & (CUIWindow::Config_ToolWindow | CUIWindow::Config_Popup))
             ex_flag |= WS_EX_TOOLWINDOW;
         // 创建窗口
+        //::Sleep(1000);
         hwnd = ::CreateWindowExW(
             //WS_EX_NOREDIRECTIONBITMAP | WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT,
             ex_flag,

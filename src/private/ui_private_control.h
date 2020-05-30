@@ -91,4 +91,8 @@ struct LongUI::UIControlPrivate {
     static auto Next(UIControl* ctrl) noexcept { return ctrl->next; }
     // mark window minsize changed
     static void MarkWindowMinsizeChanged(UIControl& ctrl) noexcept { ctrl.mark_window_minsize_changed(); }
+    // clear added
+    static void ClearAdded(UIControl& ctrl) noexcept { ctrl.m_state.added_to_this = false; }
+    // add child
+    static void AddChild(UIControl& o, UIControl& c) noexcept { o.add_child(c); }
 };
