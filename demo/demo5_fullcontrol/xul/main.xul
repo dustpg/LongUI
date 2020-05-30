@@ -10,6 +10,7 @@
       <button label="text box" id="textbox"/>
       <button label="scrolling" id="scrolling" disabled="true"/>
       <button label="popup" id="popup"/>
+      <button label="text box 2" id="textbox2"/>
     </vbox>
     <vbox flex="1">
       <button label="checkbox" id="checkbox"/>

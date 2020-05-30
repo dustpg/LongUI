@@ -24,6 +24,8 @@ void InitViewportCallback(LongUI::UIViewport& v) noexcept {
     assert(btn_layout);
     const auto btn_textbox = window.FindControl("textbox");
     assert(btn_textbox);
+    const auto btn_textbox2 = window.FindControl("textbox2");
+    assert(btn_textbox2);
     const auto btn_scale = window.FindControl("scale");
     assert(btn_scale);
     const auto btn_tab = window.FindControl("tab");
@@ -79,6 +81,12 @@ void InitViewportCallback(LongUI::UIViewport& v) noexcept {
     btn_textbox->AddGuiEventListener(
         UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
         create_viewport(u8"xul/textbox.xul"_sv, { InitViewport_TextBox });
+        return Event_Accept;
+    });
+    // TEXTBOX
+    btn_textbox2->AddGuiEventListener(
+        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
+        create_viewport(u8"xul/textbox2.xul"_sv, {  });
         return Event_Accept;
     });
     // SCALE

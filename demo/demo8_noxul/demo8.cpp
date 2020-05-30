@@ -122,6 +122,7 @@ CDemo8NoXul::CDemo8NoXul() noexcept :
     });
     const auto context = "context"_bkdr;
     Unsafe::AddAttrUninited(m_oBoxB_TextBox, context, "demo8context"_sv);
+    m_oStyle.overflow_x = m_oStyle.overflow_x = Overflow_Auto;
 }
 
 
