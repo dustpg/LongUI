@@ -20,16 +20,13 @@ namespace Demo {
     /// <summary>
     /// Initializes a new instance of the <see cref="MyToggleEx"/> class.
     /// </summary>
-    /// <param name="parent">The parent.</param>
     /// <param name="meta">The meta.</param>
-    MyToggleEx::MyToggleEx(UIControl* parent, 
-        const MetaControl& meta) noexcept : Super(impl::ctor_lock(parent), meta) {
+    MyToggleEx::MyToggleEx(const MetaControl& meta) noexcept : Super(meta) {
         m_base = ColorF::FromRGBA_CT<RGBA_TianyiBlue>();
         m_top0 = ColorF::FromRGBA_CT<RGBA_Black>();
         m_top1 = ColorF::FromRGBA_CT<RGBA_White>();
         m_oBox.border = { 1,1,1,1 };
         this->SetStyleMinSize({ MyToggleMM , MyToggleMH });
-        impl::ctor_unlock();
     }
     /// <summary>
     /// Does the event.

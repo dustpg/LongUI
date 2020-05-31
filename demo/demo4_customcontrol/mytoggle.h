@@ -13,14 +13,15 @@ namespace Demo {
         using Super = UIControl;
     protected:
         // ctor
-        MyToggle(UIControl* parent, const MetaControl&) noexcept;
+        MyToggle(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~MyToggle() noexcept override;
         // ctor
-        MyToggle(UIControl* parent = nullptr) noexcept : MyToggle(parent, MyToggle::s_meta) {}
+        // LUI_CONTROL_OUTER_CTOR(MyToggle);
+        explicit MyToggle(UIControl* parent = nullptr) noexcept : MyToggle(MyToggle::s_meta) { this->final_ctor(parent); }
     public:
         // on commnad event
         static constexpr auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }
