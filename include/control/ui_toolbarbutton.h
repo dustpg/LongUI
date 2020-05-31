@@ -40,13 +40,13 @@ namespace LongUI {
         // dtor
         ~UIToolBarButton() noexcept;
         // ctor
-        UIToolBarButton(UIControl* parent = nullptr) noexcept : UIToolBarButton(parent, UIToolBarButton::s_meta) {}
+        explicit UIToolBarButton(UIControl* parent = nullptr) noexcept : UIToolBarButton(UIToolBarButton::s_meta) { this->final_ctor(parent); }
     protected:
         // ctor
-        UIToolBarButton(UIControl* parent, const MetaControl&) noexcept;
+        UIToolBarButton(const MetaControl&) noexcept;
     public:
         // do normal event
-        auto DoEvent(UIControl*, const EventArg&)noexcept->EventAccept override;
+        //auto DoEvent(UIControl*, const EventArg&)noexcept->EventAccept override;
 
     };
     // get meta info for UIToolBarButton

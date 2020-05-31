@@ -313,42 +313,6 @@ void LongUI::UIControl::SpecifyMaxSize(Size2F size) noexcept {
 
 
 
-#if 0
-/// <summary>
-/// Starts the animation bottom up.
-/// </summary>
-/// <param name="c">The c.</param>
-/// <returns></returns>
-void LongUI::UIControl::start_animation_b2u(StyleStateTypeChange c) noexcept {
-    this->StartAnimation(c);
-    if (!this->IsTopLevel()) m_pParent->start_animation_b2u(c);
-}
-
-/// <summary>
-/// Starts the animation u2p.
-/// </summary>
-/// <param name="">The .</param>
-/// <returns></returns>
-void LongUI::UIControl::start_animation_children(StyleStateTypeChange c) noexcept {
-    for (auto& child : *this) child.StartAnimation(c);
-}
-
-
-/// <summary>
-/// Finds the clicked.
-/// </summary>
-/// <returns></returns>
-auto LongUI::UIControl::take_clicked() noexcept->UIControl* {
-    auto ctrl = this;
-    while (ctrl->m_pClicked) {
-        const auto last = ctrl;
-        ctrl = ctrl->m_pClicked;
-        last->m_pClicked = nullptr;
-    }
-    return ctrl;
-}
-#endif
-
 
 
 /// <summary>
@@ -358,15 +322,6 @@ auto LongUI::UIControl::take_clicked() noexcept->UIControl* {
 auto LongUI::UIControl::init() noexcept -> Result {
     assert(this && "bad action");
     assert(m_state.inited == false && "this control has been inited");
-    // 加入父节点
-    if (!m_state.added_to_parent) {
-        // FIXME: m_pParent 可能已经释放
-        if (m_pParent) {
-            const auto parent = m_pParent;
-            m_pParent = nullptr;
-            parent->add_child(*this);
-        }
-    }
     // XXX: 注册访问按键
     if (m_oStyle.accessKey >= 'A' && m_oStyle.accessKey <= 'Z' && m_pWindow)
         m_pWindow->RegisterAccessKey(*this);
@@ -380,9 +335,8 @@ auto LongUI::UIControl::init() noexcept -> Result {
     Result hr = arg.GetResult();
     // 初始化其他
     if (hr) {
-        // 设置默认样式
-        constexpr auto defapp = Appearance_None;
-        UIControlPrivate::SetAppearanceIfNotSet(*this, defapp);
+        // 取消弱标识
+        m_oStyle.appearance = m_oStyle.appearance & Appearance_AppMask;
         // 依赖类型初始化控件
         LongUI::NativeStyleInit(*this, this->RefStyle().appearance);
         // 重建对象
@@ -810,40 +764,16 @@ void LongUI::UIControl::MapToParent(Point2F& point) const noexcept {
 
 
 /// <summary>
-/// Ctors the lock.
-/// </summary>
-/// <param name="p">The p.</param>
-/// <returns></returns>
-auto LongUI::impl::ctor_lock(UIControl* p) noexcept -> UIControl * {
-#ifdef LUI_USING_CTOR_LOCKER
-    UIManager.RefCtorLocker().Lock();
-#else
-    UIManager.DataLock();
-#endif
-    return p;
-}
-
-/// <summary>
-/// Ctors the unlock.
-/// </summary>
-/// <param name="p">The p.</param>
-/// <returns></returns>
-void LongUI::impl::ctor_unlock() noexcept {
-#ifdef LUI_USING_CTOR_LOCKER
-    UIManager.RefCtorLocker().Unlock();
-#else
-    UIManager.DataUnlock();
-#endif
-}
-
-
-/// <summary>
 /// Controls the making begin.
 /// 在大量创建控件前调用此函数
 /// </summary>
 /// <returns></returns>
 void LongUI::UIControl::ControlMakingBegin() noexcept {
-    impl::ctor_lock(nullptr);
+#ifdef LUI_USING_CTOR_LOCKER
+    UIManager.RefCtorLocker().Lock();
+#else
+    UIManager.DataLock();
+#endif
 }
 
 /// <summary>
@@ -852,23 +782,23 @@ void LongUI::UIControl::ControlMakingBegin() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIControl::ControlMakingEnd() noexcept {
-    impl::ctor_unlock();
+#ifdef LUI_USING_CTOR_LOCKER
+    UIManager.RefCtorLocker().Unlock();
+#else
+    UIManager.DataUnlock();
+#endif
 }
 
 /// <summary>
 /// Initializes a new instance of the <see cref="UIControl"/> class.
 /// </summary>
-LongUI::UIControl::UIControl(UIControl* parent, const MetaControl& meta) noexcept : 
-m_pParent(parent), m_refMetaInfo(meta) {
+LongUI::UIControl::UIControl(const MetaControl& meta) noexcept : 
+m_pParent(nullptr), m_refMetaInfo(meta) {
     Node::next = nullptr;
     Node::prev = nullptr;
     m_ptChildOffset = { 0, 0 };
     m_mtWorld = { 1, 0, 0, 1, 0, 0 };
     // 存在
-    if (parent) {
-        m_pWindow = parent->m_pWindow;
-        parent->m_state.added_to_this = true;
-    }
     m_oBox.Init();
     m_state.Init();
     m_oBox.size = { INVALID_CONTROL_SIZE, INVALID_CONTROL_SIZE };
@@ -880,17 +810,27 @@ m_pParent(parent), m_refMetaInfo(meta) {
     m_oHead = { nullptr, static_cast<UIControl*>(&m_oTail) };
     m_oTail = { static_cast<UIControl*>(&m_oHead), nullptr };
 #endif
-    // 构造锁
-    impl::ctor_lock(nullptr);
-    // 延迟初始化
-    UIManager.AddInitList(*this);
 #ifndef NDEBUG
     this->name_dbg = meta.element_name;
     m_state.dbg_output = false;
 #endif
-    impl::ctor_unlock();
 }
 
+PCN_NOINLINE
+/// <summary>
+/// final call for ctor
+/// </summary>
+/// <param name="parent">The parent</param>
+/// <returns></returns>
+void LongUI::UIControl::final_ctor(UIControl* parent) noexcept {
+    UIControl::ControlMakingBegin();
+    UIManager.AddInitList(*this);
+#ifdef LUI_USING_CTOR_LOCKER
+    static_assert(false, "NOT IMPL");
+#endif
+    if (parent) parent->add_child(*this);
+    UIControl::ControlMakingEnd();
+}
 
 /// <summary>
 /// Does the event.
@@ -1159,8 +1099,8 @@ auto LongUI::UIControl::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
         // 释放捕捉成功: 截断消息
         if (m_pWindow->ReleaseCapture(*this)) {
             //assert(!"NOT IMPL");
-            //const auto c = this->take_clicked();
-            //c->start_animation_b2u({ StyleStateType::Type_Active, false });
+            if (m_state.mouse_continue && m_pClicked) 
+                m_pClicked->StartAnimation({ State_Active, State_Non });
         }
         // 释放失败:  继续传递消息
         else {
@@ -1223,7 +1163,7 @@ LongUI::UIControl::~UIControl() noexcept {
     // 清理渲染器
     this->delete_renderer();
     // 清除父节点中的自己
-    if (m_pParent && m_state.added_to_parent) {
+    if (m_pParent) {
         m_pParent->remove_child(*this);
 #ifndef NDEBUG
         m_pParent = nullptr;
@@ -1262,7 +1202,7 @@ bool LongUI::UIControl::IsAncestorForThis(const UIControl& node) const noexcept 
 /// </summary>
 /// <param name="parent">The parent.</param>
 /// <returns></returns>
-void LongUI::UIControl::SetParentImmediately(UIControl& parent) noexcept {
+void LongUI::UIControl::SetParent(UIControl& parent) noexcept {
     assert(this && "bad this ptr");
     parent.add_child(*this);
 }
@@ -1646,14 +1586,19 @@ void LongUI::UIControl::mark_window_minsize_changed() noexcept {
 /// <returns></returns>
 void LongUI::UIControl::add_child(UIControl& child) noexcept {
     // 视口?
-    if (LongUI::IsViewport(child)) return;
+    if (LongUI::IsViewport(child)) {
+        assert(m_pWindow && "add subwindow must be vaild window");
+        LongUI::AddSubViewport(*m_pWindow, child);
+        return;
+    }
     // 无需再次添加
     if (child.m_pParent == this) return;
     // 鼠标信息隔断默认会继承所有状态
     if (!m_state.mouse_continue) child.RefInheritedMask() = State_MouseCutInher;
-    // 标记已经加入
-    child.m_state.added_to_parent = true;
+    // 标记
     child.NeedUpdate(Reason_ParentChanged);
+    this->NeedUpdate(Reason_ChildIndexChanged);
+    this->mark_window_minsize_changed();
     // 在之前的父控件移除该控件
     if (child.m_pParent) child.m_pParent->remove_child(child);
     child.m_pParent = this;
@@ -1670,36 +1615,19 @@ void LongUI::UIControl::add_child(UIControl& child) noexcept {
     child.next = static_cast<UIControl*>(&m_oTail);
     m_oTail.prev = &child;
 #endif
-    // 要求刷新
-    child.m_state.level = m_state.level + 1;
-#ifndef NDEBUG
-    // 深度过大
-    if (child.GetLevel() >= (MAX_CONTROL_TREE_DEPTH / 2)) {
-        if (child.GetLevel() == (MAX_CONTROL_TREE_DEPTH - 2))
-            LUIDebug(Error) << "Tree to deep" << uint32_t(child.m_state.level) << endl;
-        else
-            LUIDebug(Warning) << "Tree to deep" << uint32_t(child.m_state.level) << endl;
-    }
-    
-#endif
-    // 新的窗口
-    if (child.m_pWindow != m_pWindow) 
-        child.set_window_force(m_pWindow);
     // 同步
-    if (child.GetChildrenCount()) UIControlPrivate::SyncInitData(child);
-    this->NeedUpdate(Reason_ChildIndexChanged);
-    this->mark_window_minsize_changed();
+    UIControl::sync_data(child, *this);
     // 提示管理器新的控件被添加到控件树中
     //UIManager.ControlAttached(child);
 }
 
+inline
 /// <summary>
 /// set new window - force
 /// </summary>
 /// <returns></returns>
-void LongUI::UIControl::set_window_force(CUIWindow* window) noexcept {
-    // XXX: [优化]改成非递归
-    assert(m_pWindow != window);
+void LongUI::UIControl::set_new_window(CUIWindow* window) noexcept {
+    if (m_pWindow == window) return;
     const auto prev = m_pWindow;
     // 设置新的窗口
     m_pWindow = window;
@@ -1711,6 +1639,30 @@ void LongUI::UIControl::set_window_force(CUIWindow* window) noexcept {
         // 标记窗口修改
         this->NeedUpdate(Reason_WindowChanged);
     }
+}
+
+
+/// <summary>
+/// Updates the level.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+void LongUI::UIControl::sync_data(UIControl& ctrl, UIControl& parent) noexcept {
+    // 窗口
+    ctrl.set_new_window(parent.m_pWindow);
+    ctrl.m_state.level = parent.m_state.level + 1;
+#ifndef NDEBUG
+    // 树节点深度深度过大
+    const uint32_t lv = ctrl.GetLevel();
+    if (lv >= (MAX_CONTROL_TREE_DEPTH / 2)) {
+        if (lv == (MAX_CONTROL_TREE_DEPTH - 2))
+            LUIDebug(Error) << "Tree to deep" << lv << endl;
+        else
+            LUIDebug(Warning) << "Tree to deep" << lv << endl;
+    }
+#endif
+    assert(ctrl.m_pCtxCtrl == nullptr && "TODO: move to global");
+    for (auto& child : ctrl) UIControl::sync_data(child, ctrl);
 }
 
 #ifndef LUI_DISABLE_STYLE_SUPPORT

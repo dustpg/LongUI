@@ -38,10 +38,10 @@ namespace LongUI {
         // dtor
         ~UIStatusBarPanel() noexcept = default;
         // ctor
-        UIStatusBarPanel(UIControl* parent = nullptr) noexcept : UIStatusBarPanel(parent, UIStatusBarPanel::s_meta) {}
+        explicit UIStatusBarPanel(UIControl* parent = nullptr) noexcept : UIStatusBarPanel(UIStatusBarPanel::s_meta) { this->final_ctor(parent); }
     protected:
         // lui std ctor
-        UIStatusBarPanel(UIControl* parent, const MetaControl&) noexcept;
+        UIStatusBarPanel(const MetaControl&) noexcept;
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
     };

@@ -40,7 +40,7 @@ namespace LongUI {
         using ItemList = POD::Vector<UITreeItem*>;
     protected:
         // ctor
-        UITree(UIControl* parent, const MetaControl&) noexcept;
+        UITree(const MetaControl&) noexcept;
     public:
         // private impl
         struct Private;
@@ -49,7 +49,7 @@ namespace LongUI {
         // dtor
         ~UITree() noexcept;
         // ctor
-        UITree(UIControl* parent = nullptr) noexcept : UITree(parent, UITree::s_meta) {}
+        explicit UITree(UIControl* parent = nullptr) noexcept : UITree(UITree::s_meta) { this->final_ctor(parent); }
     public:
         // is multi-selected?
         bool IsMultiple() const noexcept { return m_seltype == Seltype_Multiple; }

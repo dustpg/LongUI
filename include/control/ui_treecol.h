@@ -34,14 +34,14 @@ namespace LongUI {
         using Super = UIListHeader;
     protected:
         // ctor
-        UITreeCol(UIControl* parent, const MetaControl&) noexcept;
+        UITreeCol(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UITreeCol() noexcept;
         // ctor
-        UITreeCol(UIControl* parent = nullptr) noexcept:UITreeCol(parent, UITreeCol::s_meta) {}
+        explicit UITreeCol(UIControl* parent = nullptr) noexcept : UITreeCol(UITreeCol::s_meta) { this->final_ctor(parent); }
     };
     // get meta info for UISpacer
     LUI_DECLARE_METAINFO(UITreeCol);

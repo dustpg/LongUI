@@ -50,14 +50,14 @@ namespace LongUI {
         void SetChecked(std::nullptr_t) noexcept { this->set_checked(nullptr); }
     protected:
         // ctor
-        UIRadioGroup(UIControl* parent, const MetaControl&) noexcept;
+        UIRadioGroup(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UIRadioGroup() noexcept;
         // ctor
-        UIRadioGroup(UIControl* parent = nullptr) noexcept : UIRadioGroup(parent, UIRadioGroup::s_meta) {}
+        explicit UIRadioGroup(UIControl* parent = nullptr) noexcept : UIRadioGroup(UIRadioGroup::s_meta) { this->final_ctor(parent); }
         // update this
         void Update(UpdateReason) noexcept override;
         //// do normal event

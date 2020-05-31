@@ -98,16 +98,17 @@ void LongUI::UICheckBox::changed() noexcept {
 /// <summary>
 /// Initializes a new instance of the <see cref="UICheckBox" /> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UICheckBox::UICheckBox(UIControl* parent, const MetaControl& meta) noexcept 
-    : Super(impl::ctor_lock(parent), meta),
+LongUI::UICheckBox::UICheckBox(const MetaControl& meta) noexcept : Super(meta),
     m_oImage(this), m_oLabel(this) {
     // XXX: 硬编码
     m_oBox.margin = { 4, 2, 4, 2 };
     m_oBox.padding = { 4, 1, 2, 1 };
     m_state.tabstop = true;
     m_state.focusable = true;
+    // 阻隔鼠标事件写入false之前需要写入
+    m_oImage.RefInheritedMask() = State_MouseCutInher;
+    m_oLabel.RefInheritedMask() = State_MouseCutInher;
     // 阻隔鼠标事件
     m_state.mouse_continue = false;
     this->make_offset_tf_direct(m_oLabel);
@@ -129,8 +130,9 @@ LongUI::UICheckBox::UICheckBox(UIControl* parent, const MetaControl& meta) noexc
 #endif
     // 设置连接控件
     m_oLabel.SetControl(*this);
-    // 构造锁
-    impl::ctor_unlock();
+    // 设置弱外貌
+    UIControlPrivate::SetAppearance(*this, Appearance_WeakApp | Appearance_CheckBoxContainer);
+    UIControlPrivate::SetAppearance(m_oImage, Appearance_WeakApp | Appearance_CheckBox);
 }
 
 
@@ -193,8 +195,8 @@ auto LongUI::UICheckBox::DoEvent(
         this->Toggle();
         return Event_Accept;
     case NoticeEvent::Event_Initialize:
-        // 初始化
-        this->init_checkbox();
+        // XXX: 初始化状态
+        UIControlPrivate::RefStyleState(m_oImage) = m_oStyle.state;
         [[fallthrough]];
     default:
         // 基类处理
@@ -267,19 +269,6 @@ void LongUI::UICheckBox::Update(UpdateReason reason) noexcept {
     }
 #endif
     Super::Update(reason);
-}
-
-/// <summary>
-/// Initializes the checkbox.
-/// </summary>
-/// <returns></returns>
-void LongUI::UICheckBox::init_checkbox() noexcept {
-    if (m_oStyle.appearance == Appearance_NotSet) {
-        UIControlPrivate::SetAppearance(*this, Appearance_CheckBoxContainer);
-        UIControlPrivate::SetAppearance(m_oImage, Appearance_CheckBox);
-    }
-    // XXX: 初始化状态
-    UIControlPrivate::RefStyleState(m_oImage) = m_oStyle.state;
 }
 
 

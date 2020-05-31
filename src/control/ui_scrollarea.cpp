@@ -23,12 +23,10 @@ namespace LongUI {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 /// <returns></returns>
-LongUI::UIScrollArea::UIScrollArea(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta) {
+LongUI::UIScrollArea::UIScrollArea(const MetaControl& meta) noexcept: Super(meta) {
     this->line_size = { EMPTY_HEIGHT_PER_ROW, EMPTY_HEIGHT_PER_ROW };
     m_minScrollSize = { };
     m_maxValue = { };
-    impl::ctor_unlock();
 }
 
 
@@ -160,27 +158,6 @@ auto LongUI::UIScrollArea::DoMouseEvent(const MouseEventArg & e) noexcept -> Eve
     // 其他未处理事件交给super处理
     return Super::DoMouseEvent(e);
 }
-
-/// <summary>
-/// Ons the state dirty.
-/// </summary>
-/// <returns></returns>
-//void LongUI::UIScrollArea::on_state_dirty() noexcept {
-//    // 有面积才算数
-//    const auto s = this->GetSize();
-//    if (s.width * s.height <= 0.f) return;
-//
-//    // 处理大小修改
-//    this->size_change_handled();
-//    // 存在子控件才计算
-//    if (this->GetChildrenCount()) {
-//        // 更新布局
-//        this->relayout();
-//        // 更新子控件
-//        for (auto& child : *this)
-//            child.NeedUpdate();
-//    }
-//}
 
 /// <summary>
 /// Relayouts this instance.
@@ -332,14 +309,13 @@ auto LongUI::UIScrollArea::layout_vscrollbar(bool notenough) noexcept -> float {
 /// <returns></returns>
 auto LongUI::UIScrollArea::create_scrollbar(AttributeOrient o) noexcept -> UIScrollBar * {
     // 创建滚动条
-    if (auto bar = new(std::nothrow) UIScrollBar{ o, nullptr }) {
+    if (auto bar = new(std::nothrow) UIScrollBar{ this, o }) {
 #ifndef NDEBUG
         if (o == Orient_Horizontal)
             bar->name_dbg = "scrollarea::hscrollbar";
         else
             bar->name_dbg = "scrollarea::vscrollbar";
 #endif
-        this->add_child(*bar);
         this->resize_child(*bar, {});
         this->set_child_fixed_attachment(*bar);
         UIControlPrivate::SetGuiEvent2Parent(*bar);

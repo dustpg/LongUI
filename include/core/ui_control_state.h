@@ -119,10 +119,6 @@ namespace LongUI {
         bool        tooltip_shown : 1;
         // is delete later?
         bool        delete_later : 1;
-        // added to parent
-        bool        added_to_parent : 1;
-        // addto to this[using this during init]
-        bool        added_to_this : 1;
         // dbg output
         bool        dbg_output : 1;
         // debug in update

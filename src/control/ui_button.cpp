@@ -44,10 +44,8 @@ auto LongUI::UIButton::RefText() const noexcept -> const CUIString&{
 /// <summary>
 /// Initializes a new instance of the <see cref="UIButton" /> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIButton::UIButton(UIControl* parent, const MetaControl& meta) noexcept 
-    : Super(impl::ctor_lock(parent), meta),
+LongUI::UIButton::UIButton(const MetaControl& meta) noexcept : Super(meta),
     m_oImage(nullptr), m_oLabel(nullptr) {
     m_state.focusable = true;
     m_state.tabstop = true;
@@ -78,8 +76,8 @@ LongUI::UIButton::UIButton(UIControl* parent, const MetaControl& meta) noexcept
     // 设置连接控件
     m_oLabel.SetControl(*this);
     //m_oLabel.SetText(u"确定");
-    // 构造锁
-    impl::ctor_unlock();
+    // 设置弱外貌
+    m_oStyle.appearance = Appearance_WeakApp | Appearance_Button;
 }
 
 /// <summary>
@@ -232,9 +230,8 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
     switch (e.nevent)
     {
     case NoticeEvent::Event_Initialize:
-        UIControlPrivate::SetAppearanceIfNotSet(*this, Appearance_Button);
         // 没子控件
-        if (!this->is_added_before_init()) {
+        if (!this->GetChildrenCount()) {
             // TODO: 没有文本时候的处理
             m_oLabel.SetAsDefaultMinsize();
             this->add_private_child();
@@ -405,15 +402,16 @@ void LongUI::UIButton::Click() noexcept {
 /// add child for this
 /// </summary>
 /// <param name="child"></param>
+/// <param name="constructing"></param>
 /// <returns></returns>
 void LongUI::UIButton::add_child(UIControl & child) noexcept {
+    // 其他的
+    Super::add_child(child);
     // UIMenuPopup
     if (const auto ptr = uisafe_cast<UIMenuPopup>(&child)) {
         assert(m_pMenuPopup == nullptr);
         m_pMenuPopup = ptr;
     }
-    // 其他的
-    return Super::add_child(child);
 }
 
 

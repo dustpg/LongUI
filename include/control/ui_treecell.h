@@ -35,14 +35,14 @@ namespace LongUI {
         using Super = UILabel;
     protected:
         // ctor
-        UITreeCell(UIControl* parent, const MetaControl&) noexcept;
+        UITreeCell(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UITreeCell() noexcept;
         // ctor
-        UITreeCell(UIControl* parent = nullptr) noexcept : UITreeCell(parent, UITreeCell::s_meta) {}
+        explicit UITreeCell(UIControl* parent = nullptr) noexcept : UITreeCell(UITreeCell::s_meta) { this->final_ctor(parent); }
     public:
         // do normal event
         auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;

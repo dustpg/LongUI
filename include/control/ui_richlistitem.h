@@ -42,12 +42,12 @@ namespace LongUI {
         // dtor
         ~UIRichListItem() noexcept;
         // ctor
-        UIRichListItem(UIControl* parent = nullptr) noexcept : UIRichListItem(parent, UIRichListItem::s_meta) {}
+        explicit UIRichListItem(UIControl* parent = nullptr) noexcept : UIRichListItem(UIRichListItem::s_meta) { this->final_ctor(parent); }
         // mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
     protected:
         // lui std ctor
-        UIRichListItem(UIControl* parent, const MetaControl&) noexcept;
+        UIRichListItem(const MetaControl&) noexcept;
     };
     // get meta info for UIBoxLayout
     LUI_DECLARE_METAINFO(UIRichListItem);

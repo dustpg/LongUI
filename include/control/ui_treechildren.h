@@ -35,14 +35,14 @@ namespace LongUI {
         using Super = UIBoxLayout;
     protected:
         // ctor
-        UITreeChildren(UIControl* parent, const MetaControl&) noexcept;
+        UITreeChildren(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UITreeChildren() noexcept;
         // ctor
-        UITreeChildren(UIControl* parent = nullptr) noexcept : UITreeChildren(parent, UITreeChildren::s_meta) {}
+        explicit UITreeChildren(UIControl* parent = nullptr) noexcept : UITreeChildren(UITreeChildren::s_meta) { this->final_ctor(parent); }
     public:
         // set level offset
         void SetLevelOffset(float offset);

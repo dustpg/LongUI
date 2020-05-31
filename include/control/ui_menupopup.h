@@ -64,7 +64,7 @@ namespace LongUI {
         // dtor
         ~UIMenuPopup() noexcept;
         // ctor
-        UIMenuPopup(UIControl* hoster) noexcept : UIMenuPopup(hoster, UIMenuPopup::s_meta) {}
+        UIMenuPopup(UIControl* hoster) noexcept : UIMenuPopup(hoster, UIMenuPopup::s_meta) { this->final_ctor(hoster); }
         // update
         void Update(UpdateReason) noexcept override;
         // do normal event
@@ -95,8 +95,6 @@ namespace LongUI {
     protected:
         // add attribute
         void add_attribute(uint32_t key, U8View view) noexcept override;
-        // add child
-        void add_child(UIControl& child) noexcept override;
         // select child
         void select(UIControl* child) noexcept;
         // change select

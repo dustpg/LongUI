@@ -44,14 +44,14 @@ namespace LongUI {
         void JustSetAsIcon() noexcept { }
     protected:
         // ctor
-        UIImage(UIControl* parent, const MetaControl&) noexcept;
+        UIImage(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UIImage() noexcept;
         // ctor
-        UIImage(UIControl* parent = nullptr) noexcept : UIImage(parent, UIImage::s_meta) {}
+        explicit UIImage(UIControl* parent = nullptr) noexcept : UIImage(UIImage::s_meta) { this->final_ctor(parent); }
     public:
         // do normal event
         auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;

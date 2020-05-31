@@ -63,22 +63,32 @@
 namespace LongUI {
     // -------------------- TYPE DEF ------------------
     struct UIMetaTypeDef {
-        static const MetaControl UIPopupSet__s_meta;
-        static UIControl* create_UIPopupSet(UIControl* p) noexcept {
-            return new(std::nothrow) UIPopupSet{ p, UIPopupSet__s_meta };
-        }
         static const MetaControl UIPopup__s_meta;
-        static UIControl* create_UIPopup(UIControl* p) noexcept {
-            return new(std::nothrow) UIPopup{ p, UIPopup__s_meta };
-        }
         static const MetaControl UIToolBox__s_meta;
-        static UIControl* create_UIToolBox(UIControl* p) noexcept {
-            return new(std::nothrow) UIToolBox{ p, UIToolBox__s_meta };
-        }
+        static const MetaControl UIPopupSet__s_meta;
+        static const MetaControl UIVBoxLayout__s_meta;
         static const MetaControl UIToolBarSeparator__s_meta;
-        static UIControl* create_UIToolBarSeparator(UIControl* p) noexcept {
-            return new(std::nothrow) UIToolBarSeparator{ p, UIToolBarSeparator__s_meta };
+        static UIControl* create_UIPopupSet(UIControl* p) noexcept {
+            return new(std::nothrow) UIPopupSet{ p };
         }
+        static UIControl* create_UIPopup(UIControl* p) noexcept {
+            return new(std::nothrow) UIPopup{ p  };
+        }
+        static UIControl* create_UIToolBox(UIControl* p) noexcept {
+            return new(std::nothrow) UIToolBox{ p  };
+        }
+        static UIControl* create_UIVBoxLayout(UIControl* p) noexcept {
+            return new(std::nothrow) UIVBoxLayout{ p };
+        }
+        static UIControl* create_UIToolBarSeparator(UIControl* p) noexcept {
+            return new(std::nothrow) UIToolBarSeparator{ p };
+        }
+    };
+    // UIVBoxLayout
+    const MetaControl UIMetaTypeDef::UIVBoxLayout__s_meta = {
+        &UIBoxLayout::s_meta,
+        "vbox",
+        UIMetaTypeDef::create_UIVBoxLayout
     };
     // UIPopupSet
     const MetaControl UIMetaTypeDef::UIPopupSet__s_meta = {
@@ -115,8 +125,6 @@ namespace LongUI {
         &UIRichListItem::s_meta,
         // Rich List Box - 富列表容器
         &UIRichListBox::s_meta,
-        // V Box Layout - 垂直箱型布局
-        &UIVBoxLayout::s_meta,
         // H Box Layout - 水平箱型布局
         &UIHBoxLayout::s_meta,
         // Radio Group - 单选框组
@@ -221,6 +229,8 @@ namespace LongUI {
         &UIMetaTypeDef::UIPopup__s_meta,
         &UIMetaTypeDef::UIToolBox__s_meta,
         &UIMetaTypeDef::UIPopupSet__s_meta,
+        // V Box Layout - 垂直箱型布局
+        &UIMetaTypeDef::UIVBoxLayout__s_meta,
         &UIMetaTypeDef::UIToolBarSeparator__s_meta,
 
 #ifndef NDEBUG
@@ -251,6 +261,14 @@ namespace LongUI {
             if (x == &UIMenuPopup::s_meta) continue;
             // 跳过这个
             if (x == &UIMetaTypeDef::UIPopup__s_meta) continue;
+            // 跳过这个
+            if (x == &UIMetaTypeDef::UIToolBox__s_meta) continue;
+            // 跳过这个
+            if (x == &UIMetaTypeDef::UIPopupSet__s_meta) continue;
+            // 跳过这个
+            if (x == &UIMetaTypeDef::UIVBoxLayout__s_meta) continue;
+            // 跳过这个
+            if (x == &UIMetaTypeDef::UIToolBarSeparator__s_meta) continue;
             // 测试这个
             if (auto ctrl = x->create_func(nullptr)) {
                 assert(&ctrl->RefMetaInfo() == x);

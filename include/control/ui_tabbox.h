@@ -47,15 +47,14 @@ namespace LongUI {
         auto GetSelectedIndex() const noexcept { return m_index; }
     protected:
         // ctor
-        UITabBox(UIControl* parent, const MetaControl&) noexcept;
+        UITabBox(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UITabBox() noexcept;
         // ctor
-        UITabBox(UIControl* parent = nullptr) noexcept : UITabBox(parent, UITabBox::s_meta) {}
-
+        explicit UITabBox(UIControl* parent = nullptr) noexcept : UITabBox(UITabBox::s_meta) { this->final_ctor(parent); }
     public:
         // do normal event
         auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;

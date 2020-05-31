@@ -40,14 +40,14 @@ namespace LongUI {
         //using ColList = POD::Vector<UIListCol*>;
     protected:
         // ctor
-        UIListCols(UIControl* parent, const MetaControl&) noexcept;
+        UIListCols(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UIListCols() noexcept;
         // ctor
-        UIListCols(UIControl* parent = nullptr) noexcept : UIListCols(parent, UIListCols::s_meta) {}
+        explicit UIListCols(UIControl* parent = nullptr) noexcept : UIListCols(UIListCols::s_meta) { this->final_ctor(parent); }
         // will relayout?
         bool WillRelayout() const noexcept;
         // match layout

@@ -42,7 +42,7 @@ namespace LongUI {
         // dtor
         ~UITooltip() noexcept;
         // ctor
-        UITooltip(UIControl* hoster) noexcept : UITooltip(hoster, UITooltip::s_meta) {}
+        UITooltip(UIControl* hoster) noexcept : UITooltip(hoster, UITooltip::s_meta) { this->final_ctor(hoster); }
     protected:
     };
     // get meta info for UITooltip

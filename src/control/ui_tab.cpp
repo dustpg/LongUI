@@ -75,10 +75,8 @@ void LongUI::UITab::SetText(const CUIString& str) noexcept {
 /// <summary>
 /// Initializes a new instance of the <see cref="UITab"/> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UITab::UITab(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta),
+LongUI::UITab::UITab(const MetaControl& meta) noexcept : Super( meta),
     m_oImage(this), m_oLabel(this) {
     // 水平布局
     m_state.orient = Orient_Horizontal;
@@ -89,6 +87,9 @@ LongUI::UITab::UITab(UIControl* parent, const MetaControl& meta) noexcept
     m_oStyle.appearance = Appearance_Tab;
     m_oStyle.overflow_x = Overflow_Hidden;
     m_oStyle.overflow_y = Overflow_Hidden;
+    // 阻隔鼠标事件写入false之前需要写入
+    m_oImage.RefInheritedMask() = State_MouseCutInher;
+    m_oLabel.RefInheritedMask() = State_MouseCutInher;
     // 阻隔鼠标事件
     m_state.mouse_continue = false;
     this->make_offset_tf_direct(m_oLabel);
@@ -105,8 +106,6 @@ LongUI::UITab::UITab(UIControl* parent, const MetaControl& meta) noexcept
 #ifdef LUI_ACCESSIBLE
     m_pAccCtrl = nullptr;
 #endif
-    // 构造锁
-    impl::ctor_unlock();
 }
 
 
@@ -234,16 +233,12 @@ LongUI::UITabs::~UITabs() noexcept {
 /// <summary>
 /// Initializes a new instance of the <see cref="UITabs"/> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UITabs::UITabs(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta) {
+LongUI::UITabs::UITabs(const MetaControl& meta) noexcept : Super(meta) {
     // TODO: 可以垂直布局
 
     // 水平布局
     m_state.orient = Orient_Horizontal;
-    // 构造锁
-    impl::ctor_unlock();
 }
 
 /// <summary>
@@ -382,12 +377,8 @@ LongUI::UITabBox::~UITabBox() noexcept {
 /// <summary>
 /// Initializes a new instance of the <see cref="UITabBox"/> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UITabBox::UITabBox(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta) {
-    // 构造锁
-    impl::ctor_unlock();
+LongUI::UITabBox::UITabBox(const MetaControl& meta) noexcept : Super(meta) {
 }
 
 /// <summary>
@@ -522,10 +513,8 @@ LongUI::UITabPanel::~UITabPanel() noexcept {
 /// <summary>
 /// Initializes a new instance of the <see cref="UITabPanels"/> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UITabPanel::UITabPanel(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+LongUI::UITabPanel::UITabPanel(const MetaControl& meta) noexcept : Super(meta) {
 }
 
 
@@ -546,12 +535,9 @@ LongUI::UITabPanels::~UITabPanels() noexcept {
 /// <summary>
 /// Initializes a new instance of the <see cref="UITabPanels"/> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UITabPanels::UITabPanels(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+LongUI::UITabPanels::UITabPanels(const MetaControl& meta) noexcept : Super(meta) {
     // TabPanels类型
     m_oStyle.appearance = Appearance_TabPanels;
     m_oBox.border = { 1, 1, 1, 1 };
-
 }

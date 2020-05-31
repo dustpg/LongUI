@@ -31,16 +31,17 @@ namespace LongUI {
 /// <summary>
 /// Initializes a new instance of the <see cref="UIMenuItem" /> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIMenuItem::UIMenuItem(UIControl* parent, const MetaControl& meta) noexcept 
-    : Super(impl::ctor_lock(parent), meta),
+LongUI::UIMenuItem::UIMenuItem(const MetaControl& meta) noexcept : Super(meta),
     m_oImage(this), m_oLabel(this) {
     m_state.focusable = true;
     m_state.orient = Orient_Horizontal;
     m_oStyle.align = AttributeAlign::Align_Stretcht;
     //m_oBox.margin = { 4, 2, 4, 2 };
     m_oBox.padding = { 4, 1, 2, 1 };
+    // 阻隔鼠标事件写入false之前需要写入
+    m_oImage.RefInheritedMask() = State_MouseCutInher;
+    m_oLabel.RefInheritedMask() = State_MouseCutInher;
     // 阻隔鼠标事件
     m_state.mouse_continue = false;
     this->make_offset_tf_direct(m_oLabel);
@@ -57,8 +58,8 @@ LongUI::UIMenuItem::UIMenuItem(UIControl* parent, const MetaControl& meta) noexc
     assert(m_oImage.IsFocusable() == false);
     assert(m_oLabel.IsFocusable() == false);
 #endif
-    // 构造锁
-    impl::ctor_unlock();
+    // 设置弱外貌
+    m_oStyle.appearance = Appearance_WeakApp | Appearance_MenuItem;
 }
 
 
@@ -212,7 +213,12 @@ void LongUI::UIMenuItem::add_attribute(uint32_t key, U8View value) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIMenuItem::init_menuitem() noexcept {
-    UIControlPrivate::SetAppearanceIfNotSet(*this, Appearance_MenuItem);
+    // 初始选择
+    if (m_bSelInit)
+        if (const auto obj = uisafe_cast<UIMenuPopup>(m_pParent)) {
+            obj->select(this);
+            obj->m_pPerSelected = this;
+        }
     // 父节点必须是UIMenuPopup
     if (const auto ptr = longui_cast<UIMenuPopup*>(m_pParent)) {
         // 不是COMBOBOX
@@ -224,11 +230,11 @@ void LongUI::UIMenuItem::init_menuitem() noexcept {
             switch (m_type)
             {
             case BehaviorType::Type_Checkbox:
-                UIControlPrivate::SetAppearanceIfNotSet(m_oImage, Appearance_MenuCheckBox);
+                UIControlPrivate::SetAppearanceIfWeakNon(m_oImage, Appearance_MenuCheckBox);
                 init_state();
                 break;
             case BehaviorType::Type_Radio:
-                UIControlPrivate::SetAppearanceIfNotSet(m_oImage, Appearance_MenuRadio);
+                UIControlPrivate::SetAppearanceIfWeakNon(m_oImage, Appearance_MenuRadio);
                 init_state();
                 break;
             }
@@ -332,13 +338,15 @@ auto LongUI::UIMenuList::RefText() const noexcept -> const CUIString&{
 /// <summary>
 /// Initializes a new instance of the <see cref="UIMenuList" /> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIMenuList::UIMenuList(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta),
+LongUI::UIMenuList::UIMenuList(const MetaControl& meta) noexcept : Super(meta),
     m_oImage(this), m_oLabel(this), m_oMarker(this) {
     m_state.focusable = true;
     m_state.defaultable = true;
+    // 阻隔鼠标事件写入false之前需要写入
+    m_oImage.RefInheritedMask() = State_MouseCutInher;
+    m_oLabel.RefInheritedMask() = State_MouseCutInher;
+    m_oMarker.RefInheritedMask() = State_MouseCutInher;
     // 阻隔鼠标事件
     m_state.mouse_continue = false;
     this->make_offset_tf_direct(m_oLabel);
@@ -364,8 +372,10 @@ LongUI::UIMenuList::UIMenuList(UIControl* parent, const MetaControl& meta) noexc
     assert(m_oMarker.IsFocusable() == false);
     //label.SetText(u"Combo Box");
 #endif
-    // 构造锁
-    impl::ctor_unlock();
+    // 设置弱外貌
+    auto& marker = m_oMarker;
+    UIControlPrivate::SetAppearance(*this, Appearance_WeakApp | Appearance_Button);
+    UIControlPrivate::SetAppearance(marker, Appearance_WeakApp | Appearance_DropDownMarker);
 }
 
 
@@ -411,9 +421,6 @@ auto LongUI::UIMenuList::DoMouseEvent(const MouseEventArg& e) noexcept -> EventA
 /// Initializes the menulist.
 /// </summary>
 void LongUI::UIMenuList::init_menulist() {
-    auto& marker = m_oMarker;
-    UIControlPrivate::SetAppearanceIfNotSet(*this, Appearance_Button);
-    UIControlPrivate::SetAppearanceIfNotSet(marker, Appearance_DropDownMarker);
     // 没有选择的?
     if (m_pMenuPopup && !m_pMenuPopup->GetLastSelected()) {
         m_pMenuPopup->SelectFirstItem();
@@ -539,7 +546,7 @@ void LongUI::UIMenuList::add_child(UIControl& child) noexcept {
     if (const auto ptr = uisafe_cast<UIMenuPopup>(&child)) {
         ptr->save_selected_true();
         m_pMenuPopup = ptr;
-        // 仅仅是弱引用, 直接返回
+        // 到这里就算是强引用, 直接返回, 避免被窗口引用
         return;
     }
     return Super::add_child(child);
@@ -606,16 +613,9 @@ LongUI::UIMenuPopup::~UIMenuPopup() noexcept {
 /// <param name="hoster">The hoster.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIMenuPopup::UIMenuPopup(UIControl* hoster, const MetaControl& meta) noexcept
-    : Super(*impl::ctor_lock(hoster), CUIWindow::Config_FixedSize | CUIWindow::Config_Popup, meta) {
-    // XXX: 由NativeStyle提供
-    // 保存选择的认为是组合框
-    if (this->is_save_selected())
-        this->init_clear_color_for_default_combobox();
-    // 否则认为是一般菜单
-    else
-        this->init_clear_color_for_default_ctxmenu();
-    // 构造锁
-    impl::ctor_unlock();
+    : Super(meta, *hoster, CUIWindow::Config_FixedSize | CUIWindow::Config_Popup) {
+    // hoster由外部提供
+    assert(hoster && "no hoster");
 }
 
 /// <summary>
@@ -728,9 +728,15 @@ auto LongUI::UIMenuPopup::DoEvent(
     // 初始化
     switch (arg.nevent)
     {
-    //case NoticeEvent::Event_Initialize:
-    //    // 没有匹配的
-    //    break;
+    case NoticeEvent::Event_Initialize:
+        // XXX: 由NativeStyle提供
+        // 保存选择的认为是组合框
+        if (this->is_save_selected())
+            this->init_clear_color_for_default_combobox();
+        // 否则认为是一般菜单
+        else
+            this->init_clear_color_for_default_ctxmenu();
+        break;
     case NoticeEvent::Event_UIEvent:
         // 自己不处理自己的UIEvent 否则就stackoverflow了
         if (sender == this) return Event_Accept;
@@ -860,21 +866,6 @@ void LongUI::UIMenuPopup::SetDelayClosedPopup() noexcept {
     }
 }
 
-/// <summary>
-/// Adds the child.
-/// </summary>
-/// <param name="child">The child.</param>
-/// <returns></returns>
-void LongUI::UIMenuPopup::add_child(UIControl& child) noexcept {
-    Super::add_child(child);
-    // 会在检查selected信息进行选择
-    if (const auto item = uisafe_cast<UIMenuItem>(&child)) {
-        if (item->IsSelectedBeforeInit()) {
-            this->select(item);
-            m_pPerSelected = item;
-        }
-    }
-}
 
 /// <summary>
 /// Selects the specified child.

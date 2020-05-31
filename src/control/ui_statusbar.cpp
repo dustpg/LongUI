@@ -15,10 +15,8 @@ namespace LongUI {
 /// <summary>
 /// Initializes a new instance of the <see cref="UIStatusBar"/> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIStatusBar::UIStatusBar(UIControl* parent, const MetaControl& meta) noexcept
-    :Super(parent, meta) {
+LongUI::UIStatusBar::UIStatusBar(const MetaControl& meta) noexcept :Super(meta) {
     m_oStyle.appearance = Appearance_StatusBar;
     m_state.orient = Orient_Horizontal;
 }
@@ -26,11 +24,8 @@ LongUI::UIStatusBar::UIStatusBar(UIControl* parent, const MetaControl& meta) noe
 /// <summary>
 /// Initializes a new instance of the <see cref="UIStatusBarPanel"/> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIStatusBarPanel::UIStatusBarPanel(
-    UIControl* parent, const MetaControl& meta) noexcept
-    :Super(parent, meta) {
+LongUI::UIStatusBarPanel::UIStatusBarPanel(const MetaControl& meta) noexcept :Super(meta) {
     m_oBox.padding = { 10, 0, 10, 0 };
     m_oStyle.appearance = Appearance_StatusBarPanel;
 }

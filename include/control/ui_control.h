@@ -66,6 +66,10 @@
 #define LUI_CONTROL_USE_SINLENODE
 
 
+// outer cotr helper
+#define LUI_CONTROL_OUTER_CTOR(c) \
+explicit c(UIControl* parent = nullptr) noexcept : c(c::s_meta) { this->final_ctor(parent); }
+
 // ui namespace
 namespace LongUI {
     // longui control alignas
@@ -138,14 +142,14 @@ namespace LongUI {
 #endif
     protected:
         // std lui ctrl ctor
-        UIControl(UIControl* parent, const MetaControl&) noexcept;
+        UIControl(const MetaControl&) noexcept;
     public:
         // no copy ctor
         UIControl(const UIControl&) = delete;
         // no move ctor
         UIControl(UIControl&&) = delete;
-        // explicit ctor(because of param)
-        explicit UIControl(UIControl* parent = nullptr) noexcept : UIControl(parent, UIControl::s_meta) {}
+        // outer ctor for UIControl
+        explicit UIControl(UIControl* parent = nullptr) noexcept : UIControl(UIControl::s_meta) { this->final_ctor(parent); }
         // delete later
         void DeleteLater() noexcept;
         // dtor
@@ -234,12 +238,10 @@ namespace LongUI {
         auto GetParent() const noexcept { return m_pParent; }
         // get window
         auto GetWindow() const noexcept { return m_pWindow; }
-        // set a new logical-parent later
-        void SetParentLater(UIControl& parent) noexcept;
         // set a new logical-parent immediately, be careful about thread safety
-        void SetParentImmediately(UIControl& parent) noexcept;
+        void SetParent(UIControl& parent) noexcept;
         // clear parent immediately, be careful about thread safety
-        void SetParentImmediately(std::nullptr_t) noexcept { this->clear_parent(); }
+        void SetParent(std::nullptr_t) noexcept { this->clear_parent(); }
         // set focus of this control, return true if set
         bool SetFocus() noexcept;
         // kill focus of this control
@@ -364,16 +366,8 @@ namespace LongUI {
         void clear_parent() noexcept;
         // mark minsize changed
         void mark_window_minsize_changed() noexcept;
-        // take clicked control
-        auto take_clicked() noexcept -> UIControl*;
         // remove child
         void remove_child(UIControl& child) noexcept;
-#if 0
-        // start animation: bottom-up
-        void start_animation_b2u(StyleStateChange) noexcept;
-        // start animation: up-bottom
-        void start_animation_children(StyleStateChange) noexcept;
-#endif
         // calculate child index
         auto calculate_child_index(const UIControl&) const noexcept->uint32_t;
         // calculate child at
@@ -414,9 +408,11 @@ namespace LongUI {
         bool will_change_state(StyleStateChange) const noexcept;
         // change the state
         void change_state(StyleStateChange) noexcept;
-        // set window - force
-        void set_window_force(CUIWindow*) noexcept;
+        // set new window
+        void set_new_window(CUIWindow*) noexcept;
     protected:
+        // final ctor
+        void final_ctor(UIControl* parent) noexcept;
         // apply world transform to renderer
         void apply_world_transform() const noexcept;
         // apply clip rect
@@ -540,14 +536,14 @@ namespace LongUI {
         // rend iterator
         auto rend()const noexcept->CRIterator { return{ static_cast<const UIControl*>(&m_oHead) }; }
     protected:
-        // is added children before init
-        auto is_added_before_init() const noexcept { return m_state.added_to_this; }
         // mark world changed
         void mark_world_changed() noexcept;
         // is inited?
         bool is_inited() const noexcept { return m_state.inited; }
         // is in dirty list?
         bool is_in_dirty_list() const noexcept { return m_state.in_dirty_list; }
+        // Synchronous Init Data
+        static void sync_data(UIControl& ctrl, UIControl& parent) noexcept;
         // resize child
         static void resize_child(UIControl& child, Size2F size) noexcept;
         // set child fixed attachment
@@ -559,13 +555,6 @@ namespace LongUI {
         // swap A-B node
         static void SwapAB(UIControl& a, UIControl& b) noexcept;
     };
-    // impl
-    namespace impl {
-        // ctor lock
-        auto ctor_lock(UIControl* p) noexcept->UIControl*;
-        // ctor unlock
-        void ctor_unlock() noexcept;
-    }
     // == operator
     inline bool operator==(const UIControl& a, const UIControl& b) noexcept {
         return &a == &b; }

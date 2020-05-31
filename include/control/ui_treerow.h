@@ -38,14 +38,14 @@ namespace LongUI {
         using Super = UIControl;
     protected:
         // ctor
-        UITreeRow(UIControl* parent, const MetaControl&) noexcept;
+        UITreeRow(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UITreeRow() noexcept;
         // ctor
-        UITreeRow(UIControl* parent = nullptr) noexcept : UITreeRow(parent, UITreeRow::s_meta) {}
+        explicit UITreeRow(UIControl* parent = nullptr) noexcept : UITreeRow(UITreeRow::s_meta) { this->final_ctor(parent); }
     public:
         // is selected?
         //auto IsSelected() const noexcept { return m_oStyle.state.selected; }

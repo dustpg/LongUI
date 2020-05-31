@@ -36,14 +36,14 @@ namespace LongUI {
         friend UIMetaTypeDef;
     protected:
         // ctor
-        UIMenuSeparator(UIControl* parent, const MetaControl&) noexcept;
+        UIMenuSeparator(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UIMenuSeparator() noexcept = default;
         // ctor
-        UIMenuSeparator(UIControl* parent = nullptr) noexcept :UIMenuSeparator(parent, UIMenuSeparator::s_meta) {}
+        explicit UIMenuSeparator(UIControl* parent = nullptr) noexcept : UIMenuSeparator(UIMenuSeparator::s_meta) { this->final_ctor(parent); }
     };
     // get meta info for UIMenuSeparator
     LUI_DECLARE_METAINFO(UIMenuSeparator);

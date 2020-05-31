@@ -38,8 +38,6 @@ namespace LongUI {
     class UICheckBox : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
-        // init checkbox
-        void init_checkbox() noexcept;
     public:
         // on commnad event
         static constexpr auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }
@@ -68,14 +66,14 @@ namespace LongUI {
         void SetText(U16View text) noexcept;
     protected:
         // ctor
-        UICheckBox(UIControl* parent, const MetaControl& ) noexcept;
+        UICheckBox(const MetaControl& ) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UICheckBox() noexcept;
         // ctor
-        UICheckBox(UIControl* parent = nullptr) noexcept : UICheckBox(parent, UICheckBox::s_meta) {}
+        explicit UICheckBox(UIControl* parent = nullptr) noexcept : UICheckBox(UICheckBox::s_meta) { this->final_ctor(parent); }
         // do normal event
         auto DoEvent(UIControl* sender, const EventArg& arg) noexcept->EventAccept override;
         // do mouse event

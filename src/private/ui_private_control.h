@@ -31,8 +31,6 @@ struct LongUI::UIControlPrivate {
     static void UpdateWorldForce(UIControl& ctrl) noexcept;
     // update world - toplevel
     static void UpdateWorldTop(UIControl& ctrl, Size2L) noexcept;
-    // Synchronous Init Data
-    static void SyncInitData(UIControl& ctrl) noexcept;
     // do mouse enter event
     static auto DoMouseEnter(UIControl& ctrl, const Point2F& pos) noexcept->EventAccept;
     // do mouse leave event
@@ -44,10 +42,20 @@ struct LongUI::UIControlPrivate {
     static void SetFocusable(UIControl& ctrl, bool f) noexcept { ctrl.m_state.focusable = f; }
     // set appearance
     static void SetAppearance(UIControl& ctrl, AttributeAppearance a) noexcept { ctrl.m_oStyle.appearance = a; }
-    // set appearance if not set
-    static void SetAppearanceIfNotSet(UIControl& ctrl, AttributeAppearance a) noexcept {
+    // set appearance if weak
+    static void SetAppearanceIfWeak(UIControl& ctrl, AttributeAppearance a) noexcept {
         auto& appearance = ctrl.m_oStyle.appearance;
-        if (appearance == Appearance_NotSet) ctrl.m_oStyle.appearance = a; 
+        if (appearance & Appearance_WeakApp) ctrl.m_oStyle.appearance = a;
+    }
+    // set appearance if weak and non
+    static void SetAppearanceIfWeakNon(UIControl& ctrl, AttributeAppearance a) noexcept {
+        auto& appearance = ctrl.m_oStyle.appearance;
+        if (appearance == Appearance_WeakApp) ctrl.m_oStyle.appearance = a;
+    }
+    // set appearance if non
+    static void SetAppearanceIfNon(UIControl& ctrl, AttributeAppearance a) noexcept {
+        auto& appearance = ctrl.m_oStyle.appearance;
+        if ((appearance & Appearance_AppMask) == Appearance_None) ctrl.m_oStyle.appearance = a;
     }
     // set flex
     static void SetFlex(UIControl& ctrl, float flex) noexcept { ctrl.m_oStyle.flex = flex; }
@@ -91,8 +99,6 @@ struct LongUI::UIControlPrivate {
     static auto Next(UIControl* ctrl) noexcept { return ctrl->next; }
     // mark window minsize changed
     static void MarkWindowMinsizeChanged(UIControl& ctrl) noexcept { ctrl.mark_window_minsize_changed(); }
-    // clear added
-    static void ClearAdded(UIControl& ctrl) noexcept { ctrl.m_state.added_to_this = false; }
     // add child
     static void AddChild(UIControl& o, UIControl& c) noexcept { o.add_child(c); }
 };

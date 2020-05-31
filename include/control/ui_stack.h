@@ -35,14 +35,14 @@ namespace LongUI {
         using Super = UIControl;
     protected:
         // ctor
-        UIStack(UIControl* parent, const MetaControl&) noexcept;
+        UIStack(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UIStack() noexcept;
         // ctor
-        UIStack(UIControl* parent = nullptr) noexcept : UIStack(parent, UIStack::s_meta) {}
+        explicit UIStack(UIControl* parent = nullptr) noexcept : UIStack(UIStack::s_meta) { this->final_ctor(parent); }
     public:
         // do normal event
         auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;

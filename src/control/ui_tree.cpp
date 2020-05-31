@@ -71,10 +71,8 @@ LongUI::UITree::~UITree() noexcept {
 /// UITree(tree) 是树形控件的基础顶层控件, 所有的子控件需要包含在内部
 /// <remarks>
 /// </remarks>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UITree::UITree(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta) {
+LongUI::UITree::UITree(const MetaControl& meta) noexcept : Super(meta) {
     // 树节点即为自己
     m_pTree = this;
     // 默认为列表框
@@ -82,8 +80,6 @@ LongUI::UITree::UITree(UIControl* parent, const MetaControl& meta) noexcept
     // 默认样式
     m_oBox.border = { 1, 1, 1, 1 };
     m_oBox.margin = { 4, 2, 4, 2 };
-    // 构造锁
-    impl::ctor_unlock();
 }
 
 /// <summary>
@@ -529,8 +525,7 @@ void LongUI::UITreeRow::open_close(bool open) noexcept {
 /// </remarks>
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UITreeRow::UITreeRow(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta),
+LongUI::UITreeRow::UITreeRow(const MetaControl& meta) noexcept : Super(meta),
     m_oTwisty(this), m_oImage(this) {
     // 暂时用ListItem?
     //m_oStyle.appearance = Appearance_ListItem;
@@ -545,8 +540,6 @@ LongUI::UITreeRow::UITreeRow(UIControl* parent, const MetaControl& meta) noexcep
     UIControlPrivate::SetAppearance(m_oTwisty, Appearance_TreeTwisty);
     // 一开始假定没有数据
     this->SetHasChild(false);
-    // 构造锁
-    impl::ctor_unlock();
 }
 
 /// <summary>
@@ -758,16 +751,12 @@ LongUI::UITreeItem::~UITreeItem() noexcept {
 /// UITreeItem(treeitem) 应该被直接包含在treechildren下面, 以及包含treerow控件
 /// treeitem 可以被用户点击以选择树形控件的一行
 /// </remarks>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UITreeItem::UITreeItem(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta) {
+LongUI::UITreeItem::UITreeItem(const MetaControl& meta) noexcept : Super(meta) {
 #ifdef LUI_ACCESSIBLE
     // 默认逻辑对象为空
     m_pAccCtrl = nullptr;
 #endif
-    // 构造锁
-    impl::ctor_unlock();
 }
 
 
@@ -799,6 +788,7 @@ void LongUI::UITreeItem::add_attribute(uint32_t key, U8View value) noexcept {
 void LongUI::UITreeItem::add_child(UIControl& child) noexcept {
     // 是TreeChildren?
     if (uisafe_cast<UITreeChildren>(&child)) {
+        assert(!"BAD IMPL");
         m_pChildren = static_cast<UITreeChildren*>(&child);
         // 递归设置树节点
         UITree::Private::same_tree(*m_pChildren, m_pTree);
@@ -810,12 +800,13 @@ void LongUI::UITreeItem::add_child(UIControl& child) noexcept {
     // 是TreeRow?
     else if (uisafe_cast<UITreeRow>(&child)) {
         m_pRow = static_cast<UITreeRow*>(&child);
+        assert(!"BAD IMPL");
         if (m_pTree) {
-            const auto app = m_pTree->IsSelCell()
-                ? Appearance_TreeRowModeCell
-                : Appearance_ListItem
-                ;
-            UIControlPrivate::SetAppearanceIfNotSet(*m_pRow, app);
+            //const auto app = m_pTree->IsSelCell()
+            //    ? Appearance_TreeRowModeCell
+            //    : Appearance_ListItem
+            //    ;
+            //UIControlPrivate::SetAppearanceIfNotSet(*m_pRow, app);
         }
     }
 #ifndef NDEBUG
@@ -1109,12 +1100,9 @@ void LongUI::UITreeChildren::SetLevelOffset(float offset) {
 /// 其父控件必须是treeitem(或是tree), 其子控件们也必须是treeitem
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UITreeChildren::UITreeChildren(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta) {
+LongUI::UITreeChildren::UITreeChildren(const MetaControl& meta) noexcept : Super(meta) {
     // 垂直布局
     m_state.orient = Orient_Vertical;
-    // 构造锁
-    impl::ctor_unlock();
 }
 
 
@@ -1224,10 +1212,9 @@ LongUI::UITreeCol::~UITreeCol() noexcept {
 /// UITreeCol(treecol) 其目的是为了方便设置列属性, 例如flex
 /// 本身父控件必须是treecols
 /// </remarks>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UITreeCol::UITreeCol(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+LongUI::UITreeCol::UITreeCol(const MetaControl& meta) noexcept: Super(meta) {
+
 }
 
 
@@ -1251,10 +1238,8 @@ LongUI::UITreeCols::~UITreeCols() noexcept {
 /// UITreeCols(treecols) 是treecol的父级控件(容器), 本身父控件必须是tree
 /// 其目的是为了方便设置辣么多列属性, 例如flex
 /// </remarks>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UITreeCols::UITreeCols(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+LongUI::UITreeCols::UITreeCols(const MetaControl& meta) noexcept : Super(meta) {
     m_state.orient = Orient_Horizontal;
 }
 
@@ -1353,10 +1338,8 @@ LongUI::UITreeCell::~UITreeCell() noexcept {
 /// <summary>
 /// Initializes a new instance of the <see cref="UITreeCell"/> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UITreeCell::UITreeCell(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+LongUI::UITreeCell::UITreeCell(const MetaControl& meta) noexcept : Super(meta) {
     m_oBox.padding = { 4, 1, 1, 1 };
     // 暂时用ListItem?
     //m_oStyle.appearance = Appearance_ListItem;
@@ -1393,8 +1376,9 @@ auto LongUI::UITreeCell::DoEvent(UIControl* sender, const EventArg& e) noexcept 
     switch (e.nevent)
     {
     case NoticeEvent::Event_Initialize:
+        assert(!"BAD IMPL");
         // TODO: 重写
-        if (m_oStyle.appearance == Appearance_NotSet) {
+        if (m_oStyle.appearance == Appearance_WeakApp) {
 #ifndef NDEBUG
             if (m_pParent)
 #endif // !NDEBUG

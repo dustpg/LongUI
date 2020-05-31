@@ -76,10 +76,8 @@ LongUI::UIListBox::~UIListBox() noexcept {
 /// <summary>
 /// Initializes a new instance of the <see cref="UIListBox" /> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIListBox::UIListBox(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta),
+LongUI::UIListBox::UIListBox(const MetaControl& meta) noexcept : Super(meta),
     m_oListboxBody(this) {
     // 焦点允许
     //m_state.focusable = true;
@@ -97,9 +95,6 @@ LongUI::UIListBox::UIListBox(UIControl* parent, const MetaControl& meta) noexcep
 #ifndef NDEBUG
     m_oListboxBody.SetDebugName("listbox::listboxbody");
 #endif // !NDEBUG
-
-    // 构造锁
-    impl::ctor_unlock();
 }
 
 
@@ -228,8 +223,6 @@ void LongUI::UIListBox::add_child(UIControl& child) noexcept {
         m_list.push_back(item);
         this->mark_need_refresh_index();
         UIControlPrivate::AddChild(m_oListboxBody, child);
-        if (item->IsSelectedBeforeInit())
-            this->SelectItem(*item, false);
         return;
     }
     // 是ListCols
@@ -519,10 +512,8 @@ auto LongUI::UIListItem::RefText() const noexcept -> const CUIString&{
 /// <summary>
 /// Initializes a new instance of the <see cref="UIListItem" /> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIListItem::UIListItem(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta),
+LongUI::UIListItem::UIListItem(const MetaControl& meta) noexcept : Super(meta),
     m_oImage(nullptr), m_oLabel(nullptr) {
     //m_state.focusable = true;
     m_oBox.padding = { 2, 0, 2, 0 };
@@ -543,8 +534,6 @@ LongUI::UIListItem::UIListItem(UIControl* parent, const MetaControl& meta) noexc
     assert(m_oImage.IsFocusable() == false);
     assert(m_oLabel.IsFocusable() == false);
 #endif
-    // 构造锁
-    impl::ctor_unlock();
 }
 
 
@@ -684,6 +673,8 @@ void LongUI::UIListItem::Update(UpdateReason reason) noexcept {
         if (m_pParent) {
             const auto ppp = m_pParent->GetParent();
             listbox = longui_cast<UIListBox*>(ppp);
+            assert(listbox && "parent but listbox");
+            if (m_bSelInit) listbox->SelectItem(*this, false);
         }
         m_pListBox = listbox;
     }
@@ -721,7 +712,7 @@ auto LongUI::UIListItem::DoEvent(UIControl * sender,
         return Event_Accept;
     case NoticeEvent::Event_Initialize:
         // 没子控件
-        if (!this->is_added_before_init()) {
+        if (!this->GetChildrenCount()) {
             // TODO: 没有文本时候的处理
             m_oLabel.SetAsDefaultMinsize();
             this->add_private_child();
@@ -794,14 +785,10 @@ namespace LongUI {
 /// <summary>
 /// Initializes a new instance of the <see cref="UIListItem" /> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIListCols::UIListCols(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta) {
+LongUI::UIListCols::UIListCols(const MetaControl& meta) noexcept : Super(meta) {
     // 水平布局
     m_state.orient = Orient_Horizontal;
-    // 构造锁
-    impl::ctor_unlock();
 }
 
 /// <summary>
@@ -886,10 +873,8 @@ LongUI::UIListCol::~UIListCol() noexcept {
 /// <summary>
 /// Initializes a new instance of the <see cref="UIListCol" /> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIListCol::UIListCol(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+LongUI::UIListCol::UIListCol(const MetaControl& meta) noexcept : Super(meta) {
     // 构造锁
     //impl::ctor_unlock();
 }
@@ -917,10 +902,8 @@ namespace LongUI {
 /// <summary>
 /// Initializes a new instance of the <see cref="UIListItem" /> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIListHead::UIListHead(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+LongUI::UIListHead::UIListHead(const MetaControl& meta) noexcept : Super(meta) {
     // 水平布局
     m_state.orient = Orient_Horizontal;
     // 构造锁
@@ -984,10 +967,8 @@ namespace LongUI {
 /// <summary>
 /// Initializes a new instance of the <see cref="UIListItem" /> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIListHeader::UIListHeader(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta),
+LongUI::UIListHeader::UIListHeader(const MetaControl& meta) noexcept : Super(meta),
     m_oImage(this), m_oLabel(this), m_oSortDir(this) {
     //m_state.focusable = true;
     // 内间距
@@ -1007,8 +988,6 @@ LongUI::UIListHeader::UIListHeader(UIControl* parent, const MetaControl& meta) n
     assert(m_oLabel.IsFocusable() == false);
     assert(m_oSortDir.IsFocusable() == false);
 #endif
-    // 构造锁
-    impl::ctor_unlock();
 }
 
 
@@ -1020,6 +999,15 @@ LongUI::UIListHeader::~UIListHeader() noexcept {
     // 存在提前释放子控件, 需要标记"在析构中"
     m_state.destructing = true;
 }
+
+/// <summary>
+/// 
+/// </summary>
+/// <param name="child"></param>
+/// <returns></returns>
+//void LongUI::UIListHeader::add_child(UIControl& child) noexcept {
+//    return Super::add_child(child);
+//}
 
 /// <summary>
 /// Adds the attribute.

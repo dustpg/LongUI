@@ -69,18 +69,14 @@ namespace LongUI {
 #endif
     }
     // textbox
-    class UITextBox : public UIControl, 
-        protected RichED::IEDTextPlatform/*,
-        protected TextBC::IBCTextPlatform*/ {
+    class UITextBox : public UIControl, protected RichED::IEDTextPlatform {
         // super class
         using Super = UIControl;
-        // text content
-        //using Text = TextBC::IBCTextContent;
         // private impl
         struct Private;
     protected:
         // ctor
-        UITextBox(UIControl* parent, const MetaControl&) noexcept;
+        UITextBox(const MetaControl&) noexcept;
     public:
         // When [pressed enter key, or killed-focus] if text changed
         static constexpr auto _onChange() noexcept { return GuiEvent::Event_OnChange; }
@@ -116,7 +112,7 @@ namespace LongUI {
         // dtor
         ~UITextBox() noexcept;
         // ctor
-        UITextBox(UIControl* parent = nullptr) noexcept :UITextBox(parent, UITextBox::s_meta) {}
+        explicit UITextBox(UIControl* parent = nullptr) noexcept : UITextBox(UITextBox::s_meta) { this->final_ctor(parent); }
     public:
         // trigger event
         auto TriggerEvent(GuiEvent event) noexcept->EventAccept override;

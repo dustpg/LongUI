@@ -24,10 +24,8 @@ LongUI::UISpacer::~UISpacer() noexcept {
 /// <summary>
 /// Initializes a new instance of the <see cref="UISpacer" /> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UISpacer::UISpacer(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+LongUI::UISpacer::UISpacer(const MetaControl& meta) noexcept : Super(meta) {
 
 }
 
@@ -36,20 +34,14 @@ LongUI::UISpacer::UISpacer(UIControl* parent, const MetaControl& meta) noexcept
 /// </summary>
 /// <returns></returns>
 void LongUI::UISpacer::Render() const noexcept {
-
+    // 不渲染
 }
-
-
-
 
 
 /// <summary>
 /// Initializes a new instance of the <see cref="UIMenuSeparator"/> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIMenuSeparator::UIMenuSeparator(
-    UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+LongUI::UIMenuSeparator::UIMenuSeparator(const MetaControl& meta) noexcept : Super(meta) {
     m_oStyle.appearance = Appearance_MenuSeparator;
 }

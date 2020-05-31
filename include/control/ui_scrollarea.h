@@ -34,15 +34,15 @@ namespace LongUI {
         // super class
         using Super = UIControl;
     protected:
-        // ctor
-        UIScrollArea(UIControl* parent, const MetaControl&) noexcept;
+        // base ctor
+        UIScrollArea(const MetaControl&) noexcept;
     public:
         // meta info
         static const MetaControl    s_meta;
         // dtor
         ~UIScrollArea() noexcept override;
-        // ctor
-        UIScrollArea(UIControl* parent = nullptr) noexcept : UIScrollArea(parent, UIScrollArea::s_meta) {}
+        // outer ctor
+        explicit UIScrollArea(UIControl* parent = nullptr) noexcept : UIScrollArea(UIScrollArea::s_meta) { this->final_ctor(parent); }
         // do normal event
         auto DoEvent(UIControl* sender, const EventArg& arg) noexcept->EventAccept override;
         // do mouse event

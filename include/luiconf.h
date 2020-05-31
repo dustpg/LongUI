@@ -108,6 +108,8 @@ namespace LongUI {
 
         // LongUI Max Control Tree Depth(level in byte for 256)
         MAX_CONTROL_TREE_DEPTH = 256,
+        // LongUI Max Control Type Count
+        MAX_CONTROL_TYPE_COUNT = 256
     };
     // attribute [pseudo] namespace
     struct Attribute {

@@ -24,9 +24,11 @@ namespace LongUI {
 /// </summary>
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIProgress::UIProgress(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta),
+LongUI::UIProgress::UIProgress(const MetaControl& meta) noexcept : Super(meta),
     m_oBar(this), m_oRemainder(this) {
+    // 阻隔鼠标事件写入false之前需要写入
+    m_oBar.RefInheritedMask() = State_MouseCutInher;
+    m_oRemainder.RefInheritedMask() = State_MouseCutInher;
     // 阻隔鼠标事件
     m_state.mouse_continue = false;
 #ifdef LUI_ACCESSIBLE
@@ -41,8 +43,6 @@ LongUI::UIProgress::UIProgress(UIControl* parent, const MetaControl& meta) noexc
     m_oBar.name_dbg = "progress::bar";
     m_oRemainder.name_dbg = "progress::remainder";
 #endif
-    // 构造锁
-    impl::ctor_unlock();
 }
 
 /// <summary>
@@ -179,8 +179,8 @@ void LongUI::UIProgress::init_bar() noexcept {
         barapp = Appearance_ProgressChunkV;
     }
     // 设置
-    UIControlPrivate::SetAppearanceIfNotSet(*this, thisapp);
-    UIControlPrivate::SetAppearanceIfNotSet(m_oBar, barapp);
+    UIControlPrivate::SetAppearanceIfWeakNon(*this, thisapp);
+    UIControlPrivate::SetAppearanceIfWeakNon(m_oBar, barapp);
 }
 
 

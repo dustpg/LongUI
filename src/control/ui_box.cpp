@@ -14,8 +14,6 @@
 
 // ui namespace
 namespace LongUI {
-    // UIVBoxLayout类 元信息
-    LUI_CONTROL_META_INFO(UIVBoxLayout, "vbox");
     // UIHBoxLayout类 元信息
     LUI_CONTROL_META_INFO(UIHBoxLayout, "hbox");
     // UIBoxLayout类 元信息
@@ -52,43 +50,19 @@ namespace LongUI {
 /// <summary>
 /// Initializes a new instance of the <see cref="UIBoxLayout" /> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIBoxLayout::UIBoxLayout(UIControl* parent, const MetaControl& meta) noexcept 
-    : Super(parent, meta) {
-    m_state.orient = Orient_Vertical;
-}
-
-/// <summary>
-/// Initializes a new instance of the <see cref="UIVBoxLayout" /> class.
-/// </summary>
-/// <param name="parent">The parent.</param>
-/// <param name="meta">The meta.</param>
-/// <returns></returns>
-LongUI::UIVBoxLayout::UIVBoxLayout(UIControl* parent, const MetaControl& meta) noexcept 
-    : Super(parent, meta) {
+LongUI::UIBoxLayout::UIBoxLayout(const MetaControl& meta) noexcept : Super(meta) {
     m_state.orient = Orient_Vertical;
 }
 
 /// <summary>
 /// Initializes a new instance of the <see cref="UIHBoxLayout" /> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 /// <returns></returns>
-LongUI::UIHBoxLayout::UIHBoxLayout(UIControl* parent, const MetaControl& meta) noexcept 
-    : Super(parent, meta) {
+LongUI::UIHBoxLayout::UIHBoxLayout(const MetaControl& meta) noexcept : Super(meta) {
     m_state.orient = Orient_Horizontal;
 }
-
-/*/// <summary>
-/// Refreshes the minimum size of the content.
-/// </summary>
-/// <returns></returns>
-void LongUI::UIBoxLayout::refresh_min_content_size() noexcept {
-
-}*/
-
 
 
 /// <summary>
@@ -427,20 +401,12 @@ void LongUI::UIBoxLayout::SetOrient(AttributeOrient o) noexcept {
 }
 
 
-
-/// <summary>
-/// Finalizes an instance of the <see cref="UIVBoxLayout"/> class.
-/// </summary>
-/// <returns></returns>
-LongUI::UIVBoxLayout::~UIVBoxLayout() noexcept {
-}
-
-
 /// <summary>
 /// Finalizes an instance of the <see cref="UIHBoxLayout"/> class.
 /// </summary>
 /// <returns></returns>
 LongUI::UIHBoxLayout::~UIHBoxLayout() noexcept {
+
 }
 
 

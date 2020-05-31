@@ -30,6 +30,8 @@ auto LongUI::CUINativeStyleWindows10::NativeStyleDuration(const GetDurationArgs 
     // 分类
     switch (args.appearance)
     {
+    case LongUI::Appearance_ScaleV:
+    case LongUI::Appearance_ScaleH:
     case LongUI::Appearance_ListBox:
     case LongUI::Appearance_Caption:
     case LongUI::Appearance_GroupBox:
@@ -67,6 +69,7 @@ auto LongUI::CUINativeStyleWindows10::NativeStyleDuration(const GetDurationArgs 
 /// <returns></returns>
 void LongUI::CUINativeStyleWindows10::DrawNative(const NativeDrawArgs& args) noexcept {
     const auto appearance = args.appearance;
+    assert((appearance & Appearance_WeakApp) == 0);
     switch (appearance)
     {
         uint32_t index; ArrowDirection dir;

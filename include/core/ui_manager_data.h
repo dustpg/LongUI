@@ -13,8 +13,6 @@ namespace LongUI {
         UIControl*          next_named;
         // next tabstop node
         UIControl*          next_tabstop;
-        // last later added child
-        UIControl*          last_addedlater;
     };
 }
 

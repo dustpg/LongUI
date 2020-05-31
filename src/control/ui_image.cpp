@@ -16,11 +16,7 @@ namespace LongUI {
 /// </summary>
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIImage::UIImage(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta) {
-
-    // 构造锁
-    impl::ctor_unlock();
+LongUI::UIImage::UIImage(const MetaControl& meta) noexcept: Super(meta) {
 }
 
 

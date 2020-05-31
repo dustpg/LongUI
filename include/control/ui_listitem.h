@@ -45,10 +45,10 @@ namespace LongUI {
         // dtor
         ~UIListItem() noexcept;
         // ctor
-        UIListItem(UIControl* parent = nullptr) noexcept : UIListItem(parent, UIListItem::s_meta) {}
+        explicit UIListItem(UIControl* parent = nullptr) noexcept : UIListItem(UIListItem::s_meta) { this->final_ctor(parent); }
     protected:
         // ctor
-        UIListItem(UIControl* parent, const MetaControl&) noexcept;
+        UIListItem(const MetaControl&) noexcept;
     public:
         // clicked event
         //static inline constexpr auto _clicked() noexcept { return GuiEvent::Event_Click; }
@@ -72,8 +72,6 @@ namespace LongUI {
         void SetText(CUIString&& text) noexcept;
         // set text
         void SetText(U16View text) noexcept;
-        // Is selected before init
-        auto IsSelectedBeforeInit() const noexcept { return m_bSelInit; }
     public:
         // do event
         auto DoEvent(UIControl * sender, const EventArg & e) noexcept->EventAccept override;

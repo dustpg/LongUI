@@ -38,14 +38,14 @@ namespace LongUI {
         friend UIMetaTypeDef;
     protected:
         // ctor
-        UISpacer(UIControl* parent, const MetaControl&) noexcept;
+        UISpacer(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UISpacer() noexcept;
         // ctor
-        UISpacer(UIControl* parent = nullptr) noexcept:UISpacer(parent, UISpacer::s_meta) {}
+        explicit UISpacer(UIControl* parent = nullptr) noexcept : UISpacer(UISpacer::s_meta) { this->final_ctor(parent); }
         // render
         void Render() const noexcept override;
     };

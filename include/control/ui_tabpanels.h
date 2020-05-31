@@ -35,14 +35,14 @@ namespace LongUI {
         using Super = UIDeck;
     protected:
         // ctor
-        UITabPanels(UIControl* parent, const MetaControl&) noexcept;
+        UITabPanels(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UITabPanels() noexcept;
         // ctor
-        UITabPanels(UIControl* parent = nullptr) noexcept : UITabPanels(parent, UITabPanels::s_meta) {}
+        explicit UITabPanels(UIControl* parent = nullptr) noexcept : UITabPanels(UITabPanels::s_meta) { this->final_ctor(parent); }
     public:
         // do normal event
         //auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;

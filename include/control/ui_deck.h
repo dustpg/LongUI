@@ -35,7 +35,7 @@ namespace LongUI {
         using Super = UIStack;
     protected:
         // ctor
-        UIDeck(UIControl* parent, const MetaControl&) noexcept;
+        UIDeck(const MetaControl&) noexcept;
     public:
         // selected changed
         //static inline constexpr auto _selectedChanged() noexcept { return GuiEvent::Event_Change; }
@@ -45,7 +45,7 @@ namespace LongUI {
         // dtor
         ~UIDeck() noexcept;
         // ctor
-        UIDeck(UIControl* parent = nullptr) noexcept : UIDeck(parent, UIDeck::s_meta) {}
+        explicit UIDeck(UIControl* parent = nullptr) noexcept : UIDeck(UIDeck::s_meta) { this->final_ctor(parent); }
     public:
         // set selected index
         void SetSelectedIndex(uint32_t) noexcept;

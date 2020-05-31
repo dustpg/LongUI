@@ -45,12 +45,8 @@ LongUI::UIDeck::~UIDeck() noexcept {
 /// <summary>
 /// Initializes a new instance of the <see cref="UIDeck"/> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIDeck::UIDeck(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta) {
-    // 构造锁
-    impl::ctor_unlock();
+LongUI::UIDeck::UIDeck(const MetaControl& meta) noexcept : Super(meta) {
 }
 
 /// <summary>
@@ -106,29 +102,17 @@ void LongUI::UIDeck::on_index_changed() noexcept {
 /// </summary>
 /// <returns></returns>
 LongUI::UIStack::~UIStack() noexcept {
+
 }
 
 
 /// <summary>
 /// Initializes a new instance of the <see cref="UIStack"/> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIStack::UIStack(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+LongUI::UIStack::UIStack(const MetaControl& meta) noexcept : Super(meta) {
 
 }
-
-/// <summary>
-/// Adds the child.
-/// </summary>
-/// <param name="child">The child.</param>
-/// <returns></returns>
-//void LongUI::UIStack::add_child(UIControl& child) noexcept {
-//    this->set_child_parent_nnrivc(child);
-//    return Super::add_child(child);
-//}
-
 
 /// <summary>
 /// Updates this instance.

@@ -43,10 +43,10 @@ namespace LongUI {
         // dtor
         ~UIListHeader() noexcept;
         // ctor
-        UIListHeader(UIControl* parent = nullptr) noexcept : UIListHeader(parent, UIListHeader::s_meta) {}
+        explicit UIListHeader(UIControl* parent = nullptr) noexcept : UIListHeader(UIListHeader::s_meta) { this->final_ctor(parent); }
     protected:
         // ctor
-        UIListHeader(UIControl* parent, const MetaControl&) noexcept;
+        UIListHeader(const MetaControl&) noexcept;
     public:
         // clicked event
         //static inline constexpr auto _clicked() noexcept { return GuiEvent::Event_Click; }
@@ -71,8 +71,8 @@ namespace LongUI {
     protected:
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
-        // relayout
-        //void relayout() noexcept override;
+        // add child
+        //void add_child(UIControl&) noexcept override;
         // add private child
         //void add_private_child() noexcept;
 #ifdef LUI_ACCESSIBLE

@@ -570,6 +570,30 @@ auto LongUI::CUIDebug::operator<<(const UIControl* ctrl) noexcept ->CUIDebug& {
 /// </summary>
 /// <param name="b">The b.</param>
 /// <returns></returns>
+auto LongUI::CUIDebug::operator<<(const uint64_t o) noexcept ->CUIDebug& {
+    CUIString str;
+    str.format(u"%" PRIu64, o);
+    this->OutputNoFlush(m_lastLevel, str.c_str());
+    return *this;
+}
+
+/// <summary>
+/// Operators the specified b.
+/// </summary>
+/// <param name="b">The b.</param>
+/// <returns></returns>
+auto LongUI::CUIDebug::operator<<(const int64_t o) noexcept ->CUIDebug& {
+    CUIString str;
+    str.format(u"%" PRIi64, o);
+    this->OutputNoFlush(m_lastLevel, str.c_str());
+    return *this;
+}
+
+/// <summary>
+/// Operators the specified b.
+/// </summary>
+/// <param name="b">The b.</param>
+/// <returns></returns>
 auto LongUI::CUIDebug::operator<<(const uint32_t o) noexcept ->CUIDebug& {
     CUIString str;
     str.format(u"%" PRIu32, o);

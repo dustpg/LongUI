@@ -48,14 +48,14 @@ namespace LongUI {
         //static constexpr auto _onSelect() noexcept { return GuiEvent::Event_OnSelect; }
     protected:
         // ctor
-        UIMenuList(UIControl* parent, const MetaControl&) noexcept;
+        UIMenuList(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UIMenuList() noexcept;
         // ctor
-        UIMenuList(UIControl* parent = nullptr) noexcept : UIMenuList(parent, UIMenuList::s_meta) {}
+        explicit UIMenuList(UIControl* parent = nullptr) noexcept : UIMenuList(UIMenuList::s_meta) { this->final_ctor(parent); }
     public:
         // get popup pointer
         auto GetPopupObj() const noexcept { return m_pMenuPopup; }

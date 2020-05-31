@@ -40,10 +40,10 @@ namespace LongUI {
         // dtor
         ~UIMenu() noexcept;
         // ctor
-        UIMenu(UIControl* parent = nullptr) noexcept : UIMenu(parent, UIMenu::s_meta) {}
+        explicit UIMenu(UIControl* parent = nullptr) noexcept : UIMenu(UIMenu::s_meta) { this->final_ctor(parent); }
     protected:
         // ctor
-        UIMenu(UIControl* parent, const MetaControl&) noexcept;
+        UIMenu(const MetaControl&) noexcept;
     public:
         // do normal event
         auto DoEvent(UIControl*, const EventArg&)noexcept->EventAccept override;

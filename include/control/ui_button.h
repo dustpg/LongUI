@@ -48,10 +48,10 @@ namespace LongUI {
         // dtor
         ~UIButton() noexcept;
         // ctor
-        UIButton(UIControl* parent = nullptr) noexcept : UIButton(parent, UIButton::s_meta) {}
+        explicit UIButton(UIControl* parent = nullptr) noexcept : UIButton(UIButton::s_meta) { this->final_ctor(parent); }
     protected:
         // ctor
-        UIButton(UIControl* parent, const MetaControl&) noexcept;
+        UIButton(const MetaControl&) noexcept;
     public:
         // on commnad event
         static constexpr auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }

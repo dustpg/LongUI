@@ -37,14 +37,14 @@ namespace LongUI {
         using Super = UIBoxLayout;
     protected:
         // ctor
-        UIProgress(UIControl* parent, const MetaControl&) noexcept;
+        UIProgress(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UIProgress() noexcept;
         // ctor
-        UIProgress(UIControl* parent = nullptr) noexcept : UIProgress(parent, UIProgress::s_meta) {}
+        explicit UIProgress(UIControl* parent = nullptr) noexcept : UIProgress(UIProgress::s_meta) { this->final_ctor(parent); }
     public:
         // do normal event
         auto DoEvent(UIControl*, const EventArg&) noexcept->EventAccept override;

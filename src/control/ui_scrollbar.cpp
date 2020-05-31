@@ -12,15 +12,6 @@
 namespace LongUI {
     // UIScrollBar类 元信息
     LUI_CONTROL_META_INFO(UIScrollBar, "scrollbar");
-    // 控件类型
-    enum SBControlType : uint32_t {
-        Type_UpTop = 0,
-        Type_DownTop,
-        Type_Slider,
-        Type_UpBottom,
-        Type_DownBottom,
-        TYPE_COUNT,
-    };
 }
 
 
@@ -28,10 +19,8 @@ namespace LongUI {
 /// Initializes a new instance of the <see cref="UIScrollBar" /> class.
 /// </summary>
 /// <param name="o">The o.</param>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIScrollBar::UIScrollBar(AttributeOrient o, UIControl* parent,
-    const MetaControl& meta) noexcept : Super(impl::ctor_lock(parent), meta),
+LongUI::UIScrollBar::UIScrollBar(AttributeOrient o, const MetaControl& meta) noexcept : Super(meta),
     m_oUpTop(this), m_oDownTop(this), m_oSlider(this),
     m_oUpBottom(this), m_oDownBottom(this) {
     // 检查长度
@@ -62,8 +51,7 @@ LongUI::UIScrollBar::UIScrollBar(AttributeOrient o, UIControl* parent,
     const bool orient = o & 1;
     m_state.orient = orient;
     UIControlPrivate::SetOrient(m_oSlider, orient);
-    // 构造锁
-    impl::ctor_unlock();
+    this->init_bar_weakapp(o);
 }
 
 /// <summary>
@@ -123,39 +111,41 @@ void LongUI::UIScrollBar::SetIncrement(float pi) noexcept {
 }
 
 /// <summary>
-/// Initializes the bar.
+/// Initializes the bar : weakapp
 /// </summary>
 /// <returns></returns>
-void LongUI::UIScrollBar::init_bar() noexcept {
+void LongUI::UIScrollBar::init_bar_weakapp(AttributeOrient o) noexcept {
     AttributeAppearance aut, adt, asd, ast, aub, adb, ats;
     // 根据方向确定初始化类型
-    if (this->GetOrient() == Orient_Horizontal) {
-        aut = Appearance_ScrollBarButtonLeft;
-        adt = Appearance_ScrollBarButtonRight;
-        asd = Appearance_None;
-        ast = Appearance_ScrollbarThumbH;
-        aub = Appearance_ScrollBarButtonLeft;
-        adb = Appearance_ScrollBarButtonRight;
-        ats = Appearance_ScrollbarTrackH;
+    if (o == Orient_Horizontal) {
+        aut = Appearance_WeakApp | Appearance_ScrollBarButtonLeft;
+        adt = Appearance_WeakApp | Appearance_ScrollBarButtonRight;
+        // XXX: 换一个?
+        asd = Appearance_WeakApp | Appearance_CheckBoxContainer;
+        ast = Appearance_WeakApp | Appearance_ScrollbarThumbH;
+        aub = Appearance_WeakApp | Appearance_ScrollBarButtonLeft;
+        adb = Appearance_WeakApp | Appearance_ScrollBarButtonRight;
+        ats = Appearance_WeakApp | Appearance_ScrollbarTrackH;
     }
     // 垂直方向
     else {
-        aut = Appearance_ScrollBarButtonUp;
-        adt = Appearance_ScrollBarButtonDown;
-        asd = Appearance_None;
-        ast = Appearance_ScrollbarThumbV;
-        aub = Appearance_ScrollBarButtonUp;
-        adb = Appearance_ScrollBarButtonDown;
-        ats = Appearance_ScrollbarTrackV;
+        aut = Appearance_WeakApp | Appearance_ScrollBarButtonUp;
+        adt = Appearance_WeakApp | Appearance_ScrollBarButtonDown;
+        // XXX: 换一个?
+        asd = Appearance_WeakApp | Appearance_CheckBoxContainer;
+        ast = Appearance_WeakApp | Appearance_ScrollbarThumbV;
+        aub = Appearance_WeakApp | Appearance_ScrollBarButtonUp;
+        adb = Appearance_WeakApp | Appearance_ScrollBarButtonDown;
+        ats = Appearance_WeakApp | Appearance_ScrollbarTrackV;
     }
     // 设置Appearance类型
-    UIControlPrivate::SetAppearanceIfNotSet(m_oUpTop, aut);
-    UIControlPrivate::SetAppearanceIfNotSet(m_oDownTop, adt);
-    UIControlPrivate::SetAppearanceIfNotSet(m_oSlider, asd);
-    UIControlPrivate::SetAppearanceIfNotSet(m_oSlider.thumb, ast);
-    UIControlPrivate::SetAppearanceIfNotSet(m_oUpBottom, aub);
-    UIControlPrivate::SetAppearanceIfNotSet(m_oDownBottom, adb);
-    UIControlPrivate::SetAppearanceIfNotSet(*this, ats);
+    UIControlPrivate::SetAppearance(m_oUpTop, aut);
+    UIControlPrivate::SetAppearance(m_oDownTop, adt);
+    UIControlPrivate::SetAppearance(m_oSlider, asd);
+    UIControlPrivate::SetAppearance(m_oSlider.thumb, ast);
+    UIControlPrivate::SetAppearance(m_oUpBottom, aub);
+    UIControlPrivate::SetAppearance(m_oDownBottom, adb);
+    UIControlPrivate::SetAppearance(*this, ats);
 }
 
 /// <summary>
@@ -168,10 +158,10 @@ auto LongUI::UIScrollBar::DoEvent(UIControl * sender,
     const EventArg & e) noexcept -> EventAccept {
     switch (e.nevent)
     {
-    case NoticeEvent::Event_Initialize:
-        // 初始化
-        this->init_bar();
-        return Event_Accept;
+    //case NoticeEvent::Event_Initialize:
+    //    // 初始化
+    //    this->init_bar();
+    //    return Event_Accept;
     case NoticeEvent::Event_UIEvent:
         // Gui事件: 数据修改事件向上传递
     {

@@ -40,14 +40,14 @@ namespace LongUI {
         using Super = UILabel;
     protected:
         // ctor
-        UICaption(UIControl* parent, const MetaControl&) noexcept;
+        UICaption(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UICaption() noexcept;
         // ctor
-        UICaption(UIControl* parent = nullptr) noexcept : UICaption(parent, UICaption::s_meta) {}
+        explicit UICaption(UIControl* parent = nullptr) noexcept : UICaption(UICaption::s_meta) { this->final_ctor(parent); }
     protected:
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;

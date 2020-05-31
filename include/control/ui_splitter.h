@@ -36,14 +36,14 @@ namespace LongUI {
         using Super = UIControl;
     protected:
         // ctor
-        UISplitter(UIControl* parent, const MetaControl&) noexcept;
+        UISplitter(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UISplitter() noexcept;
         // ctor
-        UISplitter(UIControl* parent = nullptr) noexcept : UISplitter(parent, UISplitter::s_meta) {}
+        explicit UISplitter(UIControl* parent = nullptr) noexcept : UISplitter(UISplitter::s_meta) { this->final_ctor(parent); }
     public:
         // set orient
         void SetOrient(AttributeOrient o) noexcept;

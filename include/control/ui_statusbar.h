@@ -38,10 +38,10 @@ namespace LongUI {
         // dtor
         ~UIStatusBar() noexcept = default;
         // ctor
-        UIStatusBar(UIControl* parent = nullptr) noexcept : UIStatusBar(parent, UIStatusBar::s_meta) {}
+        explicit UIStatusBar(UIControl* parent = nullptr) noexcept : UIStatusBar(UIStatusBar::s_meta) { this->final_ctor(parent); }
     protected:
         // lui std ctor
-        UIStatusBar(UIControl* parent, const MetaControl&) noexcept;
+        UIStatusBar(const MetaControl&) noexcept;
     };
     // get meta info for UIBoxLayout
     LUI_DECLARE_METAINFO(UIStatusBar);

@@ -20,10 +20,8 @@ namespace LongUI {
 /// <summary>
 /// Initializes a new instance of the <see cref="UICaption" /> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIGroupBox::UIGroupBox(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta),
+LongUI::UIGroupBox::UIGroupBox(const MetaControl& meta) noexcept : Super(meta),
     m_oHeadLayout(this), m_oBodyLayout(this) {
     // 垂直布局
     m_state.orient = Orient_Vertical;
@@ -41,8 +39,6 @@ LongUI::UIGroupBox::UIGroupBox(UIControl* parent, const MetaControl& meta) noexc
     // 逻辑子控件是body
     m_pAccCtrl = &m_oBodyLayout;
 #endif
-    // 构造锁
-    impl::ctor_unlock();
 }
 
 /// <summary>

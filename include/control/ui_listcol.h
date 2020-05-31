@@ -35,14 +35,14 @@ namespace LongUI {
         using Super = UIControl;
     protected:
         // ctor
-        UIListCol(UIControl* parent, const MetaControl&) noexcept;
+        UIListCol(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UIListCol() noexcept;
         // ctor
-        UIListCol(UIControl* parent = nullptr) noexcept:UIListCol(parent, UIListCol::s_meta) {}
+        explicit UIListCol(UIControl* parent = nullptr) noexcept : UIListCol(UIListCol::s_meta) { this->final_ctor(parent); }
         // render
         void Render() const noexcept override;
     };

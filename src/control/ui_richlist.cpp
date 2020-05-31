@@ -19,10 +19,8 @@ namespace LongUI {
 /// <summary>
 /// Initializes a new instance of the <see cref="UIRichListBox"/> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIRichListBox::UIRichListBox(UIControl* parent,
-    const MetaControl& meta) noexcept : Super(parent, meta) {
+LongUI::UIRichListBox::UIRichListBox(const MetaControl& meta) noexcept : Super(meta) {
     m_state.orient = Orient_Vertical;
 }
 
@@ -106,10 +104,8 @@ auto LongUI::UIRichListBox::DoEvent(
 /// <summary>
 /// Initializes a new instance of the <see cref="UIRichListItem"/> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIRichListItem::UIRichListItem(UIControl* parent,
-    const MetaControl& meta) noexcept : Super(parent, meta) {
+LongUI::UIRichListItem::UIRichListItem(const MetaControl& meta) noexcept : Super(meta) {
     m_state.orient = Orient_Horizontal;
     m_oStyle.align = Align_Stretcht;
 }

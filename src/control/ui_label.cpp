@@ -27,8 +27,8 @@ extern "C" void longui_open_href(const char* ref) noexcept;
 /// </summary>
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UILabel::UILabel(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta), m_hrefCursor(CUICursor::Cursor_Hand) {
+LongUI::UILabel::UILabel(const MetaControl& meta) noexcept
+    : Super(meta), m_hrefCursor(CUICursor::Cursor_Hand) {
     // 本控件支持font属性
     LongUI::MakeDefault(luiref m_tfBuffer);
     UILabel* const nilobj = nullptr;
@@ -39,8 +39,6 @@ LongUI::UILabel::UILabel(UIControl* parent, const MetaControl& meta) noexcept
     m_oStyle.offset_tf = static_cast<uint16_t>(offset_tf);
     // 写入默认外间距
     m_oBox.margin = { 6, 1, 5, 2 };
-    // 构造锁
-    impl::ctor_unlock();
 }
 
 /// <summary>

@@ -30,41 +30,31 @@ namespace LongUI {
 /// <param name="meta">The meta data.</param>
 LongUI::UIViewport::UIViewport(CUIWindow* parent,
     CUIWindow::WindowConfig config,
-    const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(nullptr), meta),
+    const MetaControl& meta) noexcept : Super(meta),
     m_nSubview({ static_cast<UIControl*>(&m_nSubview), static_cast<UIControl*>(&m_nSubview) }),
     m_window(parent, config) {
+    // window 节点是自己的
     m_pWindow = &m_window;
-    m_state.orient = Orient_Vertical;
-    // 构造锁
-    impl::ctor_unlock();
+    this->final_ctor(nullptr);
 }
 
 /// <summary>
 /// Initializes a new instance of the <see cref="UIViewport" /> class.
 /// </summary>
+/// <param name="meta">The meta.</param>
 /// <param name="pseudo_parent">The pseudo parent.</param>
 /// <param name="config">The configuration.</param>
-/// <param name="meta">The meta.</param>
 LongUI::UIViewport::UIViewport(
+    const MetaControl& meta,
     UIControl& pseudo_parent,
-    CUIWindow::WindowConfig config,
-    const MetaControl& meta) noexcept 
-    : Super(impl::ctor_lock(nullptr), meta), m_pHoster(&pseudo_parent),
+    CUIWindow::WindowConfig config) noexcept 
+    : Super(meta), m_pHoster(&pseudo_parent),
     m_nSubview({ static_cast<UIControl*>(&m_nSubview), static_cast<UIControl*>(&m_nSubview) }),
     m_window(pseudo_parent.GetWindow(), config) {
     // window 节点是自己的
     m_pWindow = &m_window;
-    m_state.orient = Orient_Vertical;
-    // 构造锁
-    impl::ctor_unlock();
-    // 使用数据锁
-    CUIDataAutoLocker locker;
-    // 添加给子窗口
-    const auto pwin = pseudo_parent.GetWindow();
-    pwin->RefViewport().AddSubViewport(*this);
-    this->SetParentImmediately(pseudo_parent);
 }
+
 
 /// <summary>
 /// Adjusts the size.

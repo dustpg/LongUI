@@ -36,14 +36,14 @@ namespace LongUI {
         using Super = UIControl;
     protected:
         // ctor
-        UITest(UIControl* parent, const MetaControl&) noexcept;
+        UITest(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
-        ~UITest() noexcept;
+        ~UITest() noexcept override;
         // ctor
-        UITest(UIControl* parent = nullptr) noexcept : UITest(parent, UITest::s_meta) {}
+        explicit UITest(UIControl* parent = nullptr) noexcept : UITest(UITest::s_meta) { this->final_ctor(parent); }
     public:
         // do normal event
         auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
@@ -56,6 +56,8 @@ namespace LongUI {
         // recreate/init device(gpu) resource
         auto Recreate(bool release_only) noexcept->Result override;
     protected:
+        // add child
+        void add_child(UIControl&) noexcept override;
     private:
     };
     // get meta info for UITest

@@ -46,14 +46,14 @@ namespace LongUI {
         friend UITree; friend UITreeChildren;
     protected:
         // ctor
-        UITreeItem(UIControl* parent, const MetaControl&) noexcept;
+        UITreeItem(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UITreeItem() noexcept;
         // ctor
-        UITreeItem(UIControl* parent = nullptr) noexcept : UITreeItem(parent, UITreeItem::s_meta) {}
+        explicit UITreeItem(UIControl* parent = nullptr) noexcept : UITreeItem(UITreeItem::s_meta) { this->final_ctor(parent); }
     public:
         // cell removed
         void CellRemoved(UITreeCell&) noexcept;

@@ -37,14 +37,14 @@ namespace LongUI {
         using Super = UIBoxLayout;
     protected:
         // ctor
-        UITabs(UIControl* parent, const MetaControl&) noexcept;
+        UITabs(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UITabs() noexcept;
         // ctor
-        UITabs(UIControl* parent = nullptr) noexcept : UITabs(parent, UITabs::s_meta) {}
+        explicit UITabs(UIControl* parent = nullptr) noexcept : UITabs(UITabs::s_meta) { this->final_ctor(parent); }
     public:
         // set selected tab
         void SetSelectedTab(UITab& tab) noexcept;

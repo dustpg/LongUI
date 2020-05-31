@@ -35,18 +35,19 @@ namespace LongUI {
     class UIScrollBar final : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
-        // init bar
-        void init_bar() noexcept;
+        // init bar - weakapp
+        void init_bar_weakapp(AttributeOrient) noexcept;
     protected:
         // ctor
-        UIScrollBar(AttributeOrient o, UIControl* parent, const MetaControl&) noexcept;
+        UIScrollBar(AttributeOrient o, const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // ctor
-        UIScrollBar(AttributeOrient o, UIControl* parent = nullptr) noexcept : UIScrollBar(o, parent, UIScrollBar::s_meta) {}
-        // ctor
-        UIScrollBar(UIControl* parent) noexcept : UIScrollBar(Orient_Vertical, parent, UIScrollBar::s_meta) {}
+        explicit UIScrollBar(
+            UIControl* parent = nullptr, 
+            AttributeOrient o = Orient_Vertical
+        ) noexcept : UIScrollBar(o, UIScrollBar::s_meta) { this->final_ctor(parent); }
         // dtor
         ~UIScrollBar() noexcept;
         // do normal event

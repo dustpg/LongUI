@@ -22,12 +22,9 @@ LongUI::UITest::~UITest() noexcept {
 /// <summary>
 /// Initializes a new instance of the <see cref="UITest" /> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UITest::UITest(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta) {
-    // 构造锁
-    impl::ctor_unlock();
+LongUI::UITest::UITest(const MetaControl& meta) noexcept : Super(meta) {
+
 }
 
 /// <summary>
@@ -63,10 +60,6 @@ auto LongUI::UITest::DoMouseEvent(const MouseEventArg & e) noexcept -> EventAcce
     case LongUI::MouseEvent::Event_MouseMove:
         break;
     case LongUI::MouseEvent::Event_LButtonDown:
-    {
-        //int* ptr = nullptr;
-        //ptr[12] = 0;
-    }
         break;
     case LongUI::MouseEvent::Event_LButtonUp:
         break;
@@ -105,6 +98,15 @@ void LongUI::UITest::Update(UpdateReason reason) noexcept {
 /// <returns></returns>
 auto LongUI::UITest::Recreate(bool release_only) noexcept -> Result {
     return Super::Recreate(release_only);
+}
+
+/// <summary>
+/// add child for this
+/// </summary>
+/// <param name="child"></param>
+/// <returns></returns>
+void LongUI::UITest::add_child(UIControl& child) noexcept {
+    return Super::add_child(child);
 }
 
 #endif

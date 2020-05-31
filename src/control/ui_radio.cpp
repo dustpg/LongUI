@@ -23,13 +23,15 @@ namespace LongUI {
 /// </summary>
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIRadio::UIRadio(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta),
+LongUI::UIRadio::UIRadio(const MetaControl& meta) noexcept : Super(meta),
     m_oImage(this), m_oLabel(this) {
     m_state.tabstop = true;
     m_state.focusable = true;
     m_state.orient = Orient_Horizontal;
     m_oStyle.align = AttributeAlign::Align_Center;
+    // 阻隔鼠标事件写入false之前需要写入
+    m_oImage.RefInheritedMask() = State_MouseCutInher;
+    m_oLabel.RefInheritedMask() = State_MouseCutInher;
     // 阻隔鼠标事件
     m_state.mouse_continue = false;
     this->make_offset_tf_direct(m_oLabel);
@@ -52,8 +54,9 @@ LongUI::UIRadio::UIRadio(UIControl* parent, const MetaControl& meta) noexcept
 #endif
     // 设置连接控件
     m_oLabel.SetControl(*this);
-    // OOM处理
-    impl::ctor_unlock();
+    // 设置弱外貌
+    UIControlPrivate::SetAppearance(*this, Appearance_WeakApp | Appearance_CheckBoxContainer);
+    UIControlPrivate::SetAppearance(m_oImage, Appearance_WeakApp | Appearance_Radio);
 }
 
 
@@ -126,10 +129,6 @@ auto LongUI::UIRadio::DoEvent(
 /// </summary>
 /// <returns></returns>
 void LongUI::UIRadio::init_radio() noexcept {
-    if (m_oStyle.appearance == Appearance_NotSet) {
-        UIControlPrivate::SetAppearance(*this, Appearance_CheckBoxContainer);
-        UIControlPrivate::SetAppearance(m_oImage, Appearance_Radio);
-    }
     // 同步checked-disable状态
     auto& target = UIControlPrivate::RefStyleState(m_oImage);
     target = target | (m_oStyle.state & (State_Checked | State_Disabled));
@@ -363,8 +362,7 @@ void LongUI::UIRadioGroup::Update(UpdateReason reason) noexcept {
 /// </summary>
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIRadioGroup::UIRadioGroup(UIControl * parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+LongUI::UIRadioGroup::UIRadioGroup(const MetaControl& meta) noexcept : Super(meta) {
 }
 
 /// <summary>

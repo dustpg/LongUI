@@ -39,14 +39,14 @@ namespace LongUI {
         //using ColTree = POD::Vector<UITreeCol*>;
     protected:
         // ctor
-        UITreeCols(UIControl* parent, const MetaControl&) noexcept;
+        UITreeCols(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UITreeCols() noexcept;
         // ctor
-        UITreeCols(UIControl* parent = nullptr) noexcept : UITreeCols(parent, UITreeCols::s_meta) {}
+        explicit UITreeCols(UIControl* parent = nullptr) noexcept : UITreeCols(UITreeCols::s_meta) { this->final_ctor(parent); }
     protected:
         // do event
         auto DoEvent(UIControl* s, const EventArg& e) noexcept->EventAccept override;

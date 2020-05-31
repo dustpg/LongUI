@@ -51,7 +51,11 @@ namespace LongUI {
         // add attribute
         void add_attribute(uint32_t key, U8View view) noexcept override;
         // ctor for control
-        UIViewport(UIControl& pseudo_parent, CUIWindow::WindowConfig, const MetaControl&) noexcept;
+        UIViewport(
+            const MetaControl& meta,
+            UIControl& pseudo_parent,
+            CUIWindow::WindowConfig config
+        ) noexcept;
     public:
         // ctor
         UIViewport(

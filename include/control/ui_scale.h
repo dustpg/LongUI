@@ -34,19 +34,19 @@ namespace LongUI {
         // super class
         using Super = UIControl;
         // init slider
-        void init_slider() noexcept;
+        void setup_weakapp() noexcept;
         // mouse click
         void mouse_click(Point2F) noexcept;
     protected:
         // ctor
-        UIScale(UIControl* parent, const MetaControl&) noexcept;
+        UIScale(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UIScale() noexcept;
         // ctor
-        UIScale(UIControl* parent = nullptr) noexcept:UIScale(parent, UIScale::s_meta) {}
+        explicit UIScale(UIControl* parent = nullptr) noexcept : UIScale(UIScale::s_meta) { this->final_ctor(parent); }
     public:
         // value changed event
         static constexpr auto _onChange() noexcept { return GuiEvent::Event_OnChange; }
@@ -56,12 +56,14 @@ namespace LongUI {
         // render
         //void Render() const noexcept override;
         // do normal event
-        auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
+        //auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         // do mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept -> EventAccept override;
         // update
         void Update(UpdateReason) noexcept override;
     protected:
+        // add attr
+        void add_attribute(uint32_t key, U8View value) noexcept override;
 #ifdef LUI_ACCESSIBLE
         // accessible event
         auto accessible(const AccessibleEventArg&) noexcept->EventAccept override;

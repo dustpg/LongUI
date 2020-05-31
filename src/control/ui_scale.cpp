@@ -25,17 +25,15 @@ namespace LongUI {
 /// <summary>
 /// Initializes a new instance of the <see cref="UIScale"/> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
-LongUI::UIScale::UIScale(UIControl* parent, const MetaControl& meta) noexcept 
-    : Super(impl::ctor_lock(parent), meta), thumb(this) {
+/// <param name="meta">The meta data.</param>
+LongUI::UIScale::UIScale(const MetaControl& meta) noexcept : Super(meta), thumb(this) {
     m_state.focusable = true;
     //UIControlPrivate::SetFocusable(this->thumb, false);
 #ifndef NDEBUG
     assert(this->thumb.IsFocusable() == false);
     thumb.name_dbg = "scale::thumb";
 #endif
-    // 构造锁
-    impl::ctor_unlock();
+    this->setup_weakapp();
 }
 
 /// <summary>
@@ -173,16 +171,28 @@ void LongUI::UIScale::SetMax(float max_value) noexcept {
 /// <param name="sender">The sender.</param>
 /// <param name="e">The e.</param>
 /// <returns></returns>
-auto LongUI::UIScale::DoEvent(UIControl * sender,
-                          const EventArg & e) noexcept -> EventAccept {
-    // 初始化
-    if (e.nevent == NoticeEvent::Event_Initialize) {
-        this->init_slider();
-    }
-    // 基类处理
-    return Super::DoEvent(sender, e);
-}
+//auto LongUI::UIScale::DoEvent(UIControl * sender,
+//                          const EventArg & e) noexcept -> EventAccept {
+//    // 初始化
+//    if (e.nevent == NoticeEvent::Event_Initialize) {
+//        this->init_slider();
+//    }
+//    // 基类处理
+//    return Super::DoEvent(sender, e);
+//}
 
+
+/// <summary>
+/// Does the event.
+/// </summary>
+/// <param name="sender">The sender.</param>
+/// <param name="e">The e.</param>
+/// <returns></returns>
+void LongUI::UIScale::add_attribute(uint32_t key, U8View value) noexcept {
+    constexpr auto BKDR_ORIENT = 0xeda466cd_ui32;
+    Super::add_attribute(key, value);
+    if (key == BKDR_ORIENT) this->setup_weakapp();
+}
 
 /// <summary>
 /// Does the mouse event.
@@ -253,21 +263,21 @@ void LongUI::UIScale::mouse_click(Point2F pt) noexcept {
 }
 
 /// <summary>
-/// Initializes the slider.
+/// setup weak app
 /// </summary>
 /// <returns></returns>
-void LongUI::UIScale::init_slider() noexcept {
+void LongUI::UIScale::setup_weakapp() noexcept {
     AttributeAppearance this_app, thumbapp;
     if (this->GetOrient() == Orient_Horizontal) {
-        this_app = Appearance_ScaleH;
-        thumbapp = Appearance_ScaleThumbH;
+        this_app = Appearance_WeakApp | Appearance_ScaleH;
+        thumbapp = Appearance_WeakApp | Appearance_ScaleThumbH;
     }
     else {
-        this_app = Appearance_ScaleV;
-        thumbapp = Appearance_ScaleThumbV;
+        this_app = Appearance_WeakApp | Appearance_ScaleV;
+        thumbapp = Appearance_WeakApp | Appearance_ScaleThumbV;
     }
-    UIControlPrivate::SetAppearanceIfNotSet(*this, this_app);
-    UIControlPrivate::SetAppearanceIfNotSet(thumb, thumbapp);
+    UIControlPrivate::SetAppearanceIfWeak(*this, this_app);
+    UIControlPrivate::SetAppearanceIfWeak(thumb, thumbapp);
 }
 
 

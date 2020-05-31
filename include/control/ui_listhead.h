@@ -36,14 +36,14 @@ namespace LongUI {
         using Super = UIBoxLayout;
     protected:
         // ctor
-        UIListHead(UIControl* parent, const MetaControl&) noexcept;
+        UIListHead(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UIListHead() noexcept;
         // ctor
-        UIListHead(UIControl* parent = nullptr) noexcept : UIListHead(parent, UIListHead::s_meta) {}
+        explicit UIListHead(UIControl* parent = nullptr) noexcept : UIListHead(UIListHead::s_meta) { this->final_ctor(parent); }
         // update
         void Update(UpdateReason) noexcept override;
     protected:

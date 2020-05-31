@@ -47,14 +47,14 @@ namespace LongUI {
         using ItemList = POD::Vector<UIListItem*>;
     protected:
         // ctor
-        UIListBox(UIControl* parent, const MetaControl&) noexcept;
+        UIListBox(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UIListBox() noexcept;
         // ctor
-        UIListBox(UIControl* parent = nullptr) noexcept : UIListBox(parent, UIListBox::s_meta) {}
+        explicit UIListBox(UIControl* parent = nullptr) noexcept : UIListBox(UIListBox::s_meta) { this->final_ctor(parent); }
     public:
         // is multi-selected?
         bool IsMultiple() const noexcept { return m_seltype == Seltype_Multiple; }

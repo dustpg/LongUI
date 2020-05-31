@@ -19,14 +19,14 @@ namespace LongUI {
         using Super = UIControl;
     protected:
         // ctor
-        UILabel(UIControl* parent, const MetaControl&) noexcept;
+        UILabel(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UILabel() noexcept;
         // ctor
-        UILabel(UIControl* parent = nullptr) noexcept : UILabel(parent, UILabel::s_meta) {}
+        explicit UILabel(UIControl* parent = nullptr) noexcept : UILabel(UILabel::s_meta) { this->final_ctor(parent); }
     public:
         // normal event
         auto DoEvent(UIControl*, const EventArg& e) noexcept->EventAccept override;

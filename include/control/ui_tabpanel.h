@@ -35,14 +35,14 @@ namespace LongUI {
         using Super = UIBoxLayout;
     protected:
         // ctor
-        UITabPanel(UIControl* parent, const MetaControl&) noexcept;
+        UITabPanel(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UITabPanel() noexcept;
         // ctor
-        UITabPanel(UIControl* parent = nullptr) noexcept : UITabPanel(parent, UITabPanel::s_meta) {}
+        explicit UITabPanel(UIControl* parent = nullptr) noexcept : UITabPanel(UITabPanel::s_meta) { this->final_ctor(parent); }
     private:
     };
     // get meta info for UITabPanel

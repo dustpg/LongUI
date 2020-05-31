@@ -41,7 +41,7 @@ namespace LongUI {
         void init_menuitem() noexcept;
     protected:
         // ctor
-        UIMenuItem(UIControl* parent, const MetaControl& ) noexcept;
+        UIMenuItem(const MetaControl& ) noexcept;
     public:
         // command: this item is selected
         static constexpr auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }
@@ -58,8 +58,6 @@ namespace LongUI {
         void SetText(CUIString&&) noexcept;
         // set text
         void SetText(U16View) noexcept;
-        // Is selected before init
-        auto IsSelectedBeforeInit() const noexcept { return m_bSelInit; }
     public:
         // ICON WIDTH
         enum : uint32_t { ICON_WIDTH = 28 };
@@ -68,7 +66,7 @@ namespace LongUI {
         // dtor
         ~UIMenuItem() noexcept;
         // ctor
-        UIMenuItem(UIControl* parent = nullptr) noexcept : UIMenuItem(parent, UIMenuItem::s_meta) {}
+        explicit UIMenuItem(UIControl* parent = nullptr) noexcept : UIMenuItem(UIMenuItem::s_meta) { this->final_ctor(parent); }
     public:
         // do normal event
         auto DoEvent(UIControl* sender, const EventArg& arg) noexcept->EventAccept override;

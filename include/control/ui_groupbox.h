@@ -39,14 +39,14 @@ namespace LongUI {
         using Super = UIBoxLayout;
     protected:
         // ctor
-        UIGroupBox(UIControl* parent, const MetaControl&) noexcept;
+        UIGroupBox(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UIGroupBox() noexcept;
         // ctor
-        UIGroupBox(UIControl* parent = nullptr) noexcept : UIGroupBox(parent, UIGroupBox::s_meta) {}
+        explicit UIGroupBox(UIControl* parent = nullptr) noexcept : UIGroupBox(UIGroupBox::s_meta) { this->final_ctor(parent); }
     public:
          //update this
         //void Update() noexcept override;

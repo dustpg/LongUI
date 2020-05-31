@@ -49,18 +49,15 @@ void LongUI::UISplitter::change_cursor() noexcept {
 /// <summary>
 /// Initializes a new instance of the <see cref="UISplitter" /> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UISplitter::UISplitter(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta), m_hovered(CUICursor::Cursor_Arrow) {
+LongUI::UISplitter::UISplitter(const MetaControl& meta) noexcept
+    : Super(meta), m_hovered(CUICursor::Cursor_Arrow) {
     // 这个根据父节点自行定义?
     // 默认是水平方向拉拽?
     m_state.orient = Orient_Horizontal;
     // 允许焦点?
     m_state.focusable = true;
     m_oBox.padding = { 2, 2, 2, 2 };
-    // 构造锁
-    impl::ctor_unlock();
 }
 
 

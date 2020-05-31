@@ -43,14 +43,14 @@ namespace LongUI {
         // dtor
         ~UIBoxLayout() noexcept override;
         // ctor
-        UIBoxLayout(UIControl* parent = nullptr) noexcept : UIBoxLayout(parent, UIBoxLayout::s_meta) {}
+        explicit UIBoxLayout(UIControl* parent = nullptr) noexcept : UIBoxLayout(UIBoxLayout::s_meta) { this->final_ctor(parent); }
         // do event
         auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         // update
         void Update(UpdateReason) noexcept override;
     protected:
         // lui std ctor
-        UIBoxLayout(UIControl* parent, const MetaControl& ) noexcept;
+        UIBoxLayout(const MetaControl& ) noexcept;
     private:
         // need relayout
         auto is_need_relayout() noexcept ->UpdateReason;
@@ -78,21 +78,7 @@ namespace LongUI {
         auto GetOrient() const noexcept { return static_cast<AttributeOrient>(m_state.orient); }
     };
     // v-box layout
-    class UIVBoxLayout final : public UIBoxLayout {
-        // super class
-        using Super = UIBoxLayout;
-    public:
-        // class meta
-        static const  MetaControl   s_meta;
-        // ctor
-        UIVBoxLayout(UIControl* parent = nullptr) noexcept : UIVBoxLayout(parent, UIVBoxLayout::s_meta) {}
-        // dtor
-        ~UIVBoxLayout() noexcept;
-    protected:
-        // ctor
-        UIVBoxLayout(UIControl* parent, const MetaControl&) noexcept;
-    public:
-    };
+    using UIVBoxLayout = UIBoxLayout;
     // h-box layout
     class UIHBoxLayout final : public UIBoxLayout {
         // super class
@@ -101,18 +87,16 @@ namespace LongUI {
         // class meta
         static const  MetaControl   s_meta;
         // ctor
-        UIHBoxLayout(UIControl* parent = nullptr) noexcept : UIHBoxLayout(parent, UIHBoxLayout::s_meta) {}
+        explicit UIHBoxLayout(UIControl* parent = nullptr) noexcept : UIHBoxLayout(UIHBoxLayout::s_meta) { this->final_ctor(parent); }
         // dtor
         ~UIHBoxLayout() noexcept;
     protected:
         // ctor
-        UIHBoxLayout(UIControl* parent, const MetaControl& ) noexcept;
+        UIHBoxLayout(const MetaControl& ) noexcept;
     public:
     };
     // get meta info for UIBoxLayout
     LUI_DECLARE_METAINFO(UIBoxLayout);
-    // get meta info for UIBBoxLayout
-    LUI_DECLARE_METAINFO(UIVBoxLayout);
     // get meta info for UIHBoxLayout
     LUI_DECLARE_METAINFO(UIHBoxLayout);
 }

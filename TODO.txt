@@ -1,4 +1,6 @@
-﻿MinSizeChange [针对文本] 测试
+﻿控件创建使用折半查找 MAX_CONTROL_TYPE_COUNT
+ 
+MinSizeChange [针对文本] 测试
 
 创建控件时候应该放入新的数据链避免阻断渲染线程, 创建完毕后再统一加入表中?
 

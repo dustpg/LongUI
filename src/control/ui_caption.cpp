@@ -17,10 +17,8 @@ namespace LongUI {
 /// <summary>
 /// Initializes a new instance of the <see cref="UICaption" /> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UICaption::UICaption(UIControl* parent, const MetaControl& meta) noexcept 
-    : Super(parent, meta) {
+LongUI::UICaption::UICaption(const MetaControl& meta) noexcept : Super(meta) {
     m_oStyle.appearance = Appearance_Caption;
     //this->SetBgColor({ RGBA_White });
 }

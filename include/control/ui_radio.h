@@ -66,14 +66,14 @@ namespace LongUI {
         void SetText(U16View text) noexcept;
     protected:
         // ctor
-        UIRadio(UIControl* parent, const MetaControl&) noexcept;
+        UIRadio(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
         ~UIRadio() noexcept;
         // ctor
-        UIRadio(UIControl* parent = nullptr) noexcept : UIRadio(parent, UIRadio::s_meta) {}
+        explicit UIRadio(UIControl* parent = nullptr) noexcept : UIRadio(UIRadio::s_meta) { this->final_ctor(parent); }
         // update this
         void Update(UpdateReason) noexcept override;
         // do normal event

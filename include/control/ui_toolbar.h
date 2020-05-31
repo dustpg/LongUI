@@ -40,10 +40,10 @@ namespace LongUI {
         // dtor
         ~UIToolBar() noexcept;
         // ctor
-        UIToolBar(UIControl* parent = nullptr) noexcept : UIToolBar(parent, UIToolBar::s_meta) {}
+        explicit UIToolBar(UIControl* parent = nullptr) noexcept : UIToolBar(UIToolBar::s_meta) { this->final_ctor(parent); }
     protected:
         // lui std ctor
-        UIToolBar(UIControl* parent, const MetaControl&) noexcept;
+        UIToolBar(const MetaControl&) noexcept;
     };
     // get meta info for UIBoxLayout
     LUI_DECLARE_METAINFO(UIToolBar);

@@ -874,6 +874,9 @@ void LongUI::CUIWindow::ControlAttached(UIControl& ctrl) noexcept {
 /// <param name="ctrl">The control.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::AddNamedControl(UIControl& ctrl) noexcept {
+#ifndef NDEBUG
+    if (!this) LUIDebug(Warning) << "null this pointer" << endl;
+#endif
     if (!this) return;
     // XXX: 自己就是窗口的场合
     if (this->RefViewport() == ctrl) return;

@@ -40,10 +40,10 @@ namespace LongUI {
         // dtor
         ~UIMenuBar() noexcept;
         // ctor
-        UIMenuBar(UIControl* parent = nullptr) noexcept : UIMenuBar(parent, UIMenuBar::s_meta) {}
+        explicit UIMenuBar(UIControl* parent = nullptr) noexcept : UIMenuBar(UIMenuBar::s_meta) { this->final_ctor(parent); }
     protected:
         // lui std ctor
-        UIMenuBar(UIControl* parent, const MetaControl&) noexcept;
+        UIMenuBar(const MetaControl&) noexcept;
         // now popup menu
         UIMenu*             m_pPopupNow = nullptr;
     public:

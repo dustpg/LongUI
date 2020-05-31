@@ -124,6 +124,10 @@ namespace LongUI {
         CUIDebug& operator<< (const DDFFloat3 f) noexcept;
         // overload << operator for float.4
         CUIDebug& operator<< (const DDFFloat4 f) noexcept;
+        // overload << operator for uint64_t
+        CUIDebug& operator<< (const uint64_t o) noexcept;
+        // overload << operator for int64_t
+        CUIDebug& operator<< (const int64_t o) noexcept;
         // overload << operator for uint32_t
         CUIDebug& operator<< (const uint32_t o) noexcept;
         // overload << operator for int32_t

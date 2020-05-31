@@ -36,10 +36,8 @@ LongUI::UIMenuBar::~UIMenuBar() noexcept {
 /// <summary>
 /// Initializes a new instance of the <see cref="UIMenuBar"/> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIMenuBar::UIMenuBar(UIControl* parent, const MetaControl& meta) noexcept
-    :Super(parent, meta) {
+LongUI::UIMenuBar::UIMenuBar(const MetaControl& meta) noexcept :Super(meta) {
     // 水平布局
     m_state.orient = Orient_Horizontal;
     // 居中对齐
@@ -65,16 +63,12 @@ LongUI::UIMenu::~UIMenu() noexcept {
 /// <summary>
 /// Initializes a new instance of the <see cref="UIMenu"/> class.
 /// </summary>
-/// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
-LongUI::UIMenu::UIMenu(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta) {
+LongUI::UIMenu::UIMenu(const MetaControl& meta) noexcept : Super(meta) {
     m_bMenuBar = true;
     m_type = BehaviorType::Type_Menu;
     m_oBox.margin = { 0 };
     m_oBox.padding = { 2, 2, 2, 2 };
-    // 构造锁
-    impl::ctor_unlock();
 }
 
 
@@ -86,14 +80,13 @@ LongUI::UIMenu::UIMenu(UIControl* parent, const MetaControl& meta) noexcept
 /// <returns></returns>
 auto LongUI::UIMenu::DoEvent(UIControl * sender,
     const EventArg& e) noexcept -> EventAccept {
-    constexpr auto tbbtn = Appearance_ToolBarButton;
     // 初始化
     switch (e.nevent)
     {
     case NoticeEvent::Event_Initialize:
         // 父节点是MenuPopup?
         if (uisafe_cast<UIMenuPopup>(m_pParent)) {
-            UIControlPrivate::SetAppearanceIfNotSet(*this, Appearance_MenuItem);
+            UIControlPrivate::SetAppearanceIfWeak(*this, Appearance_WeakApp | Appearance_MenuItem);
             m_oBox.padding.left = UIMenuItem::ICON_WIDTH;
             // !!! 基类处理
             Super::DoEvent(sender, e);
@@ -105,7 +98,7 @@ auto LongUI::UIMenu::DoEvent(UIControl * sender,
             return Event_Accept;
         }
         // 其他情况
-        else UIControlPrivate::SetAppearanceIfNotSet(*this, tbbtn);
+        else UIControlPrivate::SetAppearanceIfWeak(*this, Appearance_WeakApp | Appearance_ToolBarButton);
         break;
     case NoticeEvent::Event_PopupBegin:
         // 弹出的是内建的菜单
