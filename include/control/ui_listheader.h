@@ -37,6 +37,8 @@ namespace LongUI {
     class UIListHeader : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
+        // private impl
+        struct Private;
     public:
         // class meta
         static const  MetaControl   s_meta;

@@ -16,6 +16,16 @@ namespace LongUI {
     LUI_CONTROL_META_INFO(UIRadio, "radio");
     // UIRadioGroup类 元信息
     LUI_CONTROL_META_INFO(UIRadioGroup, "radiogroup");
+    // UIRadio类 私有实现
+    struct UIRadio::Private {
+        // 设置新的字符串
+        template<typename T> static auto SetText(UIRadio& cbox, T && text) noexcept {
+            cbox.m_oLabel.SetText(std::forward<T>(text));
+#ifdef LUI_ACCESSIBLE
+            // TODO: ACCESSIBLE
+#endif
+        }
+    };
 }
 
 /// <summary>
@@ -279,7 +289,7 @@ void LongUI::UIRadio::SetImageSource(U8View src) noexcept {
 /// <param name="len">The length.</param>
 /// <returns></returns>
 void LongUI::UIRadio::SetText(CUIString&& text) noexcept {
-    m_oLabel.SetText(std::move(text));
+    Private::SetText(*this, std::move(text));
 }
 
 /// <summary>
@@ -287,8 +297,8 @@ void LongUI::UIRadio::SetText(CUIString&& text) noexcept {
 /// </summary>
 /// <param name="text">The text.</param>
 /// <returns></returns>
-void LongUI::UIRadio::SetText(const CUIString & text) noexcept {
-    return this->SetText(CUIString{ text });
+void LongUI::UIRadio::SetText(const CUIString& text) noexcept {
+    return this->SetText(text.view());
 }
 
 
@@ -298,10 +308,7 @@ void LongUI::UIRadio::SetText(const CUIString & text) noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIRadio::SetText(U16View text) noexcept {
-    // GCC: 
-    // conversion from 'LongUI::U16View' {aka 'LongUI::PodStringView<char16_t>'} 
-    // to 'char16_t' is ambiguous
-    return this->SetText(CUIString(text));
+    Private::SetText(*this, text);
 }
 
 /// <summary>

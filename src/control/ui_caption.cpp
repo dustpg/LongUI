@@ -19,7 +19,7 @@ namespace LongUI {
 /// </summary>
 /// <param name="meta">The meta.</param>
 LongUI::UICaption::UICaption(const MetaControl& meta) noexcept : Super(meta) {
-    m_oStyle.appearance = Appearance_Caption;
+    m_oStyle.appearance = Appearance_WeakApp | Appearance_Caption;
     //this->SetBgColor({ RGBA_White });
 }
 
@@ -28,10 +28,8 @@ LongUI::UICaption::UICaption(const MetaControl& meta) noexcept : Super(meta) {
 /// </summary>
 /// <returns></returns>
 LongUI::UICaption::~UICaption() noexcept {
-    // TODO: 取消groupbox引用
-    //if (m_pParent && !m_pParent->m_state.destructing) {
-
-    //}
+    // 取消groupbox引用
+    if (m_pGroupBox) m_pGroupBox->CaptionRemoved(*this);
 }
 
 /// <summary>

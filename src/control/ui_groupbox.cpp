@@ -28,7 +28,7 @@ LongUI::UIGroupBox::UIGroupBox(const MetaControl& meta) noexcept : Super(meta),
     // 原子性, 子控件为本控件的组成部分
     //m_state.atomicity = true;
     // 默认为分组框样式
-    m_oStyle.appearance = Appearance_GroupBox;
+    m_oStyle.appearance = Appearance_WeakApp | Appearance_GroupBox;
     // 基本样式
     m_oBox.border = { 1.f, 1.f, 1.f, 1.f };
     m_oBox.margin = { 3.f, 3.f, 3.f, 3.f };
@@ -48,6 +48,15 @@ LongUI::UIGroupBox::UIGroupBox(const MetaControl& meta) noexcept : Super(meta),
 LongUI::UIGroupBox::~UIGroupBox() noexcept {
     // 提前释放
     m_state.destructing = true;
+}
+
+/// <summary>
+/// caption removed
+/// </summary>
+/// <param name="c"></param>
+/// <returns></returns>
+void LongUI::UIGroupBox::CaptionRemoved(UICaption& c) noexcept {
+    if (m_pCaption == &c) m_pCaption = nullptr;
 }
 
 /// <summary>
@@ -117,23 +126,21 @@ void LongUI::UIGroupBox::add_child(UIControl& child) noexcept {
 auto LongUI::UIGroupBox::accessible(const AccessibleEventArg& args) noexcept -> EventAccept {
     switch (args.event)
     {
-        using get0_t = AccessibleGetPatternsArg;
-        using get1_t = AccessibleGetCtrlTypeArg;
-        using get2_t = AccessibleGetAccNameArg;
+        using get0_t = const AccessibleGetPatternsArg;
+        using get1_t = const AccessibleGetCtrlTypeArg;
+        using get2_t = const AccessibleGetAccNameArg;
     case AccessibleEvent::Event_GetPatterns:
         // + 继承基类行为模型
         Super::accessible(args);
         return Event_Accept;
     case AccessibleEvent::Event_All_GetControlType:
         // 获取控件类型
-        static_cast<const get1_t&>(args).type =
-            AccessibleControlType::Type_Group;
+        static_cast<get1_t&>(args).type = AccessibleControlType::Type_Group;
         return Event_Accept;
     case AccessibleEvent::Event_All_GetAccessibleName:
         // 获取Acc名称
         if (m_pCaption) {
-            *static_cast<const get2_t&>(args).name =
-                m_pCaption->RefText();
+            *static_cast<get2_t&>(args).name = m_pCaption->RefText();
             return Event_Accept;
         }
     }

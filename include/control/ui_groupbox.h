@@ -47,6 +47,8 @@ namespace LongUI {
         ~UIGroupBox() noexcept;
         // ctor
         explicit UIGroupBox(UIControl* parent = nullptr) noexcept : UIGroupBox(UIGroupBox::s_meta) { this->final_ctor(parent); }
+        // caption removed
+        void CaptionRemoved(UICaption& c) noexcept;
     public:
          //update this
         //void Update() noexcept override;

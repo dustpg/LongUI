@@ -62,7 +62,8 @@ namespace LongUI { namespace impl {
         RectF* output
     ) noexcept {
         const auto is_valid = [size](const RectF& rect) noexcept {
-            return LongUI::GetArea(rect) > 0.f
+            return rect.bottom > rect.top
+                && rect.right > rect.left
                 && rect.right > 0.f
                 && rect.bottom > 0.f
                 && rect.left < size.width

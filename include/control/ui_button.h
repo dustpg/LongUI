@@ -40,6 +40,8 @@ namespace LongUI {
     class UIButton : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
+        // private impl
+        struct Private;
     public:
         // min button width
         //enum { MIN_BUTTON_WIDTH = 175 };

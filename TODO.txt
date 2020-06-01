@@ -1,4 +1,8 @@
-﻿控件创建使用折半查找 MAX_CONTROL_TYPE_COUNT
+﻿UIXxxxx::Private::SetText
+
+m_oBox.xxx = { a ,b ,c d } 移动到NativeStyleInit
+
+控件创建使用折半查找 MAX_CONTROL_TYPE_COUNT
  
 MinSizeChange [针对文本] 测试
 
@@ -20,7 +24,7 @@ CUIWaiter单独测试?
 
 Node 继承 偏移量调整
 
-超过大部分(比如90%)渲染面积应该全渲染
+超过大部分(比如90%)渲染面积应该全渲染?
 
 Event_Initialize 时构造对象?
 

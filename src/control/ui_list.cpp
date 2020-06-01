@@ -22,6 +22,8 @@
 namespace LongUI {
     // UIListBox类 元信息
     LUI_CONTROL_META_INFO(UIListBox, "listbox");
+
+
     /*
     1. 每行高度(名词)一致, 选取最大的一个作为基准点
     2. rows属性影响minsize
@@ -82,7 +84,7 @@ LongUI::UIListBox::UIListBox(const MetaControl& meta) noexcept : Super(meta),
     // 焦点允许
     //m_state.focusable = true;
     // 默认为列表框
-    m_oStyle.appearance = Appearance_ListBox;
+    m_oStyle.appearance = Appearance_WeakApp | Appearance_ListBox;
     // 默认样式
     m_oBox.border = { 1, 1, 1, 1 };
     m_oBox.margin = { 4, 2, 4, 2 };
@@ -463,6 +465,19 @@ void LongUI::UIListBox::refresh_minsize() noexcept {
 namespace LongUI {
     // UIListItem类 元信息
     LUI_CONTROL_META_INFO(UIListItem, "listitem");
+    // UIListItem类 私有实现
+    struct UIListItem::Private {
+        // 设置新的字符串
+        template<typename T> static auto SetText(UIListItem& obj, T && text) noexcept {
+            obj.add_private_child();
+            if (obj.m_oLabel.SetText(std::forward<T>(text))) {
+#ifdef LUI_ACCESSIBLE
+                // TODO: ACCESSIBLE
+                //LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
+#endif
+            }
+        }
+    };
 }
 
 /// <summary>
@@ -524,7 +539,7 @@ LongUI::UIListItem::UIListItem(const MetaControl& meta) noexcept : Super(meta),
     m_state.orient = Orient_Horizontal;
     m_oStyle.align = AttributeAlign::Align_Center;
     // 列表项目
-    m_oStyle.appearance = Appearance_ListItem;
+    m_oStyle.appearance = Appearance_WeakApp | Appearance_ListItem;
     // 私有实现
     //UIControlPrivate::SetFocusable(image, false);
     //UIControlPrivate::SetFocusable(label, false);
@@ -595,7 +610,7 @@ void LongUI::UIListItem::relayout() noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIListItem::SetText(const CUIString& text) noexcept {
-    this->SetText(CUIString{ text });
+    return this->SetText(text.view());
 }
 
 /// <summary>
@@ -604,8 +619,18 @@ void LongUI::UIListItem::SetText(const CUIString& text) noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIListItem::SetText(U16View text) noexcept {
-    this->SetText(CUIString(text));
+    Private::SetText(*this, text);
 }
+
+/// <summary>
+/// Sets the text.
+/// </summary>
+/// <param name="text">The text.</param>
+/// <returns></returns>
+void LongUI::UIListItem::SetText(CUIString&& text) noexcept {
+    Private::SetText(*this, std::move(text));
+}
+
 
 
 /// <summary>
@@ -643,21 +668,6 @@ auto LongUI::UIListItem::DoMouseEvent(const MouseEventArg& e) noexcept -> EventA
         return Super::DoMouseEvent(e);
     }
 }
-
-/// <summary>
-/// Sets the text.
-/// </summary>
-/// <param name="text">The text.</param>
-/// <returns></returns>
-void LongUI::UIListItem::SetText(CUIString&& text) noexcept {
-    this->add_private_child();
-    if (m_oLabel.SetText(std::move(text))) {
-#ifdef LUI_ACCESSIBLE
-        //LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
-#endif
-    }
-}
-
 
 /// <summary>
 /// Updates this instance.
@@ -960,6 +970,18 @@ void LongUI::UIListHead::relayout() noexcept {
 namespace LongUI {
     // UIListHeader类 元信息
     LUI_CONTROL_META_INFO(UIListHeader, "listheader");
+    // UILabel类 私有实现
+    struct UIListHeader::Private {
+        // 设置新的字符串
+        template<typename T> static auto SetText(UIListHeader& obj, T && text) noexcept {
+            if (obj.m_oLabel.SetText(std::forward<T>(text))) {
+#ifdef LUI_ACCESSIBLE
+                // TODO: ACCESSIBLE
+                //LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
+#endif
+            }
+        }
+    };
 }
 
 
@@ -976,7 +998,7 @@ LongUI::UIListHeader::UIListHeader(const MetaControl& meta) noexcept : Super(met
     // 水平布局
     m_state.orient = Orient_Horizontal;
     // 属于HEADER CELL
-    m_oStyle.appearance = Appearance_TreeHeaderCell;
+    m_oStyle.appearance = Appearance_WeakApp | Appearance_TreeHeaderCell;
     // 私有实现
     //UIControlPrivate::SetFocusable(image, false);
     //UIControlPrivate::SetFocusable(label, false);
@@ -1038,12 +1060,7 @@ void LongUI::UIListHeader::add_attribute(uint32_t key, U8View value) noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIListHeader::SetText(CUIString&& text) noexcept {
-    // 设置
-    if (m_oLabel.SetText(std::move(text))) {
-#ifdef LUI_ACCESSIBLE
-        //LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
-#endif
-    }
+    Private::SetText(*this, std::move(text));
 }
 
 /// <summary>
@@ -1052,7 +1069,7 @@ void LongUI::UIListHeader::SetText(CUIString&& text) noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIListHeader::SetText(const CUIString & text) noexcept {
-    return this->SetText(CUIString{ text });
+    return this->SetText(text.view());
 }
 
 /// <summary>
@@ -1061,5 +1078,5 @@ void LongUI::UIListHeader::SetText(const CUIString & text) noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIListHeader::SetText(U16View text) noexcept {
-    return this->SetText(CUIString(text));
+    return Private::SetText(*this, text);
 }

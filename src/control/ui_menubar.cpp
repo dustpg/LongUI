@@ -91,7 +91,7 @@ auto LongUI::UIMenu::DoEvent(UIControl * sender,
             // !!! 基类处理
             Super::DoEvent(sender, e);
             if (const auto pMenuArrow = new(std::nothrow) UIControl{ this }) {
-                constexpr auto app = Appearance_MenuArrow;
+                constexpr auto app = Appearance_WeakApp | Appearance_MenuArrow;
                 UIControlPrivate::SetAppearance(*pMenuArrow, app);
             }
             this->set_label_flex(1.f);

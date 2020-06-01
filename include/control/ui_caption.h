@@ -34,6 +34,8 @@
 
 // ui namespace
 namespace LongUI {
+    // UIGroupBox
+    class UIGroupBox;
     // caption
     class UICaption : public UILabel {
         // super class
@@ -48,9 +50,14 @@ namespace LongUI {
         ~UICaption() noexcept;
         // ctor
         explicit UICaption(UIControl* parent = nullptr) noexcept : UICaption(UICaption::s_meta) { this->final_ctor(parent); }
+        // link
+        void Link(UIGroupBox& box) noexcept { m_pGroupBox = &box; }
     protected:
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
+    protected:
+        // group box
+        UIGroupBox*             m_pGroupBox = nullptr;
     };
     // get meta info for UICaption
     LUI_DECLARE_METAINFO(UICaption);

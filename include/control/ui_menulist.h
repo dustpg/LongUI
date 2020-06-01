@@ -39,6 +39,8 @@ namespace LongUI {
     class UIMenuList : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
+        // private impl
+        struct Private;
         // menu list
         void init_menulist();
     public:
@@ -71,10 +73,10 @@ namespace LongUI {
         void SetText(CUIString&& text) noexcept;
         // set text
         void SetText(U16View text) noexcept;
-        // set selected index
-        //void SetSelectedIndex(long) noexcept;
         // get selected index
         long GetSelectedIndex() const noexcept { return m_iSelected; }
+        // set selected index
+        //void SetSelectedIndex(long) noexcept;
     public:
         // update
         void Update(UpdateReason) noexcept override;

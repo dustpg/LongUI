@@ -185,6 +185,8 @@ namespace LongUI {
         // set text
         void SetText(CUIString&& text) noexcept;
         // set text
+        void SetText(const CUIString& text) noexcept;
+        // set text
         void SetText(U16View view) noexcept;
         // request text, not const method
         auto RequestText() noexcept -> const CUIString&;

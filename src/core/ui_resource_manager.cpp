@@ -1369,11 +1369,9 @@ auto LongUI::CUIResMgr::recreate_device(IUIConfigure* cfg, ConfigureFlag flag) n
         };
         constexpr uint32_t fl_size = sizeof(featureLevels) / sizeof(featureLevels[0]);
         // 根据情况检查驱动类型
-        const auto dtype = flag & ConfigureFlag::Flag_RenderByCPU ? 
-            D3D_DRIVER_TYPE_WARP : (adapter ? 
-                D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE);
-        D3D_DRIVER_TYPE types[] = { dtype, D3D_DRIVER_TYPE_WARP };
-        HRESULT tmp;
+        const auto dtype = flag & ConfigureFlag::Flag_RenderByCPU ? D3D_DRIVER_TYPE_WARP 
+            : (adapter ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE);
+        const D3D_DRIVER_TYPE types[] = { dtype, D3D_DRIVER_TYPE_WARP }; HRESULT tmp;
         // 两次尝试
         for (auto type : types) {
             ID3D11Device* dev = nullptr;
@@ -1588,12 +1586,12 @@ auto LongUI::CUIResMgr::recreate_resource() noexcept -> Result {
         const auto begin_itr = rm().resmap.begin();
         const auto end_itr = rm().resmap.end();
         for (auto itr = begin_itr; itr != end_itr; ++itr) {
-            assert(itr->second);
-            /*if (itr->second)*/ {
+            if (itr->second) {
                 const auto ptr = CUIResourceID::Object(itr->second);
                 auto& img = static_cast<CUIImage&>(*ptr);
                 assert(ptr->RefData().GetType() == ResourceType::Type_Image);
 #ifdef LUI_MULTIPLE_RESOURCE
+                static_assert(false, "NOT IMPL");
 #endif
                 // 即便错误也要继续, 目的是释放数据
                 img.ReleaseOnly();

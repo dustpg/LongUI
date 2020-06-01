@@ -37,6 +37,8 @@ namespace LongUI {
     class UIMenuItem : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
+        // private impl
+        struct Private;
         // init menuitem
         void init_menuitem() noexcept;
     protected:
@@ -58,6 +60,8 @@ namespace LongUI {
         void SetText(CUIString&&) noexcept;
         // set text
         void SetText(U16View) noexcept;
+        // set text
+        void SetText(const CUIString&) noexcept;
     public:
         // ICON WIDTH
         enum : uint32_t { ICON_WIDTH = 28 };

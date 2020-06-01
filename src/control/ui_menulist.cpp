@@ -16,6 +16,13 @@
 #include <core/ui_unsafe.h>
 #include "../private/ui_private_control.h"
 
+#ifdef LUI_ACCESSIBLE
+#include <accessible/ui_accessible_callback.h>
+#include <accessible/ui_accessible_event.h>
+#include <accessible/ui_accessible_type.h>
+#include <core/ui_string.h>
+#endif
+
 // ui namespace
 namespace LongUI {
     // UIMenuList类 元信息
@@ -24,6 +31,29 @@ namespace LongUI {
     LUI_CONTROL_META_INFO(UIMenuItem, "menuitem");
     // UIMenuPopup类 元信息
     LUI_CONTROL_META_INFO(UIMenuPopup, "menupopup");
+    // UIMenuItem类 私有实现
+    struct UIMenuItem::Private {
+        // 设置新的字符串
+        template<typename T> static auto SetText(UIMenuItem& obj, T && text) noexcept {
+            if (obj.m_oLabel.SetText(std::forward<T>(text))) {
+#ifdef LUI_ACCESSIBLE
+                // TODO: ACCESSIBLE
+                //LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
+#endif
+            }
+        }
+    };
+    // UIMenuList类 私有实现
+    struct UIMenuList::Private {
+        // 设置新的字符串
+        template<typename T> static auto SetText(UIMenuList& obj, T && text) noexcept {
+            if (obj.m_oLabel.SetText(std::forward<T>(text))) {
+#ifdef LUI_ACCESSIBLE
+                LongUI::Accessible(obj.m_pAccessible, Callback_PropertyChanged);
+#endif
+            }
+        }
+    };
 }
 
 // --------------------------- UIMenuItem  ---------------------
@@ -78,7 +108,7 @@ LongUI::UIMenuItem::~UIMenuItem() noexcept {
 /// <param name="str">The string.</param>
 /// <returns></returns>
 void LongUI::UIMenuItem::SetText(CUIString&& str) noexcept {
-    m_oLabel.SetText(std::move(str));
+    Private::SetText(*this, std::move(str));
 }
 
 /// <summary>
@@ -87,7 +117,16 @@ void LongUI::UIMenuItem::SetText(CUIString&& str) noexcept {
 /// <param name="view">The view.</param>
 /// <returns></returns>
 void LongUI::UIMenuItem::SetText(U16View view) noexcept {
-    m_oLabel.SetText(view);
+    Private::SetText(*this, view);
+}
+
+/// <summary>
+/// Sets the text.
+/// </summary>
+/// <param name="view">The view.</param>
+/// <returns></returns>
+void LongUI::UIMenuItem::SetText(const CUIString& text) noexcept {
+    return this->SetText(text.view());
 }
 
 /// <summary>
@@ -497,13 +536,6 @@ void LongUI::UIMenuList::on_selected_changed() noexcept {
     this->TriggerEvent(this->_onCommand());
 }
 
-#ifdef LUI_ACCESSIBLE
-#include <accessible/ui_accessible_callback.h>
-#include <accessible/ui_accessible_event.h>
-#include <accessible/ui_accessible_type.h>
-#include <core/ui_string.h>
-#endif
-
 
 /// <summary>
 /// Sets the text.
@@ -511,11 +543,7 @@ void LongUI::UIMenuList::on_selected_changed() noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIMenuList::SetText(CUIString&& text) noexcept {
-    if (m_oLabel.SetText(std::move(text))) {
-#ifdef LUI_ACCESSIBLE
-        LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
-#endif
-    }
+    Private::SetText(*this, std::move(text));
 }
 
 /// <summary>
@@ -524,7 +552,7 @@ void LongUI::UIMenuList::SetText(CUIString&& text) noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIMenuList::SetText(U16View text) noexcept {
-    this->SetText(CUIString(text));
+    Private::SetText(*this, text);
 }
 
 /// <summary>
@@ -533,7 +561,7 @@ void LongUI::UIMenuList::SetText(U16View text) noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIMenuList::SetText(const CUIString& text) noexcept {
-    this->SetText(CUIString{ text });
+    return this->SetText(text.view());
 }
 
 /// <summary>

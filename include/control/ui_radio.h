@@ -40,6 +40,8 @@ namespace LongUI {
     class UIRadio : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
+        // private impl
+        struct Private;
         // init radio
         void init_radio() noexcept;
     public:

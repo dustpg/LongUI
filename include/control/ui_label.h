@@ -17,6 +17,8 @@ namespace LongUI {
     class UILabel : public UIControl {
         // super class
         using Super = UIControl;
+        // private impl
+        struct Private;
     protected:
         // ctor
         UILabel(const MetaControl&) noexcept;

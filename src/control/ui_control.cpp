@@ -339,7 +339,7 @@ auto LongUI::UIControl::init() noexcept -> Result {
         m_oStyle.appearance = m_oStyle.appearance & Appearance_AppMask;
         // 依赖类型初始化控件
         LongUI::NativeStyleInit(*this, this->RefStyle().appearance);
-        // 重建对象
+        // 重建对象资源
         UIManager.RenderLock();
         hr = this->Recreate(false);
         UIManager.RenderUnlock();
@@ -394,9 +394,13 @@ void LongUI::UIControl::Update(UpdateReason reason) noexcept {
     assert(m_state.inited && "must init control first");
     //if (reason & Reason_WindowChanged)
     //    m_pWindow->ControlAttached(*this);
-    // 提示样式渲染器大小修改
-    if (reason & (Reason_SizeChanged | Reason_BoxChanged))
+    // 大小修改
+    if (reason & (Reason_SizeChanged | Reason_BoxChanged)) {
+        // 需要重绘
+        this->Invalidate();
+        // 提示样式渲染器大小修改
         this->custom_style_size_changed();
+    }
 }
 
 /// <summary>

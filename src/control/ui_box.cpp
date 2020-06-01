@@ -277,10 +277,10 @@ void LongUI::UIBoxLayout::relayout_this() noexcept {
     if (this->GetChildrenCount()) {
         // 更新布局
         const auto ishor = m_state.orient == Orient_Horizontal;
-        return ishor ? this->relayout_h() : this->relayout_v();
+        ishor ? this->relayout_h() : this->relayout_v();
         // 更新子控件
-        for (auto& child : *this)
-            child.NeedUpdate(Reason_NonChanged);
+        //for (auto& child : *this) child.NeedUpdate(Reason_NonChanged);
+
     }
 }
 

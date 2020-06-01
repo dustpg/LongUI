@@ -242,7 +242,7 @@ void LongUI::UIScrollArea::layout_corner(bool visible, Size2F size) noexcept{
             m_pCorner->name_dbg = "scrollarea::corner";
 #endif
             this->set_child_fixed_attachment(*m_pCorner);
-            UIControlPrivate::SetAppearance(*m_pCorner, Appearance_Resizer);
+            UIControlPrivate::SetAppearance(*m_pCorner, Appearance_WeakApp | Appearance_Resizer);
         }
         // 有就进行设置
         if (m_pCorner) {

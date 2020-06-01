@@ -20,10 +20,9 @@
 
 // uinamespace
 namespace LongUI {
-    // private text box
+    // UITextBox类 私有实现
     struct UITextBox::Private {
         // doc type
-        //using doc_t = TextBC::CBCTextDocument;
         using doc_t = RichED::CEDTextDocument;
         // longui -> riched
         static void ToRichED(const TextFont& tf, RichED::RichData& rd) noexcept;
@@ -61,6 +60,17 @@ namespace LongUI {
         bool                                created = false;
         // cached
         bool                                cached = false;
+        // 设置新的字符串
+        template<typename T> static auto SetText(UITextBox& tbox, T && text) noexcept {
+            auto& cached = tbox.pimpl()->text_cached;
+            if (cached == text) return false;
+            cached = std::forward<T>(text);
+            tbox.NeedUpdate(Reason_ValueTextChanged);
+#ifdef LUI_ACCESSIBLE
+            // TODO: ACCESSIBLE
+#endif
+            return true;
+        }
     };
     /// <summary>
     /// Privates the text box.
@@ -737,10 +747,16 @@ void LongUI::UITextBox::private_set_text() noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UITextBox::SetText(CUIString&& text) noexcept {
-    //this->SetText(text.view());
-    auto& cached = pimpl()->text_cached;
-    cached = std::move(text);
-    this->NeedUpdate(Reason_ValueTextChanged);
+    Private::SetText(*this, std::move(text));
+}
+
+/// <summary>
+/// Sets the text.
+/// </summary>
+/// <param name="text">The text.</param>
+/// <returns></returns>
+void LongUI::UITextBox::SetText(const CUIString & text) noexcept {
+    return this->SetText(text.view());
 }
 
 /// <summary>
@@ -749,7 +765,7 @@ void LongUI::UITextBox::SetText(CUIString&& text) noexcept {
 /// <param name="view">The view.</param>
 /// <returns></returns>
 void LongUI::UITextBox::SetText(U16View view) noexcept {
-    this->SetText(CUIString(view));
+    Private::SetText(*this, view);
 }
 
 

@@ -84,7 +84,7 @@ LongUI::UITab::UITab(const MetaControl& meta) noexcept : Super( meta),
     //m_oBox.margin = { 1, 1, 1, 1 };
     m_oBox.border = { 1, 1, 1, 1 };
     m_oBox.padding = { 0, 1, 0, 1 };
-    m_oStyle.appearance = Appearance_Tab;
+    m_oStyle.appearance = Appearance_WeakApp | Appearance_Tab;
     m_oStyle.overflow_x = Overflow_Hidden;
     m_oStyle.overflow_y = Overflow_Hidden;
     // 阻隔鼠标事件写入false之前需要写入
@@ -538,6 +538,6 @@ LongUI::UITabPanels::~UITabPanels() noexcept {
 /// <param name="meta">The meta.</param>
 LongUI::UITabPanels::UITabPanels(const MetaControl& meta) noexcept : Super(meta) {
     // TabPanels类型
-    m_oStyle.appearance = Appearance_TabPanels;
+    m_oStyle.appearance = Appearance_WeakApp | Appearance_TabPanels;
     m_oBox.border = { 1, 1, 1, 1 };
 }

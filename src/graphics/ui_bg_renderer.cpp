@@ -101,6 +101,10 @@ auto LongUI::CUIRendererBackground::refresh_image() noexcept->Result {
         m_szImage.height = frame.source.bottom - frame.source.top;
         m_rcImage.left = frame.source.left / fw;
         m_rcImage.top = frame.source.top / fh;
+#if 0
+        // **HLSL实现了**
+
+
         // 由于HLSL是偏移半像素的 宽度需要减去1 还要避免除以0
         /*
           |     |      图片宽度
@@ -111,6 +115,10 @@ auto LongUI::CUIRendererBackground::refresh_image() noexcept->Result {
         */
         m_rcImage.right = std::max(m_szImage.width - 1.f, 1.f) / fw;
         m_rcImage.bottom = std::max(m_szImage.height - 1.f, 1.f) / fh;
+#else
+        m_rcImage.right = m_szImage.width / fw;
+        m_rcImage.bottom = m_szImage.height / fh;
+#endif
         // 输入 
         m_pBackground->SetInput(0, frame.bitmap);
         // 获取输出
@@ -257,9 +265,6 @@ void LongUI::CUIRendererBackground::RenderImage(const LongUI::Box& box, Size2F r
 
     m_pBackground->SetValue(0, bim);
     const auto& point = reinterpret_cast<Point2F&>(rrect.rect.left);
-    renderer.DrawImage(
-        m_pOutput, &auto_cast(point)
-        , nullptr, D2D1_INTERPOLATION_MODE_NEAREST_NEIGHBOR
-    );
+    renderer.DrawImage(m_pOutput, &auto_cast(point));
 }
 #endif

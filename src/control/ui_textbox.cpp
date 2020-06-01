@@ -56,7 +56,7 @@ LongUI::UITextBox::UITextBox(const MetaControl& meta) noexcept
     // XXX: 默认间距
     m_oBox.margin = { 4, 2, 4, 2 };
     m_oBox.padding = { 4, 2, 2, 2 };
-    m_oStyle.appearance = Appearance_TextField;
+    m_oStyle.appearance = Appearance_WeakApp | Appearance_TextField;
     // 允许焦点
     m_state.focusable = true;
     m_state.tabstop = true;

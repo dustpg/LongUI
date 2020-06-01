@@ -97,6 +97,8 @@ namespace LongUI {
         void select_item(UITreeItem&, UITreeCell* cell) noexcept;
         // is item in displaying
         bool is_item_in_displaying(const UITreeItem&) const noexcept;
+        // write items
+        void write_item_appearance() noexcept;
     protected:
         // cols
         UITreeCols*         m_pCols = nullptr;

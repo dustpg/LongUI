@@ -16,6 +16,20 @@
 namespace LongUI {
     // UILabel类 元信息
     LUI_CONTROL_META_INFO(UILabel, "label");
+    // UILabel类 私有实现
+    struct UILabel::Private {
+        // 设置新的文本
+        template<typename T> static auto SetText(UILabel& cbox, T && text) noexcept {
+            // 相同自然不需要
+            if (cbox.m_string == text) return false;
+            cbox.m_string = std::forward<T>(text);
+            cbox.NeedUpdate(Reason_ValueTextChanged);
+#ifdef LUI_ACCESSIBLE
+            // TODO: ACCESSIBLE
+#endif
+            return true;
+        }
+    };
 }
 
 // open href
@@ -192,24 +206,6 @@ void LongUI::UILabel::ShowAccessKey(bool show) noexcept {
     }
 }
 
-/// <summary>
-/// Sets the text.
-/// </summary>
-/// <param name="text">The text.</param>
-/// <returns></returns>
-bool LongUI::UILabel::SetText(const CUIString & text) noexcept {
-    return this->SetText(CUIString{ text });
-}
-
-/// <summary>
-/// Sets the text.
-/// </summary>
-/// <param name="text">The text.</param>
-/// <returns></returns>
-bool LongUI::UILabel::SetText(U16View text) noexcept {
-    return this->SetText(CUIString(text));
-}
-
 // longui::detail
 namespace LongUI { namespace detail{
     // append access key
@@ -250,12 +246,29 @@ void LongUI::UILabel::on_text_changed() noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 bool LongUI::UILabel::SetText(CUIString&& text) noexcept {
-    // 相同自然不需要
-    if (m_string == text) return false;
-    m_string = std::move(text);
-    this->NeedUpdate(Reason_ValueTextChanged);
-    return true;
+    return Private::SetText(*this, std::move(text));
 }
+
+/// <summary>
+/// Sets the text.
+/// </summary>
+/// <param name="text">The text.</param>
+/// <returns></returns>
+bool LongUI::UILabel::SetText(U16View text) noexcept {
+    return Private::SetText(*this, text);
+}
+
+
+/// <summary>
+/// Sets the text.
+/// </summary>
+/// <param name="text">The text.</param>
+/// <returns></returns>
+bool LongUI::UILabel::SetText(const CUIString & text) noexcept {
+    return this->SetText(text.view());
+}
+
+
 
 /// <summary>
 /// Initializes the label.

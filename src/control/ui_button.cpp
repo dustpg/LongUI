@@ -17,11 +17,34 @@
 #include <core/ui_unsafe.h>
 #include "../private/ui_private_control.h"
 
+
+#ifdef LUI_ACCESSIBLE
+#include <accessible/ui_accessible_callback.h>
+#include <accessible/ui_accessible_event.h>
+#include <accessible/ui_accessible_type.h>
+#include <core/ui_string.h>
+#endif
+
+
 // ui namespace
 namespace LongUI {
     // UIButton类 元信息
     LUI_CONTROL_META_INFO(UIButton, "button");
+    // UIButton私有实现
+    struct UIButton::Private {
+        // 设置新的文本
+        template<typename T> static auto SetText(UIButton& cbox, T && text) noexcept {
+            cbox.add_private_child();
+            if (cbox.m_oLabel.SetText(std::forward<T>(text))) {
+                cbox.mark_window_minsize_changed();
+#ifdef LUI_ACCESSIBLE
+                LongUI::Accessible(cbox.m_pAccessible, Callback_PropertyChanged);
+#endif
+            }
+        }
+    };
 }
+
 
 /// <summary>
 /// Gets the text.
@@ -125,17 +148,9 @@ void LongUI::UIButton::set_label_flex(float f) noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIButton::SetText(const CUIString& text) noexcept {
-    this->SetText(CUIString{ text });
+    this->SetText(text.view());
 }
 
-/// <summary>
-/// Sets the text.
-/// </summary>
-/// <param name="text">The text.</param>
-/// <returns></returns>
-void LongUI::UIButton::SetText(U16View text) noexcept {
-    this->SetText(CUIString(text));
-}
 
 
 /// <summary>
@@ -179,13 +194,6 @@ auto LongUI::UIButton::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
 }
 
 
-#ifdef LUI_ACCESSIBLE
-#include <accessible/ui_accessible_callback.h>
-#include <accessible/ui_accessible_event.h>
-#include <accessible/ui_accessible_type.h>
-#include <core/ui_string.h>
-#endif
-
 
 /// <summary>
 /// Sets the text.
@@ -193,13 +201,16 @@ auto LongUI::UIButton::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIButton::SetText(CUIString&& text) noexcept {
-    this->add_private_child();
-    if (m_oLabel.SetText(std::move(text))) {
-        this->mark_window_minsize_changed();
-#ifdef LUI_ACCESSIBLE
-        LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
-#endif
-    }
+    Private::SetText(*this, std::move(text));
+}
+
+/// <summary>
+/// Sets the text.
+/// </summary>
+/// <param name="text">The text.</param>
+/// <returns></returns>
+void LongUI::UIButton::SetText(U16View text) noexcept {
+    Private::SetText(*this, text);
 }
 
 /// <summary>

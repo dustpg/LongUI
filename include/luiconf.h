@@ -37,6 +37,9 @@
 // using ctor locker to avoid blocking the rendering-thread
 //#define LUI_USING_CTOR_LOCKER
 
+// using _CrtMemState under MS's crtdbg.h chekc memleak between 2-points
+//#define LUI_DEBUG_WINDOW_MEMLEAK
+
 // ----------------------------------------------------------------------------
 
 // LongUI Need Win7-PlatformUpdate

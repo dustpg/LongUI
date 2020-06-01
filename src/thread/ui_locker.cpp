@@ -33,11 +33,9 @@ LongUI::CUILocker::~CUILocker() noexcept {
 /// <returns></returns>
 void LongUI::CUILocker::Lock() noexcept {
     const auto locker = reinterpret_cast<ui_locker_t*>(&m_impl);
-#ifdef NDEBUG
-    ::EnterCriticalSection(locker);
-#else
+#ifdef LUI_DEBUG_BLOCKED_MSGID
     if (!::TryEnterCriticalSection(locker)) {
-        char buf[16]; 
+        char buf[16];
         static int s_counter = 0; ++s_counter;
         ::OutputDebugStringA("locker been locked#");
         std::sprintf(buf, "%4d", s_counter)[buf] = 0;
@@ -50,7 +48,9 @@ void LongUI::CUILocker::Lock() noexcept {
 
         ::OutputDebugStringA("\r\n");
         ::EnterCriticalSection(locker);
-    }
+}
+#else
+    ::EnterCriticalSection(locker);
 #endif
 }
 

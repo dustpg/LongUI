@@ -15,6 +15,14 @@
 namespace LongUI {
     // UICheckBox类 元信息
     LUI_CONTROL_META_INFO(UICheckBox, "checkbox");
+    // UICheckBox私有实现
+    struct UICheckBox::Private {
+        // 设置新的文本
+        template<typename T> static auto SetText(UICheckBox& cbox, T && text) noexcept {
+            cbox.m_oLabel.SetText(std::forward<T>(text));
+            // TODO: Accessible
+        }
+    };
 }
 
 PCN_NOINLINE
@@ -330,7 +338,7 @@ auto LongUI::UICheckBox::RefText() const noexcept -> const CUIString& {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UICheckBox::SetText(CUIString&& text) noexcept {
-    m_oLabel.SetText(std::move(text));
+    Private::SetText(*this, std::move(text));
 }
 
 /// <summary>
@@ -339,7 +347,7 @@ void LongUI::UICheckBox::SetText(CUIString&& text) noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UICheckBox::SetText(const CUIString& text) noexcept {
-    this->SetText(CUIString{ text });
+    this->SetText(text.view());
 }
 
 /// <summary>
@@ -348,6 +356,6 @@ void LongUI::UICheckBox::SetText(const CUIString& text) noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UICheckBox::SetText(U16View text) noexcept {
-    this->SetText(CUIString(text));
+    Private::SetText(*this, text);
 }
 
