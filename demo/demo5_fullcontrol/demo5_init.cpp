@@ -58,7 +58,8 @@ void InitViewportCallback(LongUI::UIViewport& v) noexcept {
             //| CUIWindow::Config_QuitOnClose
             | CUIWindow::Config_DeleteOnClose
             ;
-        const auto p = new(std::nothrow) UIViewport{ &window, cfg };
+        const auto parent = modal->IsChecked() ? &window : nullptr;
+        const auto p = new(std::nothrow) UIViewport{ parent, cfg };
         if (!p) return;
         p->RefWindow().ResizeRelative({ 600, 400 });
         p->SetXulFromFile(view);

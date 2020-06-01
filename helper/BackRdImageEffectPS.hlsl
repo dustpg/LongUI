@@ -18,10 +18,10 @@ float4 main(
     // 偏移半像素
     float2 offset = float2(0.5, 0.5) * texelSpaceInput0.zw;
     // round可能会拉伸图片, 所以先计算
-    float2 round_pos = (texelSpaceInput0.xy - offset) * round.xy;
+    float2 round_pos = (texelSpaceInput0.xy + offset) * round.xy;
     // 计算采样地点
     float2 real_pos = frac(round_pos / source.zw) * source.zw;
     //float2 real_pos = round_pos % source.zw;
     // 采样
-    return InputTexture.Sample(InputSampler, real_pos + source.xy + offset);
+    return InputTexture.Sample(InputSampler, real_pos + source.xy - offset);
 }
