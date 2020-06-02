@@ -6,7 +6,9 @@
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
 
-<textbox flex="1" cache="true" id="multiline" multiline="true" />
-
-
+<textbox cache="true" flex="1" style="font-size:30px" id="textbox1" 
+    placeholder="Hello, world!"
+    increment="0.01" decimalplaces="7" multiline="true" type="number" />
+<button label="Check it out" id="button"/>
+<!-- <textbox flex="1" cache="true" style="font-size:30px" id="textbox2" multiline="true" /> -->
 </window>

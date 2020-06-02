@@ -1,4 +1,5 @@
 #include <control/ui_label.h>
+#include <control/ui_button.h>
 #include <control/ui_textbox.h>
 #include <control/ui_viewport.h>
 
@@ -40,4 +41,21 @@ void InitViewport_TextBox(LongUI::UIViewport& viewport) noexcept {
 
     for (const auto textbox : list)
         textbox->AddGuiEventListener(UITextBox::_onInput(), callback_i);
+}
+
+/// <summary>
+/// Initializes the viewport text box.
+/// </summary>
+/// <param name="viewport">The viewport.</param>
+/// <returns></returns>
+void InitViewport_TextBox2(LongUI::UIViewport& viewport) noexcept {
+    using namespace LongUI;
+    auto& window = viewport.RefWindow();
+    const auto button = longui_cast<UIButton*>(window.FindControl("button"));
+    const auto textbox1 = longui_cast<UITextBox*>(window.FindControl("textbox1"));
+    if (button)
+        button->AddGuiEventListener(button->_onCommand(), [=](UIControl&) noexcept {
+            const auto v = textbox1->GetValueAsDouble();
+            return Event_Accept;
+        });
 }

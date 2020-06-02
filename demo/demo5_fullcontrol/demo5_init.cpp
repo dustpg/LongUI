@@ -6,6 +6,7 @@
 
 void InitViewport_CheckBox(LongUI::UIViewport&) noexcept;
 void InitViewport_TextBox(LongUI::UIViewport&) noexcept;
+void InitViewport_TextBox2(LongUI::UIViewport&) noexcept;
 void InitViewport_Radio(LongUI::UIViewport&) noexcept;
 void InitViewport_Scale(LongUI::UIViewport&) noexcept;
 struct init_func_t { void (*func)(LongUI::UIViewport&) noexcept; };
@@ -84,10 +85,10 @@ void InitViewportCallback(LongUI::UIViewport& v) noexcept {
         create_viewport(u8"xul/textbox.xul"_sv, { InitViewport_TextBox });
         return Event_Accept;
     });
-    // TEXTBOX
+    // TEXTBOX2
     btn_textbox2->AddGuiEventListener(
         UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
-        create_viewport(u8"xul/textbox2.xul"_sv, {  });
+        create_viewport(u8"xul/textbox2.xul"_sv, { InitViewport_TextBox2 });
         return Event_Accept;
     });
     // SCALE
