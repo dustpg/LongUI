@@ -189,7 +189,7 @@ auto LongUI::UIMenuItem::DoEvent(
 /// <param name="checked">if set to <c>true</c> [checked].</param>
 /// <returns></returns>
 void LongUI::UIMenuItem::SetChecked(bool checked) noexcept {
-    //if (this->IsChecked() == checked) return;
+    if (!!this->IsChecked() == checked) return;
     const auto target = checked ? State_Checked : State_Non;
     this->StartAnimation({ State_Checked , target });
 }
@@ -207,6 +207,7 @@ void LongUI::UIMenuItem::add_attribute(uint32_t key, U8View value) noexcept {
     constexpr auto BKDR_LABEL       = 0x74e22f74_ui32;
     constexpr auto BKDR_VALUE       = 0x246df521_ui32;
     constexpr auto BKDR_SELECTED    = 0x03481b1f_ui32;
+    constexpr auto BKDR_ACCELTEXT   = 0x3f97745d_ui32;
     switch (key)
     {
     case BKDR_LABEL:
@@ -232,12 +233,31 @@ void LongUI::UIMenuItem::add_attribute(uint32_t key, U8View value) noexcept {
         // selected: 选择
         m_bSelInit = value.ToBool();
         break;
+    case BKDR_ACCELTEXT:
+        // acceltext: 快捷键文本
+        this->add_acceltext(value);
+        break;
     default:
         // 其他的交给超类处理
         return Super::add_attribute(key, value);
     }
 }
 
+/// <summary>
+/// add acceltext for MenuItem
+/// </summary>
+/// <param name="text"></param>
+/// <returns></returns>
+void LongUI::UIMenuItem::add_acceltext(U8View text) noexcept {
+    const auto label = new(std::nothrow) UILabel{ this };
+    if (!label) return;
+    m_pAcceltext = label;
+#ifndef NDEBUG
+    label->SetDebugName("menuitem::acceltext");
+#endif // !NDEBUG
+    UIControlPrivate::SetFlex(m_oLabel, 1.f);
+    label->SetText(CUIString::FromLatin1(text));
+}
 
 /// <summary>
 /// Renders this instance.
@@ -318,8 +338,14 @@ void LongUI::UIMenuItem::do_radio() noexcept {
 /// <returns></returns>
 void LongUI::UIMenuItem::Update(UpdateReason reason) noexcept {
     // 将文本消息传递给Label
-    if (const auto r = reason & Reason_TextFontChanged)
+    if (const auto r = reason & Reason_TextFontChanged) {
         m_oLabel.Update(r);
+        // 存在快捷键文本的话 就同样的状态
+        if (m_pAcceltext) {
+            m_pAcceltext->SameTfAs(m_oLabel);
+            m_pAcceltext->Update(r);
+        }
+    }
     return Super::Update(reason);
 }
 

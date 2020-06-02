@@ -63,7 +63,7 @@ namespace LongUI {
             // menu separator height
             MENUSEPARATOR_HEIGHT = 5,
             // menu separator lead
-            MENUSEPARATOR_LEAD = 28,
+            MENUSEPARATOR_LEAD = 14,
             // menu item height
             MENUITEM_HEIGHT = 21,
             // arrow size in px

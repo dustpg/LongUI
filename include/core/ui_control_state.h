@@ -54,13 +54,17 @@ namespace LongUI {
         Reason_ChildLayoutChanged       = 1 << 8,
         // m_pHovered changed
         Reason_HoveredChanged           = 1 << 9,
+        // for animation using
+        Reason_Animaiton                = 1 << 10,
 
 
+
+
+        // text-font changed
         Reason_TextFontChanged
             = Reason_TextFontDisplayChanged
             | Reason_TextFontLayoutChanged
         ,
-
         // basic relayout reason
         Reason_BasicRelayout 
             = Reason_ParentChanged

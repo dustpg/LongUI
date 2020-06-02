@@ -25,7 +25,7 @@
 */
 
 // ui header
-#include "ui_control.h"
+#include "ui_scrollarea.h"
 #include "../style/ui_text.h"
 #include "../core/ui_string.h"
 #include "../core/ui_core_type.h"
@@ -190,6 +190,8 @@ namespace LongUI {
         void SetText(U16View view) noexcept;
         // request text, not const method
         auto RequestText() noexcept -> const CUIString&;
+        // get double value
+        auto GetValueAsDouble() noexcept -> double;
     private:
         // private impl
         std::aligned_storage<impl::textbox_helper<sizeof(void*)>::uitextbox_private, 8>
@@ -200,6 +202,13 @@ namespace LongUI {
         auto pimpl() const noexcept { return reinterpret_cast<const Private*>(&m_private); }
         // private impl - force
         auto fpimpl() const noexcept { return const_cast<Private*>(reinterpret_cast<const Private*>(&m_private)); }
+    public:
+        // max value
+        double                  max_value/* = INFINITY*/;
+        // min value
+        double                  min_value = 0;
+        // increment value
+        double                  increment = 1;
     private:
         // text used font
         TextFont                m_tfBuffer;
@@ -219,6 +228,8 @@ namespace LongUI {
         uint32_t                m_uCols = 20;
         // rows
         uint32_t                m_uRows = 1;
+        // decimal mark
+        char                    m_chDecimal = '.';
         // init textbox
         void init_textbox() noexcept;
         // init private data
@@ -250,7 +261,7 @@ namespace LongUI {
         // on char input
         bool private_char(char32_t, uint16_t seq) noexcept;
         // private update
-        void private_update() noexcept;
+        bool private_update() noexcept;
         // private resized
         void private_resize(Size2F) noexcept;
         // private font changed

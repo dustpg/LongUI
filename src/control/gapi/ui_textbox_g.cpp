@@ -56,6 +56,8 @@ namespace LongUI {
         char16_t*                           ime_input = nullptr;
         // text changed via user-input
         bool                                text_changed = false;
+        // text need request
+        bool                                need_request = false;
         // created flag
         bool                                created = false;
         // cached
@@ -360,7 +362,8 @@ void LongUI::UITextBox::show_caret() noexcept {
 /// Privates the update.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::private_update() noexcept {
+bool LongUI::UITextBox::private_update() noexcept {
+    bool update_caret = false;
     auto& doc = pimpl()->document();
     if (const auto values = doc.Update()) {
         // 所有修改需要重绘
@@ -371,13 +374,15 @@ void LongUI::UITextBox::private_update() noexcept {
         //}
         // 插入符号
         if (values & RichED::Changed_Caret) {
-            this->show_caret();
+            update_caret = true;
         }
         // 文本修改
         if (values & RichED::Changed_Text) {
             pimpl()->text_changed = true;
+            pimpl()->need_request = true;
         }
     }
+    return update_caret;
 }
 
 /// <summary>
@@ -775,8 +780,20 @@ void LongUI::UITextBox::SetText(U16View view) noexcept {
 /// <returns></returns>
 auto LongUI::UITextBox::RequestText() noexcept -> const CUIString & {
     auto& doc = pimpl()->document();
-    doc.GenText(&pimpl()->text_cached, {}, { doc.GetLogicLineCount() });
+    if (pimpl()->need_request) {
+        pimpl()->need_request = false;
+        doc.GenText(&pimpl()->text_cached, {}, { doc.GetLogicLineCount() });
+    }
     return pimpl()->text_cached;
+}
+
+
+/// <summary>
+/// get value ass double
+/// </summary>
+/// <returns></returns>
+auto LongUI::UITextBox::GetValueAsDouble() noexcept -> double {
+    return this->RequestText().view().ToDouble(m_chDecimal);
 }
 
 // --------------------- IEDTextPlatform 实现 -------------------------

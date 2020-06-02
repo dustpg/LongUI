@@ -59,7 +59,11 @@ namespace LongUI {
         // from utf-8
         static auto FromUtf8(const char* str) noexcept ->Self { return FromUtf8(str, str + detail::strlen(str)); }
         // from latin1
-        // from number
+        static auto FromLatin1(PodStringView<char> view) noexcept->Self { return FromUtf8(view.begin(), view.end()); }
+        // from latin1
+        static auto FromLatin1(const char* a, const char* b) noexcept->Self { return FromUtf8(a, b); }
+        // from latin1
+        static auto FromLatin1(const char* str) noexcept->Self { return FromUtf8(a); }
     public:
         // is empty?
         bool empty() const noexcept { return m_vector.empty(); }

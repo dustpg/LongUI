@@ -40,6 +40,9 @@ namespace LongUI {
             static void string_u8_u16(base_str& str, const char*, const char*) noexcept;
             // string utf8 to utf-32
             static void string_u8_u32(base_str& str, const char*, const char*) noexcept;
+            // string utf8 to utf-16
+            // string utf8 to utf-32
+
             // string utf8 to utf-xx
             static void string_u8(char32_t, base_str& str, const char* a, const char* b) noexcept { string_u8_u32(str, a, b); }
             // string utf8 to utf-xx

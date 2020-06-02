@@ -307,6 +307,8 @@ namespace LongUI {
         auto IsEnabled() const noexcept { return !(m_oStyle.state & State_Disabled); }
         // is disabled
         auto IsDisabled() const noexcept { return m_oStyle.state & State_Disabled; }
+        // is focus?
+        auto IsFocused() const noexcept { return m_oStyle.state & State_Focus; }
         // is visible
         bool IsVisible() const noexcept { return m_state.visible; }
         // is visible ex - check ancestor's visible

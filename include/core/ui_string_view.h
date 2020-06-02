@@ -55,28 +55,20 @@ namespace LongUI {
         //auto NamedRGBA32() const noexcept -> uint32_t { (NamedRGB32() << 8) | 0xff; }
         // split then move
         auto Split(T ch) noexcept->PodStringView;
-        // to float
-        operator float() const noexcept;
-        // to double
-        operator double() const noexcept;
-        // to int32_t
-        operator int32_t() const noexcept;
         // operator==
         bool operator==(const PodStringView x) const noexcept {
             return size() == x.size() && !std::memcmp(begin(), x.begin(), size() * sizeof(T));
         }
         // operator!=
-        bool operator!=(const PodStringView x) const noexcept {
-            return !((*this) == x);
-        }
+        bool operator!=(const PodStringView x) const noexcept { return !((*this) == x); }
         // to bool
         bool ToBool() noexcept { return *begin() == 't'; }
-        // to float
-        auto ToFloat() const noexcept { return static_cast<float>(*this); }
         // to int32_t
-        auto ToInt32() const noexcept { return static_cast<int32_t>(*this); }
+        auto ToInt32() const noexcept ->int32_t;
         // to double
-        auto ToDouble() const noexcept { return static_cast<double>(*this); }
+        auto ToDouble(char decimal = '.') const noexcept ->double;
+        // to float
+        auto ToFloat(char decimal = '.') const noexcept { return static_cast<float>(ToDouble()); }
         // 1st
         const T*        first;
         // 2nd
@@ -105,23 +97,3 @@ namespace LongUI {
         return{ str , str + len };
     }
 }
-
-#if 0
-// HELPER MACRO
-#define LUI_DECLARE_METHOD_FOR_CHAR_TYPE(T) \
-    template<> PodStringView<T>::operator float() const noexcept;\
-    template<> PodStringView<T>::operator double() const noexcept;\
-    template<> PodStringView<T>::operator int32_t() const noexcept;\
-    template<> PodStringView<T> PodStringView<T>::Split(T ch) noexcept;
-
-namespace LongUI {
-    // char
-    LUI_DECLARE_METHOD_FOR_CHAR_TYPE(char);
-    // char16_t
-    LUI_DECLARE_METHOD_FOR_CHAR_TYPE(char16_t);
-    // char32_t
-    LUI_DECLARE_METHOD_FOR_CHAR_TYPE(char32_t);
-}
-#undef LUI_DECLARE_METHOD_FOR_CHAR_TYPE
-
-#endif

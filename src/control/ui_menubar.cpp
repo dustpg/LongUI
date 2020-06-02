@@ -87,7 +87,8 @@ auto LongUI::UIMenu::DoEvent(UIControl * sender,
         // 父节点是MenuPopup?
         if (uisafe_cast<UIMenuPopup>(m_pParent)) {
             UIControlPrivate::SetAppearanceIfWeak(*this, Appearance_WeakApp | Appearance_MenuItem);
-            m_oBox.padding.left = UIMenuItem::ICON_WIDTH;
+            // XXX: 移动到NativeStyle
+            m_oBox.padding.left = UIMenuItem::ICON_WIDTH + 4;
             // !!! 基类处理
             Super::DoEvent(sender, e);
             if (const auto pMenuArrow = new(std::nothrow) UIControl{ this }) {

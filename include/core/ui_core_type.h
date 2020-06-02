@@ -43,14 +43,16 @@ namespace LongUI {
     template<typename signature> class CUIFunction;
     // Gui Event Listener
     using GuiEventListener = CUIFunction<EventAccept(UIControl& host)>;
-    // EventAccept ||
-    inline EventAccept operator||(EventAccept a, EventAccept b) noexcept {
-        union { EventAccept x; bool y; } v, w; v.x = a; w.x = b;
-        return static_cast<EventAccept>(v.y || w.y);
+    // EventAccept |
+    inline EventAccept operator|(EventAccept a, EventAccept b) noexcept {
+        using event_t = unsigned char; 
+        static_assert(sizeof(a) == sizeof(event_t), "bad type");
+        return static_cast<EventAccept>(event_t(a) | event_t(a));
     }
-    // EventAccept &&
-    inline EventAccept operator&&(EventAccept a, EventAccept b) noexcept {
-        union { EventAccept x; bool y; } v, w; v.x = a; w.x = b;
-        return static_cast<EventAccept>(v.y && w.y);
+    // EventAccept &
+    inline EventAccept operator&(EventAccept a, EventAccept b) noexcept {
+        using event_t = unsigned char;
+        static_assert(sizeof(a) == sizeof(event_t), "bad type");
+        return static_cast<EventAccept>(event_t(a) & event_t(a));
     }
 }

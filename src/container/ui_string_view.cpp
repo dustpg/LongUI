@@ -21,7 +21,7 @@ auto LongUI::detail::strlen(const unwchar_t ptr[]) noexcept -> size_t {
 // atof view
 extern "C" {
     // atof
-    double ui_function_view_atof_le(const char* begin, const char* end, char step) noexcept;
+    double ui_function_view_atof_le(const char* begin, const char* end, char step, char decimal) noexcept;
     // atoi
     int32_t ui_function_view_atoi_le(const char* begin, const char* end, char step) noexcept;
     // rgb32
@@ -59,9 +59,8 @@ auto LongUI::detail::name_rgb32(const char * a, const char * b, char c) noexcept
 /// <returns>
 /// The result of the operator.
 /// </returns>
-template<> LongUI::PodStringView<char>::operator float() const noexcept {
-    const auto dvalue = ui_function_view_atof_le(this->first, this->second, sizeof(char));
-    return static_cast<float>(dvalue);
+template<> auto LongUI::PodStringView<char>::ToDouble(char decimal) const noexcept ->double {
+    return ui_function_view_atof_le(this->first, this->second, sizeof(char), decimal);
 }
 
 /// <summary>
@@ -70,14 +69,12 @@ template<> LongUI::PodStringView<char>::operator float() const noexcept {
 /// <returns>
 /// The result of the operator.
 /// </returns>
-template<> LongUI::PodStringView<wchar_t>::operator float() const noexcept {
+template<> auto LongUI::PodStringView<char16_t>::ToDouble(char decimal) const noexcept ->double {
     const auto chfirst = reinterpret_cast<const char*>(this->first);
     const auto chsecond = reinterpret_cast<const char*>(this->second);
-    const wchar_t ch = '\1';
-    const auto chfirstle = chfirst + (sizeof(wchar_t)-1) * !(
-        *reinterpret_cast<const char*>(&ch)
-        );
-    const auto dvalue = ui_function_view_atof_le(chfirstle, chsecond, sizeof(wchar_t));
+    union { char16_t u16; char u8[2]; }; u16 = '\1';
+    const auto chfirstle = chfirst + u8[1];
+    const auto dvalue = ui_function_view_atof_le(chfirstle, chsecond, sizeof(char16_t), decimal);
     return static_cast<float>(dvalue);
 }
 
@@ -87,7 +84,7 @@ template<> LongUI::PodStringView<wchar_t>::operator float() const noexcept {
 /// <returns>
 /// The result of the operator.
 /// </returns>
-template<> LongUI::PodStringView<char>::operator int32_t() const noexcept {
+template<> auto LongUI::PodStringView<char>::ToInt32()const noexcept ->int32_t {
     return ui_function_view_atoi_le(this->first, this->second, sizeof(char));
 }
 
@@ -97,13 +94,11 @@ template<> LongUI::PodStringView<char>::operator int32_t() const noexcept {
 /// <returns>
 /// The result of the operator.
 /// </returns>
-template<> LongUI::PodStringView<wchar_t>::operator int32_t() const noexcept {
+template<> auto LongUI::PodStringView<char16_t>::ToInt32()const noexcept ->int32_t {
     const auto chfirst = reinterpret_cast<const char*>(this->first);
     const auto chsecond = reinterpret_cast<const char*>(this->second);
-    const wchar_t ch = '\1';
-    const auto chfirstle = chfirst + (sizeof(wchar_t) - 1) * !(
-        *reinterpret_cast<const char*>(&ch)
-        );
+    union { char16_t u16; char u8[2]; }; u16 = '\1';
+    const auto chfirstle = chfirst + u8[1];
     return ui_function_view_atoi_le(chfirstle, chsecond, sizeof(wchar_t));
 }
 

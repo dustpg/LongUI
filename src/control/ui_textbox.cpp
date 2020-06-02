@@ -11,6 +11,7 @@
 #include "../private/ui_private_control.h"
 // C++
 #include <cassert>
+#include <limits>
 #include <algorithm>
 
 #ifndef NDEBUG
@@ -44,7 +45,8 @@ void LongUI::MakeDefault(TextFont& tf) noexcept {
 /// </summary>
 /// <param name="meta">The meta.</param>
 LongUI::UITextBox::UITextBox(const MetaControl& meta) noexcept
-    : Super(meta) , m_hovered(CUICursor::Cursor_Ibeam) {
+    : Super(meta), m_hovered(CUICursor::Cursor_Ibeam), 
+    max_value(std::numeric_limits<double>::infinity()) {
     // 本控件支持font属性
     LongUI::MakeDefault(luiref m_tfBuffer);
     UITextBox* const nilobj = nullptr;
@@ -81,19 +83,25 @@ LongUI::UITextBox::~UITextBox() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UITextBox::Update(UpdateReason reason) noexcept {
+    // 更新
+    bool reupdate_caret = false;
     // [SetText接口文本]修改
     if (reason & Reason_ValueTextChanged) {
         this->mark_change_could_trigger();
         this->private_set_text();
     }
     // 检查到大小修改
-    if (reason & Reason_SizeChanged) 
+    if (reason & Reason_SizeChanged) {
+        reupdate_caret = true;
         this->private_resize(this->RefBox().GetContentSize());
+    }
     // 文本布局/显示 修改了
     if (reason & Reason_TextFontChanged)
         this->private_tf_changed(!!(reason & Reason_TextFontLayoutChanged));
     // 污了
-    this->private_update();
+    reupdate_caret |= this->private_update();
+    // 更新
+    if (reupdate_caret && this->IsFocused()) this->show_caret();
     // 父类处理
     Super::Update(reason);
 }
@@ -128,7 +136,7 @@ auto LongUI::UITextBox::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
         code = Event_Accept;
         break;
     }
-    return Super::TriggerEvent(event) || code;
+    return Super::TriggerEvent(event) | code;
 }
 
 
@@ -250,6 +258,8 @@ extern "C" uint32_t ui_utf8_to_utf32(
 /// <returns></returns>
 void LongUI::UITextBox::add_attribute(uint32_t key, U8View value) noexcept {
     // 待使用属性列表
+    constexpr auto BKDR_MIN             = 0x001cc0fe_ui32;
+    constexpr auto BKDR_MAX             = 0x001cbcf0_ui32;
     constexpr auto BKDR_SIZE            = 0x0f849a25_ui32;
     constexpr auto BKDR_ROWS            = 0x0f63dd45_ui32;
     constexpr auto BKDR_COLS            = 0x0d614b8f_ui32;
@@ -258,6 +268,7 @@ void LongUI::UITextBox::add_attribute(uint32_t key, U8View value) noexcept {
     constexpr auto BKDR_CACHED          = 0xf83ab4d6_ui32;
     constexpr auto BKDR_PASSWORD        = 0xa3573bc3_ui32;
     constexpr auto BKDR_READONLY        = 0xad3f7b8a_ui32;
+    constexpr auto BKDR_INCREMENT       = 0x73689623_ui32;
     constexpr auto BKDR_MULTILINE       = 0xb2db9639_ui32;
     constexpr auto BKDR_MAXLENGTH       = 0xb532c6e6_ui32;
     constexpr auto BKDR_PLACEHOLDER     = 0x2aad8773_ui32;
@@ -310,6 +321,10 @@ void LongUI::UITextBox::add_attribute(uint32_t key, U8View value) noexcept {
         // maxlength:   最长容纳的文本长度
         m_uMaxLength = static_cast<uint32_t>(value.ToInt32());
         break;
+    case BKDR_PLACEHOLDER:
+        // TODO: placeholder
+        value.begin();
+        break;
     case BKDR_PASSWORD:
         // password:    密码使用的字符
         m_chPassword = [value]() noexcept {
@@ -320,9 +335,18 @@ void LongUI::UITextBox::add_attribute(uint32_t key, U8View value) noexcept {
             constexpr uint32_t PWBL = 4;
             char32_t buf[PWBL]; buf[0] = '*';
             ::ui_utf8_to_utf32(buf, PWBL, value.begin(), value.end());
-            return  buf[0];
+            return buf[0];
 #endif
         }();
+        break;
+    case BKDR_MIN:
+        this->min_value = value.ToDouble();
+        break;
+    case BKDR_MAX:
+        this->max_value = value.ToDouble();
+        break;
+    case BKDR_INCREMENT:
+        this->increment = value.ToDouble();
         break;
     default:
        // 其他交给超类处理

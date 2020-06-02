@@ -1,6 +1,4 @@
-﻿UIXxxxx::Private::SetText
-
-m_oBox.xxx = { a ,b ,c d } 移动到NativeStyleInit
+﻿m_oBox.xxx = { a ,b ,c d } 移动到NativeStyleInit
 
 控件创建使用折半查找 MAX_CONTROL_TYPE_COUNT
  

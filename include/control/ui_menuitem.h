@@ -87,12 +87,16 @@ namespace LongUI {
         void do_checkbox() noexcept;
         // do radio
         void do_radio() noexcept;
+        // add acceltext
+        void add_acceltext(U8View) noexcept;
     private: // private control impl
         // private image
         UIImage             m_oImage;
         // private label
         UILabel             m_oLabel;
     protected:
+        // acceltext label
+        UILabel*            m_pAcceltext = nullptr;
         // group name
         const char*         m_pName = nullptr;
         // item type

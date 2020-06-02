@@ -12,7 +12,7 @@ PCN_NOINLINE
 /// <param name="begin">The begin.</param>
 /// <param name="end">The end.</param>
 /// <returns></returns>
-double ui_function_view_atof_le(const char* begin, const char* end, char step) {
+double ui_function_view_atof_le(const char* begin, const char* end, char step, char decimal) {
     int frac = 0; double sign = 1.0, value = 0.0, scale = 1.0;
     const int cstep = step;
     // 跳过开头空白
@@ -33,7 +33,7 @@ double ui_function_view_atof_le(const char* begin, const char* end, char step) {
     // 结尾?
     if (begin == end) return value;
     // 获取小数点后面数据
-    if (*begin == '.') {
+    if (*begin == decimal) {
         double pow10 = 10.0;
         begin += cstep;
         while (valid_digit(*begin) && begin < end) {
@@ -74,9 +74,10 @@ double ui_function_view_atof_le(const char* begin, const char* end, char step) {
 /// <param name="begin">The begin.</param>
 /// <param name="end">The end.</param>
 /// <param name="step">The step.</param>
+/// <param name="decimal">The decimal mark.</param>
 /// <returns></returns>
-double ui_function_view_atof_be(const char* begin, const char* end, char step) {
-    return ui_function_view_atof_le(begin + step - 1, end, step);
+double ui_function_view_atof_be(const char* begin, const char* end, char step, char decimal) {
+    return ui_function_view_atof_le(begin + step - 1, end, step, decimal);
 }
 
 /// <summary>
@@ -85,9 +86,10 @@ double ui_function_view_atof_be(const char* begin, const char* end, char step) {
 /// <param name="begin">The begin.</param>
 /// <param name="end">The end.</param>
 /// <param name="step">The step.</param>
+/// <param name="decimal">The decimal mark.</param>
 /// <returns></returns>
-double ui_function_view_atof_cpu(const char* begin, const char* end, char step) {
+double ui_function_view_atof_cpu(const char* begin, const char* end, char step, char decimal) {
     const int16_t endianness = 0x01;
     if (!(*((const char*)&endianness))) begin += step - 1;
-    return ui_function_view_atof_be(begin, end, step);
+    return ui_function_view_atof_be(begin, end, step, decimal);
 }
