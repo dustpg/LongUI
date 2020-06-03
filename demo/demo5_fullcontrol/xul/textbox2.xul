@@ -7,8 +7,9 @@
 
 
 <textbox cache="true" flex="1" style="font-size:30px" id="textbox1" 
-    placeholder="Hello, world!"
-    increment="0.01" decimalplaces="7" multiline="true" type="number" />
+    placeholder="Hello, world!" 
+    increment="0.01" decimalplaces="7" multiline="true" />
 <button label="Check it out" id="button"/>
-<!-- <textbox flex="1" cache="true" style="font-size:30px" id="textbox2" multiline="true" /> -->
+<!-- <textbox flex="1"  rows="2" cols="70" cache="true"  type="number"
+style="font-size:30px" id="textbox2" multiline="true" /> -->
 </window>

@@ -95,8 +95,8 @@ namespace LongUI {
     protected:
         // min scroll size
         Size2F              m_minScrollSize;
-        // min scroll size
-        Size2F              m_maxValue;
+        // max scroll size
+        Size2F              m_maxScrollSize;
         // horizontal scroll bar
         UIScrollBar*        m_pSBHorizontal = nullptr;
         // vertical scroll bar

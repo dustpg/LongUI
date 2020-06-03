@@ -109,7 +109,7 @@ void LongUI::UITree::Update(UpdateReason reason) noexcept {
         // 截断消息
         return UIControl::Update(reason);
     }
-    // 其他的交给父类处理
+    // 其他的交给超类处理
     Super::Update(reason);
 }
 
@@ -152,7 +152,7 @@ void LongUI::UITree::add_attribute(uint32_t key, U8View value) noexcept {
         m_displayRow = value.ToInt32();
         break;
     default:
-        // 其他交给父类处理
+        // 其他交给超类处理
         return Super::add_attribute(key, value);
     }
 }
@@ -566,7 +566,7 @@ void LongUI::UITreeRow::Update(UpdateReason reason) noexcept {
         // 重新布局
         this->relayout();
     }
-    // 其他的交给父类处理
+    // 其他的交给超类处理
     Super::Update(reason);
 }
 
@@ -852,7 +852,7 @@ void LongUI::UITreeItem::Update(UpdateReason reason) noexcept {
             m_pRow->SetLevelOffset(m_fLevelOffset);
         }
     }
-    // 其他的交给父类处理
+    // 其他的交给超类处理
     Super::Update(reason);
 }
 

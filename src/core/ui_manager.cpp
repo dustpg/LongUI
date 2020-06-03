@@ -971,9 +971,9 @@ void LongUI::CUIManager::LoadDataFromUrl(
 void ui_endian_runtime_assert() noexcept {
     using namespace LongUI;
     enum : uint32_t {
-        LITTLE_ENDIAN = 0x03020100ul,
-        BIG_ENDIAN = 0x00010203ul,
-        PDP_ENDIAN = 0x01000302ul,
+        LITTLE_ENDIAN   = 0x03020100_ui32,
+        BIG_ENDIAN      = 0x00010203_ui32,
+        PDP_ENDIAN      = 0x01000302_ui32,
     };
     const union { unsigned char bytes[4]; uint32_t value; }
     host_order{ { 0, 1, 2, 3 } };

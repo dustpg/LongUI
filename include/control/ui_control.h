@@ -210,7 +210,7 @@ namespace LongUI {
         // clear appearance and all margin/padding/border
         void ClearAppearance() noexcept;
         // set xul-string as content
-        // remarks: SetXul accept null-terminated-string only
+        // remarks: SetXul accepts null-terminated-string only
         // 注: SetXul目前只接受 NUL 结尾字符串
         void SetXul(const char* xul) noexcept;
         // set xul-file as content, return false if not-found

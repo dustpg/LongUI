@@ -124,7 +124,7 @@ void LongUI::UIStack::Update(UpdateReason reason) noexcept {
         // 重新布局
         this->relayout_stack();
     }
-    // 其他的交给父类处理
+    // 其他的交给超类处理
     Super::Update(reason);
 }
 
