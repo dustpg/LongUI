@@ -105,6 +105,8 @@ namespace LongUI {
         bool        defaultable : 1;
         // attachment 
         bool        attachment : 1;
+        // capturable
+        bool        capturable : 1;
         // focusable
         bool        focusable : 1;
         // tabstop
