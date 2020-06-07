@@ -1,5 +1,6 @@
 ﻿#include "assert.h"
 #include "stdint.h"
+#include "math.h"
 // C99 support
 #if defined(_MSC_VER) && (_MSC_VER < 1900)
 typedef int16_t char16_t;
@@ -19,6 +20,10 @@ typedef int32_t char32_t;
 
 // 0xDC00 <= ch <= 0xDFFF
 #define is_low_surrogate(ch) (((ch) & 0xFC00) == 0xDC00)
+
+// double to int type
+typedef uint64_t uidouble_t;
+#define LUI_DOUBLE_INIT_BUFLEN (32)
 
 // UTF-8 字节长度 [5, 6已被弃用]
 static const char ui_bytes_for_utf8[256] = {
@@ -400,3 +405,76 @@ uint32_t ui_utf8_to_utf32(
 #endif
     return (uint32_t)(des - buf);
 }
+
+/// <summary>
+/// double int - format
+/// </summary>
+/// <param name="buf"></param>
+/// <param name="value"></param>
+/// <param name="place"></param>
+/// <returns></returns>
+static uint32_t ui_double_int_format(char * __restrict const buf, double value,  uint32_t place) {
+    assert(value > 0.f);
+    uint32_t len = 0;
+    uidouble_t uivalue = (uidouble_t)value;
+    while (uivalue) {
+        const uidouble_t a = uivalue / (uidouble_t)10;
+        const uidouble_t b = uivalue % (uidouble_t)10;
+        buf[len] = '0' + (char)b; len++;
+        uivalue = uivalue / 10;
+    }
+    // 高位补足
+    for (; len < place; ++len) buf[len] = '0';
+    assert(len < LUI_DOUBLE_INIT_BUFLEN && "out of range");
+    return len;
+}
+
+
+/// <summary>
+/// double to string
+/// </summary>
+/// <param name="buf"></param>
+/// <param name="step"></param>
+/// <param name="buflen"></param>
+/// <param name="value"></param>
+/// <param name="round"></param>
+/// <param name="decimalplaces"></param>
+/// <param name="decimalsysbol"></param>
+/// <remarks>
+/// 本函数处理过的字符串数字是颠倒的, 需要再外部自行倒装
+/// </remarks>
+/// <returns></returns>
+uint32_t ui_double_to_str(
+    char * __restrict const buf, 
+    uint32_t buflen, 
+    double value,
+    double round,
+    uint32_t decimalplaces,
+    char decimalsysbol)  {
+    assert(buflen >= (LUI_DOUBLE_INIT_BUFLEN * 2 + 2) && "too small");
+    assert(decimalplaces <= 15 && "15 for max");
+    double main; uint32_t len = 0;
+    // 小数部分
+    if (decimalplaces) {
+        const double rev = modf(value, &main);
+        const double sub = fabs(rev * pow(10.0, (double)decimalplaces));
+        // 修正掌
+        main = fabs(main);
+            // 小数
+        len += ui_double_int_format(buf + len, fabs(sub) + round, decimalplaces);
+        // 发生进位
+        if (len != decimalplaces) {
+            len = decimalplaces;
+            ++main;
+        }
+        // 小数点
+        buf[len++] = decimalsysbol;
+    }
+    else main = fabs(value) + round;
+    // 整数
+    len += ui_double_int_format(buf + len, main, 1);
+    // 负数
+    if (value < 0.) buf[len++] = '-';
+    assert(len <= buflen);
+    return len;
+} 

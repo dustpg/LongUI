@@ -2,6 +2,7 @@
 #include <cstdarg>
 #include <cwchar>
 #include <core/ui_string.h>
+#include <util/ui_endian.h>
 
 // TODO: ascii_offset 换成常量表达式
 // TODO: C函数字符串处理函数全部换成LE(小端)后缀
@@ -72,6 +73,7 @@ template<> auto LongUI::PodStringView<char>::ToDouble(char decimal) const noexce
 template<> auto LongUI::PodStringView<char16_t>::ToDouble(char decimal) const noexcept ->double {
     const auto chfirst = reinterpret_cast<const char*>(this->first);
     const auto chsecond = reinterpret_cast<const char*>(this->second);
+    // TODO: helper::ascii_offset;
     union { char16_t u16; char u8[2]; }; u16 = '\1';
     const auto chfirstle = chfirst + u8[1];
     const auto dvalue = ui_function_view_atof_le(chfirstle, chsecond, sizeof(char16_t), decimal);

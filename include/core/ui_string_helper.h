@@ -49,6 +49,8 @@ namespace LongUI {
             static void string_u8(char16_t, base_str& str, const char* a, const char* b) noexcept { string_u8_u16(str, a, b); }
             // string utf8 to utf-xx
             static void string_u8(wchar_t, base_str& str, const char* a, const char* b) noexcept { string_u8(wcharxx_t{}, str, a, b); }
+            // double value to utf-xx
+            static void string_double(base_str& str, double, double round, uint32_t, char) noexcept;
 #ifdef OPTIMIZATION_STRING_SPLIT_WITHIN_SINGLE_CHAR
             // string split with single char
             static auto string_split(base_str& str, POD::Vector<PodStringView<char>>&, char ch) noexcept->views<char>;

@@ -399,6 +399,8 @@ extern "C" {
     uint32_t ui_utf8_to_utf16(char16_t* __restrict buf, uint32_t buflen, const char* __restrict src, const char* end) noexcept;
     // utf-8 -> utf-32
     uint32_t ui_utf8_to_utf32(char32_t* __restrict buf, uint32_t buflen, const char* __restrict src, const char* end) noexcept;
+    // utf-8 -> utf-32
+    uint32_t ui_double_to_str(char* __restrict buf, uint32_t buflen, double, double, uint32_t, char) noexcept;
 }
 
 
@@ -437,6 +439,47 @@ void LongUI::detail::string_helper::string_u16_u8(base_str& str, const char16_t*
         const auto ptr = reinterpret_cast<char*>(str.m_pData);
         ::ui_utf16_to_utf8(ptr, len, begin, end);
         ptr[str.m_uVecLen = len] = 0;
+    }
+}
+
+/// <summary>
+/// format double to string with decimal sysbol/places
+/// </summary>
+/// <param name="str"></param>
+/// <param name="value"></param>
+/// <param name="round"></param>
+/// <param name="decimalplaces"></param>
+/// <param name="decimalsysbol"></param>
+/// <returns></returns>
+void LongUI::detail::string_helper::string_double(
+    base_str& str, double value, double round,
+    uint32_t decimalplaces, char decimalsysbol) noexcept {
+    const uint32_t max_places = std::min(decimalplaces, 15_ui32);
+    constexpr uint32_t DOUBLE_BUF_LEN = 128;
+    char buf[DOUBLE_BUF_LEN];
+    // 分配数据
+    const auto len = ::ui_double_to_str(buf, DOUBLE_BUF_LEN, value, round, max_places, decimalsysbol);
+    // 计算所需缓存大小
+    str.reserve(len);
+    // 内存分配成功
+    if (str.is_ok()) {
+        const auto byte = str.m_uByteLen;
+        const auto ptr = reinterpret_cast<char*>(str.m_pData);
+        std::memset(ptr, 0, (len + 1) * byte);
+        auto wptr = [=]() noexcept {
+            assert(byte == 1 || byte == 2 || byte == 4);
+            if (byte == 2) return ptr + helper::ascii_offset<2>::value;
+            if (byte == 4) return ptr + helper::ascii_offset<4>::value;
+            return ptr + helper::ascii_offset<1>::value;
+        }();
+        // 倒装
+        auto m0 = len;
+        while (m0) {
+            --m0;
+            *wptr = buf[m0];
+            wptr += byte;
+        }
+        str.m_uVecLen = len;
     }
 }
 
