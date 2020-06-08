@@ -50,6 +50,15 @@ namespace LongUI {
         // [oninput] This event is sent when a user enters text in a textbox.
         // - TextBox            When text changed by user-input
         Event_OnInput,
+
+
+        // [LONGUI INNER][ondecrease]
+        // - UISpinButtons
+        Event_OnDecrease,
+
+        // [LONGUI INNER][ondecrease]
+        // - UISpinButtons
+        Event_OnIncrease,
     };
     // gui event, EventAccept: have no effect 
     struct EventGuiArg : EventArg {

@@ -75,8 +75,10 @@ namespace RichED {
     inline unit_t times(unit_t a, uint32_t x) noexcept { return float(x) * a; }
     // half
     inline unit_t half(unit_t a) noexcept { return a * 0.5f; }
+    // make - div
+    inline unit_t make_div(uint32_t x, uint32_t y) noexcept { return float(x) / float(y); }
     // half
-    inline unit_t mask(unit_t a) noexcept { return a * 0.5f; }
+    //inline unit_t mask(unit_t a) noexcept { return a * 0.5f; }
     // mem alloc
     void*Alloc(size_t) noexcept;
     // mem free

@@ -1,11 +1,14 @@
 ﻿// Gui
-
+#include <core/ui_unsafe.h>
 #include <core/ui_window.h>
 #include <core/ui_manager.h>
 #include <core/ui_ctrlmeta.h>
 #include <core/ui_color_list.h>
 #include <control/ui_textbox.h>
+#include <util/ui_little_math.h>
+#include <control/ui_scrollbar.h>
 #include <constexpr/const_bkdr.h>
+#include <control/ui_spinbuttons.h>
 #include <graphics/ui_bg_renderer.h>
 // Private
 #include "../private/ui_private_control.h"
@@ -18,54 +21,63 @@
 #include <debugger/ui_debug.h>
 #endif
 
-// error beep
-extern "C" void longui_error_beep() noexcept;
-
 // ui namespace
 namespace LongUI {
     // UITextBox类 元信息
     LUI_CONTROL_META_INFO(UITextBox, "textbox");
+    /// <summary>
+    /// Makes the default.
+    /// </summary>
+    /// <param name="tf">The tf.</param>
+    /// <returns></returns>
+    void MakeDefault(TextFont& tf) noexcept {
+        tf.text.color = { 0, 0, 0, 1 };
+        tf.text.stroke_color = { 0 };
+        tf.text.stroke_width = 0.f;
+        tf.text.alignment = TAlign_Start;
+        tf.font = UIManager.RefDefaultFont();
+    }
 }
 
-/// <summary>
-/// Makes the default.
-/// </summary>
-/// <param name="tf">The tf.</param>
-/// <returns></returns>
-void LongUI::MakeDefault(TextFont& tf) noexcept {
-    tf.text.color = { 0, 0, 0, 1 };
-    tf.text.stroke_color = { 0 };
-    tf.text.stroke_width = 0.f;
-    tf.text.alignment = TAlign_Start;
-    tf.font = UIManager.RefDefaultFont();
-}
 
 /// <summary>
 /// Initializes a new instance of the <see cref="UITextBox" /> class.
 /// </summary>
 /// <param name="meta">The meta.</param>
 LongUI::UITextBox::UITextBox(const MetaControl& meta) noexcept
-    : Super(meta), m_hovered(CUICursor::Cursor_Ibeam), 
-    max_value(std::numeric_limits<double>::infinity()) {
-    // 本控件支持font属性
-    LongUI::MakeDefault(luiref m_tfBuffer);
-    UITextBox* const nilobj = nullptr;
-    const auto address1 = reinterpret_cast<char*>(&nilobj->m_tfBuffer);
-    const auto address2 = reinterpret_cast<char*>(&nilobj->m_oStyle);
-    m_oStyle.offset_tf = static_cast<uint16_t>(address1 - address2);
-    m_colorSelBg = ColorF::FromRGBA_CT<RGBA_TianyiBlue>();
-    m_colorCaret = ColorF::FromRGBA_CT<RGBA_Black>();
+    : Super(meta), max_value(std::numeric_limits<double>::infinity()),
+    m_oTextField(this), m_oPlaceHolder(this) {
+    // XXX: 默认颜色
+    const_cast<ColorF&>(m_oPlaceHolder.RefTextFont().text.color) = { 0.5, 0.5, 0.5, 1 };
+    //const_cast<AttributeFontStyle&>(m_oPlaceHolder.RefTextFont().font.style) = Style_Italic;
     // XXX: 默认间距
     m_oBox.margin = { 4, 2, 4, 2 };
-    m_oBox.padding = { 4, 2, 2, 2 };
+    m_oBox.border = { 1, 1, 1, 1 };
     m_oStyle.appearance = Appearance_WeakApp | Appearance_TextField;
+    this->make_offset_tf_direct(m_oTextField);
+    UIControlPrivate::SetFlex(m_oTextField, 1.f);
+    m_oTextField.RefInheritedMask()
+        = State_Disabled        // 继承禁止状态
+        | State_Focus           // 继承焦点状态
+        ;
     // 允许焦点
     m_state.focusable = true;
     m_state.tabstop = true;
 #ifdef LUI_TEXTBOX_USE_UNIFIED_INPUT
     m_state.unified_input = true;
 #endif
-    this->create_private();
+    // 自己已经有了, 取消TextField焦点功能
+    UIControlPrivate::SetFocusable0(m_oTextField);
+    // 将TextField重定向本节点
+    UIControlPrivate::SetGuiEvent2Parent(m_oTextField);
+#ifndef NDEBUG
+    m_oTextField.name_dbg = "textbox::textfield";
+    m_oPlaceHolder.name_dbg = "textbox::placeholder";
+#endif // !NDEBUG
+#ifdef LUI_ACCESSIBLE
+    // 子控件为本控件的组成部分
+    m_pAccCtrl = nullptr;
+#endif
 }
 
 
@@ -75,7 +87,6 @@ LongUI::UITextBox::UITextBox(const MetaControl& meta) noexcept
 /// <returns></returns>
 LongUI::UITextBox::~UITextBox() noexcept {
     m_state.destructing = true;
-    this->delete_private();
 }
 
 /// <summary>
@@ -83,27 +94,49 @@ LongUI::UITextBox::~UITextBox() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UITextBox::Update(UpdateReason reason) noexcept {
-    // 更新
-    bool reupdate_caret = false;
-    // [SetText接口文本]修改
-    if (reason & Reason_ValueTextChanged) {
-        this->mark_change_could_trigger();
-        this->private_set_text();
+    // 将文本消息传递给Label
+    if (const auto r = reason & Reason_TextFontChanged) {
+        // XXX: 硬编码-仅仅继承文字大小
+        const auto size_from = m_oTextField.RefTextFont().font.size;
+        auto& size_to = m_oPlaceHolder.RefTextFont().font.size;
+        if (size_from != size_to) {
+            const_cast<float&>(size_to) = size_from;
+            m_oPlaceHolder.Update(Reason_TextFontLayoutChanged);
+        }
+        m_oTextField.Update(r);
     }
-    // 检查到大小修改
-    if (reason & Reason_SizeChanged) {
-        reupdate_caret = true;
-        this->private_resize(this->RefBox().GetContentSize());
-    }
-    // 文本布局/显示 修改了
-    if (reason & Reason_TextFontChanged)
-        this->private_tf_changed(!!(reason & Reason_TextFontLayoutChanged));
-    // 污了
-    reupdate_caret |= this->private_update();
-    // 更新
-    if (reupdate_caret && this->IsFocused()) this->show_caret();
-    // 父类处理
+    // 重新布局
+    if (reason & Reason_BasicRelayout)
+        this->relayout_textbox();
+    // 超类处理
     Super::Update(reason);
+}
+
+/// <summary>
+/// relayout this
+/// </summary>
+/// <returns></returns>
+void LongUI::UITextBox::relayout_textbox() noexcept {
+    m_minScrollSize = m_oTextField.RefBox().minsize;
+    // 针对滚动条
+    auto remaining = this->layout_scroll_bar();
+    // 需要重新布局
+    if (this->is_need_relayout()) return;
+    auto pos = this->get_layout_position();
+    // 计算SPIN按钮
+    if (m_pSpinButtons) {
+        // TODO: 逆向在左边
+        const auto min = m_pSpinButtons->GetMinSize();
+        m_pSpinButtons->Resize({ min.width, remaining.height });
+        remaining.width = std::max(remaining.width - min.width, 1.f);
+        m_pSpinButtons->SetPos({ pos.x + remaining.width, pos.y });
+    }
+    m_oTextField.Resize(remaining);
+    m_oTextField.SetPos(pos);
+    m_oPlaceHolder.Resize(remaining);
+    m_oPlaceHolder.SetPos(pos);
+    this->do_wheel(0, 0);
+    this->do_wheel(1, 0);
 }
 
 /// <summary>
@@ -116,23 +149,11 @@ auto LongUI::UITextBox::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
     switch (event)
     {
     case LongUI::GuiEvent::Event_OnFocus:
-        // 更新插入符号位置大小[Focus 肯定有Window了]
-        assert(m_pWindow);
-        this->show_caret();
-        m_pWindow->SetCaretColor(m_colorCaret);
-        // TODO: 选择区背景色
-        m_colorSelBg.a = 1.f;
+        m_oTextField.EventOnFocus();
         code = Event_Accept;
         break;
     case LongUI::GuiEvent::Event_OnBlur:
-        // 失去焦点时, 如果编辑文本修改则触发[change事件]
-        // 注: 每修改一个字符就触发[change事件]对与逻辑层意义不大
-        this->try_trigger_change_event();
-        // 取消显示插入符号 [Blur 肯定有Window了]
-        assert(m_pWindow);
-        m_pWindow->HideCaret();
-        // TODO: 选择区背景色
-        m_colorSelBg.a = 0.5f;
+        m_oTextField.EventOnBlur();
         code = Event_Accept;
         break;
     }
@@ -141,29 +162,16 @@ auto LongUI::UITextBox::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
 
 
 /// <summary>
-/// Triggers the change event.
-/// </summary>
-/// <returns></returns>
-bool LongUI::UITextBox::try_trigger_change_event() noexcept {
-    bool code = false;
-    if (this->is_change_could_trigger()) {
-        this->clear_change_could_trigger();
-        code = Super::TriggerEvent(this->_onChange()) != Event_Ignore;
-    }
-    return code;
-}
-
-/// <summary>
 /// Does the event.
 /// </summary>
 /// <param name="sender">The sender.</param>
 /// <param name="e">The e.</param>
 /// <returns></returns>
-auto LongUI::UITextBox::DoEvent(UIControl * sender,
-                          const EventArg & e) noexcept -> EventAccept {
+auto LongUI::UITextBox::DoEvent(UIControl * sender, const EventArg & e) noexcept -> EventAccept {
     // 分类讨论
     switch (e.nevent)
     {
+        GuiEvent eid;
     case NoticeEvent::Event_RefreshBoxMinSize:
         // 不会改变
         return Event_Accept;
@@ -171,40 +179,78 @@ auto LongUI::UITextBox::DoEvent(UIControl * sender,
         // 默认行为(聚焦)
         this->SetAsDefaultAndFocus();
         return Event_Accept;
+    case NoticeEvent::Event_UIEvent:
+        assert(sender && "sender in gui event cannot be null");
+        eid = static_cast<const EventGuiArg&>(e).GetEvent();
+        // 针对Textfiled的处理
+        if (sender == &m_oTextField) return this->event_from_textfield(eid);
+        switch (eid)
+        {
+        case GuiEvent::Event_OnChange:
+            if (sender == m_pSBHorizontal)
+                m_oTextField.render_positon.x = m_pSBHorizontal->GetValue();
+            else if (sender == m_pSBVertical)
+                m_oTextField.render_positon.y = m_pSBVertical->GetValue();
+            else break;
+            // SB修改之后调用
+            m_oTextField.UpdateRenderPostion();
+            return Event_Accept;
+        case GuiEvent::Event_OnDecrease:
+            return this->SetValueAsDouble(-this->increment, true);
+        case GuiEvent::Event_OnIncrease:
+            return this->SetValueAsDouble(this->increment, true);
+        }
     case NoticeEvent::Event_Initialize:
         // 初始化
-        this->init_private();
-        this->init_textbox();
-        this->clear_change_could_trigger();
-        // 默认插入符号颜色是背景色的反色
-#ifndef LUI_DISABLE_STYLE_SUPPORT
-        if (const auto obj = UIControlPrivate::GetBgRenderer(*this)) {
-            m_colorCaret = obj->color;
-            m_colorCaret.a = 1.f;
-            m_colorCaret.r = 1.f - m_colorCaret.r;
-            m_colorCaret.g = 1.f - m_colorCaret.g;
-            m_colorCaret.b = 1.f - m_colorCaret.b;
-        }
-#endif
-        [[fallthrough]];
-    default:
-        // 基类处理
-        return Super::DoEvent(sender, e);
+        this->init_minsize();
+        //[[fallthrough]];
     }
+    // 基类处理
+    return Super::DoEvent(sender, e);
+}
+
+
+PCN_NOINLINE
+/// <summary>
+/// set double value
+/// </summary>
+/// <param name="value"></param>
+/// <param name="increase"></param>
+/// <returns></returns>
+auto LongUI::UITextBox::SetValueAsDouble(double value, bool increase) noexcept -> EventAccept {
+    // 没有就无视
+    if (!m_pSpinButtons) return Event_Ignore;
+    const auto cur_value = this->GetValueAsDouble();
+    const auto target = increase ? cur_value + value : value;
+    const auto maxv = this->max_value;
+    const auto minv = this->min_value;
+    const auto new_value = detail::clamp(target, minv, maxv);
+    //  没变
+    if (new_value == cur_value) return Event_Ignore;
+    const uint32_t places = m_uDecimalPlaces;
+    //m_pSpinButtons->SetIncreaseDisabled(new_value == maxv);
+    //m_pSpinButtons->SetDecreaseDisabled(new_value == minv);
+    // 64够了
+    CUIBasicString<char16_t, 64> text;
+    text.AsDouble(new_value, 0.5, places, m_chDecimal);
+    this->SetText(text.view());
+    return Event_Accept;
 }
 
 
 /// <summary>
-/// Initializes the textbox.
+/// redirent event from textfield
 /// </summary>
+/// <param name="eid">event id</param>
 /// <returns></returns>
-void LongUI::UITextBox::init_textbox() noexcept {
-    const auto cols = static_cast<float>(m_uCols);
-    const auto rows = static_cast<float>(m_uRows);
-    const auto fs = m_tfBuffer.font.size;
-    const auto line_height = LongUI::GetLineHeight(m_tfBuffer.font);
-    this->set_contect_minsize({ cols * fs * 0.5f, rows * line_height });
+auto LongUI::UITextBox::event_from_textfield(GuiEvent eid) noexcept -> EventAccept {
+    // 针对Input处理
+    if (eid == UITextField::_onInput()) {
+        m_oPlaceHolder.SetVisible(!m_oTextField.GuiHasText());
+    }
+    return this->TriggerEvent(eid);
 }
+
 
 /// <summary>
 /// Does the input event.
@@ -212,43 +258,41 @@ void LongUI::UITextBox::init_textbox() noexcept {
 /// <param name="e">The e.</param>
 /// <returns></returns>
 auto LongUI::UITextBox::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
-    bool op_ok = true;
     switch (e.event)
     {
     case InputEvent::Event_Char:
-        op_ok = this->private_char(e.character, e.sequence);
+        // 输入数字
+        if (m_type == UITextBox::Type_Number) {
+            if ((e.character >= '0' && e.character <= '9') ||
+                e.character == m_chDecimal || e.character == '-');
+            else return Event_Ignore;
+        }
+        return m_oTextField.DoInputEvent(e);
         break;
     case InputEvent::Event_KeyDown:
-        op_ok = this->private_keydown(e.character);
+        return m_oTextField.DoInputEvent(e);
         break;
-#ifdef LUI_TEXTBOX_USE_UNIFIED_INPUT
-    case InputEvent::Event_TurnLeft:
-        this->private_left();
-        break;
-    case InputEvent::Event_TurnUp:
-        this->private_up();
-        break;
-    case InputEvent::Event_TurnRight:
-        this->private_right();
-        break;
-    case InputEvent::Event_TurnDown:
-        this->private_down();
-        break;
-#endif
     }
-    // XXX: 其他方式?
-    if (!op_ok) ::longui_error_beep();
     return Event_Accept;
 }
 
-// utf-8 -> utf-32
-extern "C" uint32_t ui_utf8_to_utf32(
-    char32_t* __restrict buf,
-    uint32_t buflen,
-    const char* __restrict src,
-    const char* end
-) noexcept;
 
+/// <summary>
+/// Initializes the textbox.
+/// </summary>
+/// <returns></returns>
+void LongUI::UITextBox::init_minsize() noexcept {
+    const auto cols = static_cast<float>(m_uCols);
+    const auto rows = static_cast<float>(m_uRows);
+    auto& tf = m_oTextField.RefTextFont();
+    const auto fs = tf.font.size;
+    const auto line_height = LongUI::GetLineHeight(tf.font);
+    const auto rect = m_oTextField.RefBox().GetNonContect();
+    this->set_contect_minsize({ 
+        cols * fs * 0.5f + rect.left + rect.right,
+        rows * line_height + rect.top + rect.bottom
+    });
+}
 
 /// <summary>
 /// Adds the attribute.
@@ -265,42 +309,22 @@ void LongUI::UITextBox::add_attribute(uint32_t key, U8View value) noexcept {
     constexpr auto BKDR_COLS            = 0x0d614b8f_ui32;
     constexpr auto BKDR_TYPE            = 0x0fab1332_ui32;
     constexpr auto BKDR_VALUE           = 0x246df521_ui32;
-    constexpr auto BKDR_CACHED          = 0xf83ab4d6_ui32;
     constexpr auto BKDR_PASSWORD        = 0xa3573bc3_ui32;
     constexpr auto BKDR_READONLY        = 0xad3f7b8a_ui32;
     constexpr auto BKDR_INCREMENT       = 0x73689623_ui32;
     constexpr auto BKDR_MULTILINE       = 0xb2db9639_ui32;
     constexpr auto BKDR_MAXLENGTH       = 0xb532c6e6_ui32;
     constexpr auto BKDR_PLACEHOLDER     = 0x2aad8773_ui32;
+    constexpr auto BKDR_DECIMALPLACES   = 0x30a7dbb9_ui32;
+    // LongUI扩展
+    constexpr auto BKDR_LUI_CACHE       = 0x14ec3428_ui32;
     // 分类讨论
     switch (key)
     {
-    case BKDR_CACHED:
-        // cached:  LUI优化扩展
-        //   使用离屏渲染/脏矩形更新等算法进行优化
-        //   推荐长文本使用
-        if (value.ToBool()) this->private_use_cached();
+    case BKDR_DECIMALPLACES:
+        // decimalplaces:       小数位数
+        m_uDecimalPlaces = static_cast<uint8_t>(value.ToInt32());
         break;
-    case BKDR_TYPE:
-        // type:        类型
-        [value, this]() noexcept {
-            switch (*value.begin())
-            {
-            case 'p':   // password:    输入密码
-                this->private_mark_password();
-                break;
-            case 'n':   // number:      输入整型
-                break;
-            }
-        }();
-        break;
-    case BKDR_MULTILINE:
-        // multiline:   多行模式
-        if (value.ToBool()) this->private_mark_multiline();
-        break;
-    case BKDR_SIZE:
-        // size:        单行模式容纳字符数量
-        [[fallthrough]];
     case BKDR_COLS:
         // cols:        多行模式下每行容纳字符数量
         m_uCols = static_cast<uint32_t>(value.ToInt32());
@@ -309,35 +333,9 @@ void LongUI::UITextBox::add_attribute(uint32_t key, U8View value) noexcept {
         // row:         多行模式下容纳的行数
         m_uRows = static_cast<uint32_t>(value.ToInt32());
         break;
-    case BKDR_READONLY:
-        // readonly:    只读模式
-        if (value.ToBool()) this->private_mark_readonly();
-        break;
-    case BKDR_VALUE:
-        // value:       显示文本
-        this->private_set_text(CUIString::FromUtf8(value));
-        break;
-    case BKDR_MAXLENGTH:
-        // maxlength:   最长容纳的文本长度
-        m_uMaxLength = static_cast<uint32_t>(value.ToInt32());
-        break;
     case BKDR_PLACEHOLDER:
-        // TODO: placeholder
-        value.begin();
-        break;
-    case BKDR_PASSWORD:
-        // password:    密码使用的字符
-        m_chPassword = [value]() noexcept {
-#if 0
-            const auto text = CUIString32::FromUtf8(value);
-            return static_cast<char32_t>(text.empty() ? '*' : text[0]);
-#else
-            constexpr uint32_t PWBL = 4;
-            char32_t buf[PWBL]; buf[0] = '*';
-            ::ui_utf8_to_utf32(buf, PWBL, value.begin(), value.end());
-            return buf[0];
-#endif
-        }();
+        // placeholder: 空输入占位符
+        Unsafe::AddAttrUninited(m_oPlaceHolder, BKDR_VALUE, value);
         break;
     case BKDR_MIN:
         this->min_value = value.ToDouble();
@@ -348,12 +346,118 @@ void LongUI::UITextBox::add_attribute(uint32_t key, U8View value) noexcept {
     case BKDR_INCREMENT:
         this->increment = value.ToDouble();
         break;
+    case BKDR_TYPE:
+        m_type = [=]() noexcept {
+            if (value.end() > value.begin()) {
+                switch (*value.begin())
+                {
+                case 'n': 
+                    this->make_spin();
+                    return UITextBox::Type_Number;
+                case 'p': 
+                    m_oTextField.InitMarkPassword();
+                    return UITextBox::Type_Password;
+                }
+            }
+            return UITextBox::Type_Normal;
+        }();
+        break;
+    case BKDR_MULTILINE:
+        //m_oStyle.overflow_x = m_oStyle.overflow_y = Overflow_Scroll;
+        m_oStyle.overflow_x = m_oStyle.overflow_y = Overflow_Auto;
+        [[fallthrough]];
+    case BKDR_PASSWORD:
+    case BKDR_VALUE:
+    case BKDR_READONLY:
+    case BKDR_MAXLENGTH:
+    case BKDR_LUI_CACHE:
+        // TODO: 不用二次判断
+        Unsafe::AddAttrUninited(m_oTextField, key, value);
     default:
-       // 其他交给超类处理
+        // 其他交给超类处理
         return Super::add_attribute(key, value);
     }
 }
 
+/// <summary>
+/// request the text
+/// </summary>
+/// <returns></returns>
+auto LongUI::UITextBox::RequestText() noexcept -> const CUIString & {
+    return m_oTextField.RequestText();
+}
+
+/// <summary>
+/// get value (double float)
+/// </summary>
+/// <returns></returns>
+auto LongUI::UITextBox::GetValueAsDouble() noexcept -> double {
+    return m_oTextField.RequestText().view().ToDouble(m_chDecimal);
+}
+
+
+/// <summary>
+/// set text
+/// </summary>
+/// <param name="view"></param>
+/// <returns></returns>
+void LongUI::UITextBox::SetText(const CUIString & text) noexcept {
+    m_oTextField.SetText(text);
+}
+
+/// <summary>
+/// set text
+/// </summary>
+/// <param name="view"></param>
+/// <returns></returns>
+void LongUI::UITextBox::SetText(CUIString&& text) noexcept {
+    m_oTextField.SetText(std::move(text));
+}
+
+/// <summary>
+/// set text
+/// </summary>
+/// <param name="view"></param>
+/// <returns></returns>
+void LongUI::UITextBox::SetText(U16View view) noexcept {
+    m_oTextField.SetText(view);
+}
+
+
+/// <summary>
+/// Does the wheel.
+/// </summary>
+/// <param name="index">The index.</param>
+/// <param name="wheel">The wheel.</param>
+/// <returns></returns>
+auto LongUI::UITextBox::do_wheel(int index, float wheel) noexcept ->EventAccept {
+    const auto maxv = index[&m_maxScrollSize.width];
+    // 位置变动检查
+    auto& offset = index[&m_oTextField.render_positon.x];
+    const auto line_height = UIManager.GetWheelScrollLines();
+    float pos = offset - index[&this->line_size.width] * wheel * line_height;
+    pos = detail::clamp(pos, 0.f, maxv);
+    // 已经修改
+    if (pos != offset) {
+        offset = pos;
+        m_oTextField.UpdateRenderPostion();
+        this->sync_scroll_bar(luiref m_oTextField.render_positon);
+        return Event_Accept;
+    }
+    return Event_Ignore;
+}
+
+/// <summary>
+/// make spin buttons
+/// </summary>
+/// <returns></returns>
+void LongUI::UITextBox::make_spin() noexcept {
+    if (m_pSpinButtons) return;
+    const auto spin = new(std::nothrow) UISpinButtons{ this };
+    if (!spin) return;
+    UIControlPrivate::SetGuiEvent2Parent(*spin);
+    m_pSpinButtons = spin;
+}
 
 /// <summary>
 /// Does the mouse event.
@@ -361,46 +465,19 @@ void LongUI::UITextBox::add_attribute(uint32_t key, U8View value) noexcept {
 /// <param name="e">The e.</param>
 /// <returns></returns>
 auto LongUI::UITextBox::DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept {
-    Point2F pos = { e.px, e.py }; this->MapFromWindow(pos);
-    bool op_ok = true;
+    // 分类判断
     switch (e.type)
     {
     case LongUI::MouseEvent::Event_MouseWheelV:
-        break;
+        // 检查是否有子控件处理(super有, 也可以现写)
+        return UIControl::DoMouseEvent(e) == Event_Ignore ?
+            this->do_wheel(1, e.wheel) : Event_Accept;
     case LongUI::MouseEvent::Event_MouseWheelH:
-        break;
-    case LongUI::MouseEvent::Event_MouseEnter:
-        assert(m_pWindow && "no window no mouse");
-        m_pWindow->SetNowCursor(m_hovered);
-        break;
-    case LongUI::MouseEvent::Event_MouseLeave:
-        assert(m_pWindow && "no window no mouse");
-        m_pWindow->SetNowCursor(nullptr);
-        break;
-    case LongUI::MouseEvent::Event_MouseMove:
-        if (e.modifier & LongUI::Modifier_LButton) {
-            this->private_mouse_move(pos);
-        }
-        break;
-    case LongUI::MouseEvent::Event_LButtonDown:
-        op_ok = this->private_mouse_down(pos, !!(e.modifier & LongUI::Modifier_Shift));
-        break;
-    case LongUI::MouseEvent::Event_LButtonUp:
-        op_ok = this->private_mouse_up(pos);
-        break;
-    case LongUI::MouseEvent::Event_RButtonDown:
-        break;
-    case LongUI::MouseEvent::Event_RButtonUp:
-        break;
-    case LongUI::MouseEvent::Event_MButtonDown:
-        break;
-    case LongUI::MouseEvent::Event_MButtonUp:
-        break;
-    default:
-        break;
+        // 检查是否有子控件处理(super有, 也可以现写)
+        return UIControl::DoMouseEvent(e) == Event_Ignore ?
+            this->do_wheel(0, e.wheel) : Event_Accept;
     }
-    // XXX: 其他方式?
-    if (!op_ok) ::longui_error_beep();
+    // 其他未处理事件交给super处理
     return Super::DoMouseEvent(e);
 }
 

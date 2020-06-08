@@ -414,7 +414,7 @@ uint32_t ui_utf8_to_utf32(
 /// <param name="place"></param>
 /// <returns></returns>
 static uint32_t ui_double_int_format(char * __restrict const buf, double value,  uint32_t place) {
-    assert(value > 0.f);
+    assert(value >= 0.f);
     uint32_t len = 0;
     uidouble_t uivalue = (uidouble_t)value;
     while (uivalue) {

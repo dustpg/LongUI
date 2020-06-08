@@ -3,7 +3,7 @@
 #include <control/ui_richlistbox.h>
 #include <control/ui_radiogroup.h>
 #include <control/ui_listheader.h>
-#include <control/ui_boxlayout.h>
+#include <control/ui_box.h>
 #include <control/ui_scrollbar.h>
 #include <control/ui_groupbox.h>
 #include <control/ui_checkbox.h>

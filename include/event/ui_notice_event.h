@@ -13,10 +13,10 @@ namespace LongUI {
         Event_RefreshBoxMinSize,
         // do default/access action
         Event_DoAccessAction,
-        // show access key  [derived: 1/0 show/hide]
-        Event_ShowAccessKey,
         // viewport/ uievent-to-parent only
         Event_UIEvent,
+        // show access key  [derived: 1/0 show/hide]
+        Event_ShowAccessKey,
         // popup hoster only
         Event_PopupBegin,
         // popup hoster only

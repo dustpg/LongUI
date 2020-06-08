@@ -7,7 +7,7 @@
 
 const auto xul = u8R"xml(
 <?xml version="1.0"?>
-<window clearcolor="white" title="lui demo">
+<window lui:clearcolor="white" title="lui demo">
     <popup id="popupmenu">
         <menuitem label="Pearl"   />
         <menuitem label="Aramis"  />

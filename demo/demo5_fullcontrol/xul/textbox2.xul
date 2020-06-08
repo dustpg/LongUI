@@ -1,15 +1,18 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin" type="text/css"?>
 
+
 <window title="XUL Textbox"
         xmlns:html="http://www.w3.org/1999/xhtml"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-
-<textbox cache="true" flex="1" style="font-size:30px" id="textbox1" 
+<textbox lui:cache="true" xmlns:lui="http://www.w3.org/1999/xhtml"
+    flex="1" style="font-size:30px" id="textbox1" 
     placeholder="Hello, world!" 
-    increment="0.01" decimalplaces="7" multiline="true" />
+    oninput="console.log('oninput')"
+     onchange="console.log('onchange')"
+    increment="0.01" decimalplaces="7" multiline="true"  />
 <button label="Check it out" id="button"/>
-<!-- <textbox flex="1"  rows="2" cols="70" cache="true"  type="number"
+<!-- <textbox flex="1"  rows="2" cols="70" lui:cache="true"  type="number"
 style="font-size:30px" id="textbox2" multiline="true" /> -->
 </window>

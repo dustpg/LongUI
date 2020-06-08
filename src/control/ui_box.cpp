@@ -1,4 +1,4 @@
-﻿#include <control/ui_boxlayout.h>
+﻿#include <control/ui_box.h>
 #include <control/ui_splitter.h>
 #include <core/ui_ctrlmeta.h>
 #include <event/ui_splitter_event.h>
@@ -64,14 +64,6 @@ LongUI::UIHBoxLayout::UIHBoxLayout(const MetaControl& meta) noexcept : Super(met
     m_state.orient = Orient_Horizontal;
 }
 
-
-/// <summary>
-/// need relayout ?
-/// </summary>
-/// <returns></returns>
-auto LongUI::UIBoxLayout::is_need_relayout() noexcept -> UpdateReason {
-    return m_state.reason & Reason_BasicRelayout;
-};
 
 PCN_NOINLINE
 /// <summary>

@@ -13,7 +13,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=dustpg
-Date                   :=30/05/2020
+Date                   :=08/06/2020
 CodeLitePath           :="C:/Program Files (x86)/CodeLite"
 LinkerName             :=C:/TDM-GCC-64/bin/g++.exe
 SharedObjectLinkerName :=C:/TDM-GCC-64/bin/g++.exe -shared -fPIC
@@ -62,7 +62,7 @@ AS       := C:/TDM-GCC-64/bin/as.exe
 ## User defined environment variables
 ##
 CodeLiteDir:=C:\Program Files (x86)\CodeLite
-Objects0=$(IntermediateDirectory)/up_src_control_gapi_ui_textbox_g.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_cfunciton_ui_namecolor.c$(ObjectSuffix) $(IntermediateDirectory)/up_src_cfunciton_ui_util.c$(ObjectSuffix) $(IntermediateDirectory)/up_src_cfunciton_view_atof.c$(ObjectSuffix) $(IntermediateDirectory)/up_src_cfunciton_view_unicode.c$(ObjectSuffix) $(IntermediateDirectory)/up_src_container_pod_hash.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_container_pod_sharedarray.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_container_ui_string_view.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_button.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_box.cpp$(ObjectSuffix) \
+Objects0=$(IntermediateDirectory)/up_src_control_gapi_ui_textfield_g.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_cfunciton_ui_namecolor.c$(ObjectSuffix) $(IntermediateDirectory)/up_src_cfunciton_ui_util.c$(ObjectSuffix) $(IntermediateDirectory)/up_src_cfunciton_view_atof.c$(ObjectSuffix) $(IntermediateDirectory)/up_src_cfunciton_view_unicode.c$(ObjectSuffix) $(IntermediateDirectory)/up_src_container_pod_hash.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_container_pod_sharedarray.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_container_ui_string_view.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_button.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_box.cpp$(ObjectSuffix) \
 	$(IntermediateDirectory)/up_src_control_ui_caption.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_control.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_image.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_label.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_menubar.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_menulist.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_progress.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_radio.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_cfunciton_ui_easing.c$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_scale.cpp$(ObjectSuffix) \
 	$(IntermediateDirectory)/up_src_control_ui_scrollarea.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_spacer.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_cfunciton_ui_stringcolor.c$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_splitter.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_checkbox.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_statusbar.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_tab.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_test.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_toolbar.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_richlist.cpp$(ObjectSuffix) \
 	$(IntermediateDirectory)/up_src_control_ui_tooltip.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_ui_ssvalue.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_container_pod_vector.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_ui_win10.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_effect_ui_effect_backimage.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_ui_style_value.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_text_ui_text_layout.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_time_capsule.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_text_ui_text_outline.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_xul_SimpAX.cpp$(ObjectSuffix) \
@@ -73,9 +73,9 @@ Objects0=$(IntermediateDirectory)/up_src_control_gapi_ui_textbox_g.cpp$(ObjectSu
 	$(IntermediateDirectory)/up_src_graphics_ui_bg_renderer.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_control_state.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_util_ui_color_sysem.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_accessible_ui_accessible_win.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_filesystem_ui_findfile.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_cfunciton_view_atoi.c$(ObjectSuffix) $(IntermediateDirectory)/up_src_filesystem_ui_fileop.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_gapi_ui_label_g.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_effect_ui_shader_borderimage.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_private_ui_private_effect.cpp$(ObjectSuffix) \
 	$(IntermediateDirectory)/up_src_graphics_ui_geometry.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_debugger_ui_debug_window.cpp$(ObjectSuffix) 
 
-Objects1=$(IntermediateDirectory)/up_src_control_ui_list.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_effect_ui_shader_backimage.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_effect_ui_effect_borderimage.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_resource_manager.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_debugger_ui_tracer.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_textbox.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_debugger_ui_debug.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_popup_window.cpp$(ObjectSuffix) \
-	$(IntermediateDirectory)/up_src_style_ui_ssvalue_list.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_malloc.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_hidpi.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_ui_style.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_node.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_control_control.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_thread_ui_locker.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_const_sstring.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_all_control_info.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_RichED_ed_undoredo.cpp$(ObjectSuffix) \
-	$(IntermediateDirectory)/up_src_style_ui_native_style.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_tree.cpp$(ObjectSuffix) 
+Objects1=$(IntermediateDirectory)/up_src_control_ui_list.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_effect_ui_shader_backimage.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_effect_ui_effect_borderimage.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_resource_manager.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_debugger_ui_tracer.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_textfield.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_textbox.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_debugger_ui_debug.cpp$(ObjectSuffix) \
+	$(IntermediateDirectory)/up_src_core_ui_popup_window.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_ui_ssvalue_list.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_malloc.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_hidpi.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_ui_style.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_node.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_control_control.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_thread_ui_locker.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_const_sstring.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_all_control_info.cpp$(ObjectSuffix) \
+	$(IntermediateDirectory)/up_RichED_ed_undoredo.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_ui_native_style.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_tree.cpp$(ObjectSuffix) 
 
 
 
@@ -107,11 +107,11 @@ PreBuild:
 ##
 ## Objects
 ##
-$(IntermediateDirectory)/up_src_control_gapi_ui_textbox_g.cpp$(ObjectSuffix): ../src/control/gapi/ui_textbox_g.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_control_gapi_ui_textbox_g.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_control_gapi_ui_textbox_g.cpp$(DependSuffix) -MM ../src/control/gapi/ui_textbox_g.cpp
-	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/control/gapi/ui_textbox_g.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_control_gapi_ui_textbox_g.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/up_src_control_gapi_ui_textbox_g.cpp$(PreprocessSuffix): ../src/control/gapi/ui_textbox_g.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_control_gapi_ui_textbox_g.cpp$(PreprocessSuffix) ../src/control/gapi/ui_textbox_g.cpp
+$(IntermediateDirectory)/up_src_control_gapi_ui_textfield_g.cpp$(ObjectSuffix): ../src/control/gapi/ui_textfield_g.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_control_gapi_ui_textfield_g.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_control_gapi_ui_textfield_g.cpp$(DependSuffix) -MM ../src/control/gapi/ui_textfield_g.cpp
+	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/control/gapi/ui_textfield_g.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_control_gapi_ui_textfield_g.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/up_src_control_gapi_ui_textfield_g.cpp$(PreprocessSuffix): ../src/control/gapi/ui_textfield_g.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_control_gapi_ui_textfield_g.cpp$(PreprocessSuffix) ../src/control/gapi/ui_textfield_g.cpp
 
 $(IntermediateDirectory)/up_src_cfunciton_ui_namecolor.c$(ObjectSuffix): ../src/cfunciton/ui_namecolor.c
 	@$(CC) $(CFLAGS) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_cfunciton_ui_namecolor.c$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_cfunciton_ui_namecolor.c$(DependSuffix) -MM ../src/cfunciton/ui_namecolor.c
@@ -688,6 +688,12 @@ $(IntermediateDirectory)/up_src_debugger_ui_tracer.cpp$(ObjectSuffix): ../src/de
 	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/debugger/ui_tracer.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_debugger_ui_tracer.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/up_src_debugger_ui_tracer.cpp$(PreprocessSuffix): ../src/debugger/ui_tracer.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_debugger_ui_tracer.cpp$(PreprocessSuffix) ../src/debugger/ui_tracer.cpp
+
+$(IntermediateDirectory)/up_src_control_ui_textfield.cpp$(ObjectSuffix): ../src/control/ui_textfield.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_control_ui_textfield.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_control_ui_textfield.cpp$(DependSuffix) -MM ../src/control/ui_textfield.cpp
+	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/control/ui_textfield.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_control_ui_textfield.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/up_src_control_ui_textfield.cpp$(PreprocessSuffix): ../src/control/ui_textfield.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_control_ui_textfield.cpp$(PreprocessSuffix) ../src/control/ui_textfield.cpp
 
 $(IntermediateDirectory)/up_src_control_ui_textbox.cpp$(ObjectSuffix): ../src/control/ui_textbox.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_control_ui_textbox.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_control_ui_textbox.cpp$(DependSuffix) -MM ../src/control/ui_textbox.cpp

@@ -66,6 +66,8 @@ namespace LongUI {
             MENUSEPARATOR_LEAD = 14,
             // menu item height
             MENUITEM_HEIGHT = 21,
+            // spinner size in px
+            ARROW_SPINNER = 9,
             // arrow size in px
             ARROW_SIZE = 17,
             // arrow with

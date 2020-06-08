@@ -56,6 +56,7 @@ LongUI::UISplitter::UISplitter(const MetaControl& meta) noexcept
     // 默认是水平方向拉拽?
     m_state.orient = Orient_Horizontal;
     // 允许焦点?
+    m_state.capturable = true;
     m_state.focusable = true;
     m_oBox.padding = { 2, 2, 2, 2 };
 }

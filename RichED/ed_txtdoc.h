@@ -107,18 +107,20 @@ namespace RichED {
         auto Update() noexcept->ValuedChanged;
         // render
         void Render(CtxPtr) noexcept;
-        // add current doc view-point pos
-        void AddPos(Point) noexcept;
-        // set doc view-point pos
-        void SetPos(Point) noexcept;
+        // move current doc view-point pos[relatively]
+        void MoveViewportRel(Point) noexcept;
+        // set doc view-point pos[absolutely]
+        void MoveViewportAbs(Point) noexcept;
         // resize doc view-zone
-        void Resize(Size) noexcept;
+        void ResizeViewport(Size) noexcept;
         // save to bin-file for self-use
         bool SaveBinFile(CtxPtr) noexcept;
         // load from bin-file for self-use
         bool LoadBinFile(CtxPtr) noexcept;
         // gen text
         void GenText(CtxPtr ctx, DocPoint begin, DocPoint end)noexcept;
+        // get estimated size in view space
+        auto GetEstimatedSize() const noexcept -> Size;
         // get logic line count 
         auto GetLogicLineCount() const noexcept { return m_vLogic.GetSize(); }
         // get selection
@@ -225,6 +227,8 @@ namespace RichED {
         bool GuiUndo() noexcept;
         // gui: redo
         bool GuiRedo() noexcept;
+        // gui: check if has text
+        bool GuiHasText() const noexcept;
     public: // GUI Operation - for Rich Text
         // set riched
         bool GuiRichED(const RichData& rd) noexcept {
@@ -267,6 +271,8 @@ namespace RichED {
         Rect                    m_rcCaret;
         // document estimate size
         Size                    m_szEstimated;
+        // document estimate size - compare ver
+        Size                    m_szEstimatedCmp;
         // anchor pos
         DocPoint                m_dpAnchor;
         // caret pos
@@ -283,8 +289,8 @@ namespace RichED {
         uint16_t                m_flagChanged = 0;
         // password UCS4 mode
         bool                    m_bPassword4 = false;
-        // password UCS4 mode
-        bool                    m_unused = false;
+        // debug bool value for update
+        bool                    m_bUpdateDbg = false;
         // head
         Node                    m_head;
         // tail
@@ -324,9 +330,13 @@ namespace RichED {
         Changed_Caret           = 1 << 2,
         // text changed            
         Changed_Text            = 1 << 3,
-        // estimated width  changed  [not impl yet]
+        // estimated width  changed
         Changed_EstimatedWidth  = 1 << 4,
-        // estimated height changed  [not impl yet]
+        // estimated height changed
         Changed_EstimatedHeight = 1 << 5,
+        // viewport width changed
+        Changed_ViewportWidth   = 1 << 6,
+        // viewport height changed
+        Changed_ViewportHeight  = 1 << 7,
     };
 }

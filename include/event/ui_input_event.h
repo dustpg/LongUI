@@ -46,6 +46,7 @@ namespace LongUI {
         InputEvent      event;
         // sequence id  
         //  - character N...3->2->1->[0] in same frame
+        //  - Event_KeyDown:    0 - first 1 - repeat
         uint16_t        sequence;
         // character
         char32_t        character;

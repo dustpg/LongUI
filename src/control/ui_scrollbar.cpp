@@ -52,6 +52,12 @@ LongUI::UIScrollBar::UIScrollBar(AttributeOrient o, const MetaControl& meta) noe
     m_state.orient = orient;
     UIControlPrivate::SetOrient(m_oSlider, orient);
     this->init_bar_weakapp(o);
+    // 取消聚焦功能
+    UIControlPrivate::SetCapturable1(m_oUpTop);
+    UIControlPrivate::SetCapturable1(m_oDownTop);
+    UIControlPrivate::SetFocusable0(m_oSlider);
+    UIControlPrivate::SetCapturable1(m_oUpBottom);
+    UIControlPrivate::SetCapturable1(m_oDownBottom);
 }
 
 /// <summary>

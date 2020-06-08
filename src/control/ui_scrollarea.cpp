@@ -130,7 +130,7 @@ auto LongUI::UIScrollArea::do_wheel(int index, float wheel) noexcept ->EventAcce
             this->mark_world_changed();
             this->Invalidate();
             // 同步SB
-            this->sync_scroll_bar();
+            this->sync_scroll_bar(luiref m_ptChildOffset);
             return Event_Accept;
         }
     }
@@ -159,6 +159,7 @@ auto LongUI::UIScrollArea::DoMouseEvent(const MouseEventArg & e) noexcept -> Eve
     return Super::DoMouseEvent(e);
 }
 
+#if 0
 /// <summary>
 /// Relayouts this instance.
 /// </summary>
@@ -173,9 +174,11 @@ void LongUI::UIScrollArea::Update(UpdateReason reason) noexcept {
         ;
     // TODO: 基本布局
     if (reason & relayout_reason)
-        this->layout_scroll_bar();
+        this->layout_scroll_bar(this->RefBox().GetContentSize());
+
     return Super::Update(reason);
 }
+#endif
 
 /// <summary>
 /// Sums the children flex.
@@ -192,7 +195,7 @@ auto LongUI::UIScrollArea::sum_children_flex() const noexcept -> float {
 /// Synchronizes the scroll bar.
 /// </summary>
 /// <returns></returns>
-void LongUI::UIScrollArea::sync_scroll_bar() noexcept {
+void LongUI::UIScrollArea::sync_scroll_bar(Point2F& offset) noexcept {
     const bool hok = m_pSBHorizontal && m_pSBHorizontal->IsVisible();
     const bool vok = m_pSBVertical && m_pSBVertical->IsVisible();
     // 交界区
@@ -208,20 +211,20 @@ void LongUI::UIScrollArea::sync_scroll_bar() noexcept {
         m_pSBHorizontal->SetPageIncrement(csize.width - corner.width);
         m_maxScrollSize.width = m_minScrollSize.width - csize.width + corner.width;
         m_pSBHorizontal->SetMax(m_maxScrollSize.width);
-        m_pSBHorizontal->SetValue(m_ptChildOffset.x);
+        m_pSBHorizontal->SetValue(offset.x);
         //m_pSBHorizontal->SetSingleStep(m_szSingleStep.width);
     }
-    else m_ptChildOffset.x = 0.f;
+    else offset.x = 0.f;
     // 垂直滚动条
     if (vok) {
         m_pSBVertical->SetIncrement(this->line_size.height);
         m_pSBVertical->SetPageIncrement(csize.height - corner.height);
         m_maxScrollSize.height = m_minScrollSize.height - csize.height + corner.height;
         m_pSBVertical->SetMax(m_maxScrollSize.height);
-        m_pSBVertical->SetValue(m_ptChildOffset.y);
+        m_pSBVertical->SetValue(offset.y);
         //m_pSBVertical->SetSingleStep(m_szSingleStep.height);
     }
-    else m_ptChildOffset.y = 0.f;
+    else offset.y = 0.f;
     this->layout_corner(hok && vok, corner);
 }
 
@@ -329,7 +332,7 @@ auto LongUI::UIScrollArea::create_scrollbar(AttributeOrient o) noexcept -> UIScr
 /// Layouts the size of the content.
 /// </summary>
 /// <returns></returns>
-auto LongUI::UIScrollArea::layout_scroll_bar() noexcept -> Size2F {
+auto LongUI::UIScrollArea::layout_scroll_bar(/*Size2F content_size_ex*/) noexcept -> Size2F {
     // TODO: 修改
     const auto is_need_relayout = [this]() noexcept {
         constexpr UpdateReason relayout_reason
@@ -382,7 +385,7 @@ auto LongUI::UIScrollArea::layout_scroll_bar() noexcept -> Size2F {
         m_pSBHorizontal->SetVisible(true);
     }
     // 同步SB显示
-    this->sync_scroll_bar();
+    this->sync_scroll_bar(luiref m_ptChildOffset);
     // 返回剩余大小
     rv.width = content_size.width - vsbar;
     rv.height = content_size.height - hsbar;

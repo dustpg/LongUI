@@ -17,8 +17,6 @@ namespace LongUI {
     using CUIString16 = CUIBasicString<char16_t, 4>;
     // utf-32 string
     using CUIString32 = CUIBasicString<char32_t, 2>;
-    // utf-16 string ex
-    using CUIStringEx = CUIBasicString<char16_t, 64>;
     // default string: utf-16
     using CUIString = CUIString16;
     // pod vector

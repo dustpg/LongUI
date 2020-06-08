@@ -103,6 +103,10 @@ void LongUI::CUINativeStyleWindows10::DrawNative(const NativeDrawArgs& args) noe
         index = appearance - Appearance_ScrollBarButtonUp;
         dir = static_cast<ArrowDirection>(index);
         return this->draw_arrow_button(args, dir);
+    case LongUI::Appearance_SpinnerUpButton:
+        return this->draw_arrow_button(args, Direction_Up);
+    case LongUI::Appearance_SpinnerDownButton:
+        return this->draw_arrow_button(args, Direction_Down);
     case LongUI::Appearance_ScrollbarThumbH:
     case LongUI::Appearance_ScrollbarThumbV:
         index = appearance - Appearance_ScrollbarThumbH;
@@ -319,6 +323,10 @@ void LongUI::CUINativeStyleWindows10::InitCtrl(
     case LongUI::Appearance_ScrollBarButtonDown:
     case LongUI::Appearance_ScrollBarButtonLeft:
         ctrl.SetFixedSize({ ARROW_SIZE, ARROW_SIZE });
+        break;
+    case Appearance_SpinnerUpButton:
+    case Appearance_SpinnerDownButton:
+        ctrl.SetStyleMinSize({ ARROW_SPINNER, 0 });
         break;
     case LongUI::Appearance_ScrollbarThumbH:
     case LongUI::Appearance_ScrollbarTrackH:

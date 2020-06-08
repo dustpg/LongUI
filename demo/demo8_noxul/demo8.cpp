@@ -4,7 +4,7 @@
 #include <control/ui_button.h>
 #include <control/ui_textbox.h>
 #include <control/ui_viewport.h>
-#include <control/ui_boxlayout.h>
+#include <control/ui_box.h>
 #include <interface/ui_default_config.h>
 
 // menu

@@ -25,7 +25,7 @@
 */
 
 // super
-#include "ui_boxlayout.h"
+#include "ui_box.h"
 #include "../core/ui_core_type.h"
 #include "../style/ui_behavior_type.h"
 // base

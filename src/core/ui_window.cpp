@@ -268,7 +268,7 @@ namespace LongUI {
         // when resize[thread safe]
         void OnResizeTs(Size2U) noexcept;
         // when key down/ up
-        void OnKeyDownUp(InputEvent,CUIInputKM::KB key) noexcept;
+        void OnKeyDownUp(InputEventArg arg) noexcept;
         // when system key down
         void OnSystemKeyDown(CUIInputKM::KB key, uintptr_t lp) noexcept;
         // when input a utf-16 char
@@ -1094,6 +1094,7 @@ void LongUI::CUIWindow::ShowCaret(UIControl& ctrl, const RectF& rect) noexcept {
     pimpl()->careted = &ctrl;
     pimpl()->caret_ok = true;
     pimpl()->caret = rect;
+    //LUIDebug(Warning) << rect << endl;
     //ctrl.MapToWindow(pimpl()->caret);
 }
 
@@ -1802,8 +1803,16 @@ void LongUI::CUIWindow::Private::SetLayeredWindowSupport() noexcept {
 /// </summary>
 /// <param name="vk">The vk.</param>
 /// <returns></returns>
-void LongUI::CUIWindow::Private::OnKeyDownUp(InputEvent ekey, CUIInputKM::KB key) noexcept {
-    switch (key)
+void LongUI::CUIWindow::Private::OnKeyDownUp(InputEventArg arg) noexcept {
+    // 直接将输入引导到焦点控件
+    if (const auto focused_ctrl = this->focused) {
+        assert(focused_ctrl->IsEnabled());
+        // 检查输出
+        const auto rv = focused_ctrl->DoInputEvent(arg);
+        if (rv != Event_Ignore) return;
+    }
+    // 如果无视事件则进行特殊处理
+    switch (arg.character)
     {
     case CUIInputKM::KB_ESCAPE:
         // 检查释放Esc关闭窗口
@@ -1814,10 +1823,11 @@ void LongUI::CUIWindow::Private::OnKeyDownUp(InputEvent ekey, CUIInputKM::KB key
     case CUIInputKM::KB_RETURN:
         // 回车键: 直接将输入引导到默认控件
         if (const auto defc = this->now_default) {
-            if (defc->IsEnabled()) defc->DoInputEvent({ ekey, 0, key });
+            if (defc->IsEnabled()) defc->DoInputEvent(arg);
             return;
         }
         break;
+#if 0
     case CUIInputKM::KB_SPACE:
         // 空格键: 直接将输入引导到焦点控件
         if (const auto nowfocus = this->focused) {
@@ -1825,30 +1835,17 @@ void LongUI::CUIWindow::Private::OnKeyDownUp(InputEvent ekey, CUIInputKM::KB key
             return;
         }
         break;
+#endif
     case CUIInputKM::KB_TAB:
         // Tab键: 聚焦上/下键盘焦点
         this->focus_ok = true;
-        if (ekey == InputEvent::Event_KeyUp) {
+        if (arg.event == InputEvent::Event_KeyUp) {
             if (CUIInputKM::GetKeyState(CUIInputKM::KB_SHIFT))
                 this->viewport()->RefWindow().FocusPrev();
             else
                 this->viewport()->RefWindow().FocusNext();
         }
         return;
-    }
-    // 直接将输入引导到焦点控件
-    if (const auto focused_ctrl = this->focused) {
-        assert(focused_ctrl->IsEnabled());
-        // 检查输出
-        const auto rv = focused_ctrl->DoInputEvent({ ekey, 0, key });
-        // 回车键无视了?!
-        if (rv == Event_Ignore && key == CUIInputKM::KB_RETURN) {
-            // 直接将输入引导到默认控件
-            if (const auto defc = this->now_default) {
-                if (defc->IsEnabled()) defc->DoInputEvent({ ekey, 0, key });
-                return;
-            }
-        }
     }
 }
 
@@ -2518,11 +2515,15 @@ auto LongUI::CUIWindow::Private::DoMsg(
         case WM_KEYUP:
             static_assert(WM_KEYUP == WM_KEYDOWN + 1, "bad code");
             {
+                InputEventArg arg;
                 const uint32_t plus = message - WM_KEYDOWN;
                 const auto code = static_cast<uint32_t>(InputEvent::Event_KeyDown);
                 const auto inev = static_cast<InputEvent>(code + plus);
+                arg.event = static_cast<InputEvent>(code + plus);
+                arg.sequence = (lParam >> 30) & 1;
+                arg.character = static_cast<CUIInputKM::KB>(wParam);
                 CUIDataAutoLocker locker;
-                this->OnKeyDownUp(inev, static_cast<CUIInputKM::KB>(wParam));
+                this->OnKeyDownUp(arg);
             }
             return 0;
 #if 0
@@ -3155,7 +3156,8 @@ void LongUI::CUIWindow::Private::render_caret(I::Renderer2D& renderer) const noe
     // 渲染插入符号
     if (this->careted /*&& this->caret_ok*/) {
         // 保持插入符号的清晰
-        renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+        const auto visible = this->careted->RefBox().visible;
+        renderer.PushAxisAlignedClip(auto_cast(visible), D2D1_ANTIALIAS_MODE_ALIASED);
 #if 0
         // 反色操作, 但是较消耗GPU资源
         renderer.DrawImage(
@@ -3170,7 +3172,7 @@ void LongUI::CUIWindow::Private::render_caret(I::Renderer2D& renderer) const noe
         this->careted->MapToWindow(rect);
         auto& brush = UIManager.RefCCBrush(this->caret_color);
         renderer.FillRectangle(auto_cast(rect), &brush);
-        renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+        renderer.PopAxisAlignedClip();
     }
 }
 
@@ -3187,10 +3189,12 @@ void LongUI::CUIWindow::Private::render_focus(I::Renderer2D& renderer) const noe
     // 渲染焦点矩形
     if (this->focus_ok && this->focused) {
         // 脏矩形符号的清晰
-        renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+        const auto visible = this->focused->RefBox().visible;
+        renderer.PushAxisAlignedClip(auto_cast(visible), D2D1_ANTIALIAS_MODE_ALIASED);
         auto rect = this->foucs;
         this->focused->MapToWindow(rect);
         LongUI::NativeStyleFocus(rect);
+        renderer.PopAxisAlignedClip();
     }
 #endif
 }

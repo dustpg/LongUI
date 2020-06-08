@@ -119,8 +119,9 @@
       <File Name="../src/core/ui_all_control_info.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="control">
+      <File Name="../src/control/ui_textfield.cpp"/>
       <VirtualDirectory Name="gapi">
-        <File Name="../src/control/gapi/ui_textbox_g.cpp"/>
+        <File Name="../src/control/gapi/ui_textfield_g.cpp"/>
         <File Name="../src/control/gapi/ui_label_g.cpp"/>
         <File Name="../src/control/gapi/ui_control_g.cpp"/>
       </VirtualDirectory>

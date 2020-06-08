@@ -181,14 +181,14 @@ void LongUI::UIViewport::JustResetZoom(float x, float y) noexcept {
 /// <param name="value">The value.</param>
 /// <returns></returns>
 void LongUI::UIViewport::add_attribute(uint32_t key, U8View value) noexcept {
-    constexpr auto BKDR_CLEARCOLOR = 0xebcedc8e_ui32;
-    constexpr auto BKDR_TITLE      = 0x02670904_ui32;
+    constexpr auto BKDR_LUI_CLEARCOLOR  = 0x662bde74_ui32;
+    constexpr auto BKDR_TITLE           = 0x02670904_ui32;
     // 分类处理
     switch (key)
     {
         ColorF color;
-    case BKDR_CLEARCOLOR:
-        // clearcolor       : 窗口清除色
+    case BKDR_LUI_CLEARCOLOR:
+        // lui:clearcolor   : 窗口清除色
         ColorF::FromRGBA_RT(color, { value.ColorRGBA32() });
         m_window.SetClearColor(color);
         break; 

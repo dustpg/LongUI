@@ -1530,6 +1530,10 @@ namespace LongUI {
         // script ok
         bool                        m_script = false;
 #endif
+#ifdef LUI_STYLE_SUPPORT_EX
+        // script ok
+        bool                        m_style = false;
+#endif
     private:
         // add Processing Instruction
         void add_processing(const PIs& attr) noexcept override;
@@ -1581,6 +1585,12 @@ namespace LongUI {
             // 写入数据
             this->stack_top().user_ptr = &m_root;
         }
+#ifdef LUI_STYLE_SUPPORT_EX
+        // style节点
+        else if (view == "style"_pair) {
+            m_style = true;
+        }
+#endif
         // script节点
         else if (view == "script"_pair) {
             // 检查脚本支持
@@ -1619,6 +1629,9 @@ namespace LongUI {
 #ifndef LUI_NO_SCRIPT
         m_script = false;
 #endif
+#ifdef LUI_STYLE_SUPPORT_EX
+        m_style = false;
+#endif
     }
     /// <summary>
     /// Adds the text.
@@ -1629,6 +1642,10 @@ namespace LongUI {
 #ifndef LUI_NO_SCRIPT
         if (m_script)
             impl::eval_script_for_window({ pair.begin(), pair.end() }, m_root.GetWindow());
+#endif
+#ifdef LUI_STYLE_SUPPORT_EX
+        else if (m_style)
+            m_root.GetWindow()->LoadCssString({ pair.begin(), pair.end() });
 #endif
     }
     /// <summary>

@@ -1,6 +1,6 @@
 ﻿// ctrl
 #include <luiconf.h>
-#include <control/ui_textbox.h>
+#include <control/ui_textfield.h>
 // ui
 #include <core/ui_window.h>
 #include <core/ui_manager.h>
@@ -20,8 +20,8 @@
 
 // uinamespace
 namespace LongUI {
-    // UITextBox类 私有实现
-    struct UITextBox::Private {
+    // UITextField类 私有实现
+    struct UITextField::Private {
         // doc type
         using doc_t = RichED::CEDTextDocument;
         // longui -> riched
@@ -39,7 +39,7 @@ namespace LongUI {
         // get doc object
         auto&document() const noexcept { return reinterpret_cast<const doc_t&>(docbuf); }
         // create doc
-        void create_doc(UITextBox& box) noexcept;
+        void create_doc(UITextField& box) noexcept;
         // release doc
         void release_doc() noexcept;
         // doc map to this control
@@ -63,7 +63,7 @@ namespace LongUI {
         // cached
         bool                                cached = false;
         // 设置新的字符串
-        template<typename T> static auto SetText(UITextBox& tbox, T && text) noexcept {
+        template<typename T> static auto SetText(UITextField& tbox, T && text) noexcept {
             auto& cached = tbox.pimpl()->text_cached;
             if (cached == text) return false;
             cached = std::forward<T>(text);
@@ -79,8 +79,8 @@ namespace LongUI {
     /// </summary>
     /// <param name="box">The box.</param>
     /// <returns></returns>
-    UITextBox::Private::Private() noexcept {
-        using private_t = decltype(UITextBox::m_private);
+    UITextField::Private::Private() noexcept {
+        using private_t = decltype(UITextField::m_private);
         static_assert(alignof(Private) == alignof(private_t), "bad buffer");
         static_assert(sizeof(Private) == sizeof(private_t), "bad buffer");
     }
@@ -88,20 +88,20 @@ namespace LongUI {
     /// Creates the cached bitmap.
     /// </summary>
     /// <returns></returns>
-    auto UITextBox::Private::create_cached_bitmap() noexcept -> Result {
+    auto UITextField::Private::create_cached_bitmap() noexcept -> Result {
         return { Result::RS_OK };
     }
     /// <summary>
     /// Releases the cached bitmap.
     /// </summary>
     /// <returns></returns>
-    void UITextBox::Private::release_cached_bitmap() noexcept {
+    void UITextField::Private::release_cached_bitmap() noexcept {
     }
     /// <summary>
     /// Releases the document().
     /// </summary>
     /// <returns></returns>
-    void UITextBox::Private::release_doc() noexcept {
+    void UITextField::Private::release_doc() noexcept {
         detail::ctor_dtor<doc_t>::delete_obj(&docbuf);
     }
     /// <summary>
@@ -109,7 +109,7 @@ namespace LongUI {
     /// </summary>
     /// <param name="point">The point.</param>
     /// <returns></returns>
-    void UITextBox::Private::doc_map(float point[2]) noexcept {
+    void UITextField::Private::doc_map(float point[2]) noexcept {
         auto& matrix = this->document().RefMatrix();
         const auto ptr = reinterpret_cast<RichED::Point*>(point);
         *ptr = matrix.DocToScreen(*ptr);
@@ -119,10 +119,11 @@ namespace LongUI {
     /// </summary>
     /// <param name="box">The box.</param>
     /// <returns></returns>
-    void UITextBox::Private::create_doc(UITextBox& box) noexcept {
+    void UITextField::Private::create_doc(UITextField& box) noexcept {
         // ARG
         using namespace RichED;
         const DocFlag flags = static_cast<DocFlag>(box.m_flag);
+        const WrapMode warp_mode = flags & Flag_MultiLine ? Mode_SpaceOrCJK : Mode_NoWrap;
         RichED::RichData rd = { 0 };
         Private::ToRichED(box.m_tfBuffer, luiref rd);
         RichED::DocInitArg args {
@@ -131,7 +132,7 @@ namespace LongUI {
             flags,
             box.m_chPassword, 
             box.m_uMaxLength, 0,
-            VAlign_Baseline, Mode_SpaceOrCJK,
+            VAlign_Baseline, warp_mode,
             rd
         };
         RichED::IEDTextPlatform& platform = box;
@@ -150,7 +151,7 @@ namespace LongUI {
 /// <param name="tf">The tf.</param>
 /// <param name="rd">The rd.</param>
 /// <returns></returns>
-void LongUI::UITextBox::Private::ToRichED(const TextFont& tf, RichED::RichData& rd) noexcept {
+void LongUI::UITextField::Private::ToRichED(const TextFont& tf, RichED::RichData& rd) noexcept {
     rd.size = tf.font.size;
     rd.color = tf.text.color.ToRGBA().primitive;
     // TODO: 富文本支持
@@ -161,7 +162,7 @@ void LongUI::UITextBox::Private::ToRichED(const TextFont& tf, RichED::RichData& 
 /// Recreates this instance.
 /// </summary>
 /// <returns></returns>
-auto LongUI::UITextBox::Recreate(bool release_only) noexcept -> Result {
+auto LongUI::UITextField::Recreate(bool release_only) noexcept -> Result {
     // --------------------- 释放数据
     // 使用了缓存?
     if (pimpl()->cached) {
@@ -190,7 +191,7 @@ auto LongUI::UITextBox::Recreate(bool release_only) noexcept -> Result {
 /// </summary>
 /// <param name="ch">The char</param>
 /// <returns></returns>
-bool LongUI::UITextBox::private_char(char32_t ch, uint16_t seq) noexcept {
+bool LongUI::UITextField::private_char(char32_t ch, uint16_t seq) noexcept {
     // U32字符转换成U16字符(串)
     const auto utf32to16 = [](char32_t ch, char16_t* buffer) noexcept {
         if (ch > 0xFFFF) {
@@ -226,7 +227,7 @@ bool LongUI::UITextBox::private_char(char32_t ch, uint16_t seq) noexcept {
 /// Creates the private.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::create_private() noexcept {
+void LongUI::UITextField::create_private() noexcept {
 #ifndef NDEBUG
     dbg_color[0] = ColorF::FromRGBA_CT<RGBA_Green>();
     dbg_color[1] = ColorF::FromRGBA_CT<RGBA_Blue>();
@@ -241,7 +242,7 @@ void LongUI::UITextBox::create_private() noexcept {
 /// Initializes the private.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::init_private() noexcept {
+void LongUI::UITextField::init_private() noexcept {
     // 延迟到init事件创建Doc对象
     pimpl()->create_doc(*this);
     // 存在初始化字符的话进行文本初始化, 当然不必输出文本changed标志
@@ -257,7 +258,7 @@ void LongUI::UITextBox::init_private() noexcept {
 /// Deletes the private.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::delete_private() noexcept {
+void LongUI::UITextField::delete_private() noexcept {
     pimpl()->~Private();
 }
 
@@ -266,7 +267,7 @@ void LongUI::UITextBox::delete_private() noexcept {
 /// Privates the use cached.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::private_use_cached() noexcept {
+void LongUI::UITextField::private_use_cached() noexcept {
     pimpl()->cached = true;
 }
 
@@ -275,7 +276,7 @@ void LongUI::UITextBox::private_use_cached() noexcept {
 /// </summary>
 /// <param name="text">The text.</param>
 /// <returns></returns>
-void LongUI::UITextBox::private_set_text(CUIString&& text) noexcept {
+void LongUI::UITextField::private_set_text(CUIString&& text) noexcept {
     auto& cached = pimpl()->text_cached;
     cached = std::move(text);
 }
@@ -284,7 +285,7 @@ void LongUI::UITextBox::private_set_text(CUIString&& text) noexcept {
 /// Privates the mark readonly.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::private_mark_readonly() noexcept {
+void LongUI::UITextField::private_mark_readonly() noexcept {
     m_flag |= RichED::Flag_GuiReadOnly;
 }
 
@@ -293,7 +294,7 @@ void LongUI::UITextBox::private_mark_readonly() noexcept {
 /// Privates the mark multiline.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::private_mark_multiline() noexcept {
+void LongUI::UITextField::private_mark_multiline() noexcept {
     m_flag |= RichED::Flag_MultiLine;
 }
 
@@ -301,7 +302,7 @@ void LongUI::UITextBox::private_mark_multiline() noexcept {
 /// Privates the mark password.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::private_mark_password() noexcept {
+void LongUI::UITextField::InitMarkPassword() noexcept {
     m_flag |= RichED::Flag_UsePassword;
 }
 
@@ -311,7 +312,7 @@ void LongUI::UITextBox::private_mark_password() noexcept {
 /// Marks the change could trigger.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::mark_change_could_trigger() noexcept {
+void LongUI::UITextField::mark_change_could_trigger() noexcept {
     pimpl()->text_changed = true;
 }
 
@@ -319,7 +320,7 @@ void LongUI::UITextBox::mark_change_could_trigger() noexcept {
 /// Clears the change could trigger.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::clear_change_could_trigger() noexcept {
+void LongUI::UITextField::clear_change_could_trigger() noexcept {
     pimpl()->text_changed = false;
 }
 
@@ -327,8 +328,8 @@ void LongUI::UITextBox::clear_change_could_trigger() noexcept {
 /// Determines whether [is change could trigger].
 /// </summary>
 /// <returns></returns>
-bool LongUI::UITextBox::is_change_could_trigger() const noexcept {
-    fpimpl()->text_changed = false;
+bool LongUI::UITextField::is_change_could_trigger() const noexcept {
+    //fpimpl()->text_changed = false;
     return pimpl()->text_changed;
 }
 
@@ -336,13 +337,13 @@ bool LongUI::UITextBox::is_change_could_trigger() const noexcept {
 /// Shows the caret.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::show_caret() noexcept {
+void LongUI::UITextField::show_caret() noexcept {
+    if (!this->IsFocused()) return;
     auto caret = pimpl()->document().GetCaret();
     // 调整到内容区域
     const auto lt = this->RefBox().GetContentPos();
-    caret.x += lt.x; caret.y += lt.y;
-    // FIXME: 为什么偏了2像素?
-    caret.x -= 2.f;
+    caret.x += lt.x - this->render_positon.x;
+    caret.y += lt.y - this->render_positon.y;
     // GetCaret返回的矩形宽度没有意义, 可以进行自定义
     const float custom_width = 1.0f;
     const float offset_rate = 0.0f;
@@ -362,11 +363,10 @@ void LongUI::UITextBox::show_caret() noexcept {
 /// Privates the update.
 /// </summary>
 /// <returns></returns>
-bool LongUI::UITextBox::private_update() noexcept {
-    bool update_caret = false;
+void LongUI::UITextField::private_update() noexcept {
     auto& doc = pimpl()->document();
     if (const auto values = doc.Update()) {
-        // 所有修改需要重绘
+        // 目前所有修改需要重绘
         this->Invalidate();
         // 选择修改
         //if (values & RichED::Changed_Selection) {
@@ -374,24 +374,32 @@ bool LongUI::UITextBox::private_update() noexcept {
         //}
         // 插入符号
         if (values & RichED::Changed_Caret) {
-            update_caret = true;
+            this->show_caret();
         }
         // 文本修改
         if (values & RichED::Changed_Text) {
             pimpl()->text_changed = true;
             pimpl()->need_request = true;
+            Super::TriggerEvent(this->_onInput());
+        }
+        // 估计大小修改
+        if (values & (RichED::Changed_EstimatedWidth | RichED::Changed_EstimatedHeight)) {
+            // TODO: 为了避免因为滚动条多次刷新, 缩小要小于字体大小才算
+            const auto esize = pimpl()->document().GetEstimatedSize();
+            this->set_contect_minsize({ esize.width, esize.height });
+            m_pParent->NeedUpdate(Reason_ChildLayoutChanged);
         }
     }
-    return update_caret;
 }
+
 
 /// <summary>
 /// Privates the resize.
 /// </summary>
 /// <param name="size">The size.</param>
 /// <returns></returns>
-void LongUI::UITextBox::private_resize(Size2F size) noexcept {
-    pimpl()->document().Resize({ size.width, size.height });
+void LongUI::UITextField::private_resize(Size2F size) noexcept {
+    pimpl()->document().ResizeViewport({ size.width, size.height });
 }
 
 
@@ -400,7 +408,7 @@ void LongUI::UITextBox::private_resize(Size2F size) noexcept {
 /// textbox need update
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::need_update() noexcept {
+void LongUI::UITextField::need_update() noexcept {
     this->NeedUpdate(Reason_NonChanged);
 }
 
@@ -408,7 +416,7 @@ void LongUI::UITextBox::need_update() noexcept {
 /// Privates the font changed.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::private_tf_changed(bool layout) noexcept {
+void LongUI::UITextField::private_tf_changed(bool layout) noexcept {
     this->Invalidate();
     auto& doc = pimpl()->document();
     Private::ToRichED(m_tfBuffer, doc.default_riched);
@@ -428,7 +436,7 @@ void LongUI::UITextBox::private_tf_changed(bool layout) noexcept {
 /// <param name="pos">The position.</param>
 /// <param name="shift">if set to <c>true</c> [shift].</param>
 /// <returns></returns>
-bool LongUI::UITextBox::private_mouse_down(Point2F pos, bool shift) noexcept {
+bool LongUI::UITextField::private_mouse_down(Point2F pos, bool shift) noexcept {
     this->need_update();
     auto& doc = pimpl()->document();
     const auto lt = this->RefBox().GetContentPos();
@@ -441,7 +449,7 @@ bool LongUI::UITextBox::private_mouse_down(Point2F pos, bool shift) noexcept {
 /// </summary>
 /// <param name="pos">The position.</param>
 /// <returns></returns>
-bool LongUI::UITextBox::private_mouse_up(Point2F pos) noexcept {
+bool LongUI::UITextField::private_mouse_up(Point2F pos) noexcept {
     //auto& doc = pimpl()->document();
     //const auto lt = this->RefBox().GetContentPos();
     //doc.OnLButtonUp({ pos.x - lt.x, pos.y - lt.y });
@@ -455,7 +463,7 @@ bool LongUI::UITextBox::private_mouse_up(Point2F pos) noexcept {
 /// </summary>
 /// <param name="pos">The position.</param>
 /// <returns></returns>
-bool LongUI::UITextBox::private_mouse_move(Point2F pos) noexcept {
+bool LongUI::UITextField::private_mouse_move(Point2F pos) noexcept {
     this->need_update();
     auto& doc = pimpl()->document();
     const auto lt = this->RefBox().GetContentPos();
@@ -470,7 +478,7 @@ bool LongUI::UITextBox::private_mouse_move(Point2F pos) noexcept {
 /// Privates the left.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::private_left() noexcept {
+void LongUI::UITextField::private_left() noexcept {
     const auto ctrl = CUIInputKM::GetKeyState(CUIInputKM::KB_CONTROL);
     const auto shift = CUIInputKM::GetKeyState(CUIInputKM::KB_SHIFT);
     pimpl()->document().OnLeft(ctrl, shift);
@@ -480,7 +488,7 @@ void LongUI::UITextBox::private_left() noexcept {
 /// Privates the right.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::private_right() noexcept {
+void LongUI::UITextField::private_right() noexcept {
     const auto ctrl = CUIInputKM::GetKeyState(CUIInputKM::KB_CONTROL);
     const auto shift = CUIInputKM::GetKeyState(CUIInputKM::KB_SHIFT);
     pimpl()->document().OnRight(ctrl, shift);
@@ -490,7 +498,7 @@ void LongUI::UITextBox::private_right() noexcept {
 /// Privates up.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::private_up() noexcept {
+void LongUI::UITextField::private_up() noexcept {
     const auto shift = CUIInputKM::GetKeyState(CUIInputKM::KB_SHIFT);
     pimpl()->document().OnUp(shift);
 }
@@ -499,7 +507,7 @@ void LongUI::UITextBox::private_up() noexcept {
 /// Privates down.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::private_down() noexcept {
+void LongUI::UITextField::private_down() noexcept {
     const auto shift = CUIInputKM::GetKeyState(CUIInputKM::KB_SHIFT);
     pimpl()->document().OnDown(shift);
 }
@@ -509,7 +517,7 @@ void LongUI::UITextBox::private_down() noexcept {
 /// </summary>
 /// <param name="key">The key.</param>
 /// <returns></returns>
-bool LongUI::UITextBox::private_keydown(uint32_t key) noexcept {
+bool LongUI::UITextField::private_keydown(uint32_t key) noexcept {
     bool error_code = true;
     this->need_update();
     auto& doc = pimpl()->document();
@@ -543,11 +551,8 @@ bool LongUI::UITextBox::private_keydown(uint32_t key) noexcept {
         break;
     case CUIInputKM::KB_RETURN:
         // 回车返回键
-        if (!doc.GuiReturn()) {
-            // 处理
-            const auto c = this->try_trigger_change_event();
-            const auto i = Super::TriggerEvent(this->_onInput()) != Event_Ignore;
-            error_code = c || i;
+        if (!doc.GuiReturn() /*&& e.sequence*/) {
+            error_code = this->try_trigger_change_event();
         }
         break;
     case CUIInputKM::KB_A:
@@ -574,10 +579,10 @@ bool LongUI::UITextBox::private_keydown(uint32_t key) noexcept {
 }
 
 /// <summary>
-/// GUIs the select all.
+/// GUI Level API - select all
 /// </summary>
 /// <returns></returns>
-bool LongUI::UITextBox::GuiSelectAll() noexcept {
+bool LongUI::UITextField::GuiSelectAll() noexcept {
     this->need_update();
     auto& doc = pimpl()->document();
     return doc.GuiSelectAll();
@@ -587,7 +592,7 @@ bool LongUI::UITextBox::GuiSelectAll() noexcept {
 /// GUIs the undo.
 /// </summary>
 /// <returns></returns>
-bool LongUI::UITextBox::GuiUndo() noexcept {
+bool LongUI::UITextField::GuiUndo() noexcept {
     this->need_update();
     auto& doc = pimpl()->document();
     return doc.GuiUndo();
@@ -598,7 +603,7 @@ bool LongUI::UITextBox::GuiUndo() noexcept {
 /// GUIs the redo.
 /// </summary>
 /// <returns></returns>
-bool LongUI::UITextBox::GuiRedo() noexcept {
+bool LongUI::UITextField::GuiRedo() noexcept {
     this->need_update();
     auto& doc = pimpl()->document();
     return doc.GuiRedo();
@@ -610,7 +615,7 @@ PCN_NOINLINE
 /// </summary>
 /// <param name="cut">if set to <c>true</c> [cut].</param>
 /// <returns></returns>
-bool LongUI::UITextBox::GuiCopyCut(bool cut) noexcept {
+bool LongUI::UITextField::GuiCopyCut(bool cut) noexcept {
     this->need_update();
     auto& doc = pimpl()->document();
     // 获取选中文本
@@ -633,7 +638,7 @@ PCN_NOINLINE
 /// GUIs the paste.
 /// </summary>
 /// <returns></returns>
-bool LongUI::UITextBox::GuiPaste() noexcept {
+bool LongUI::UITextField::GuiPaste() noexcept {
     this->need_update();
     auto& doc = pimpl()->document();
     CUIString text;
@@ -642,6 +647,14 @@ bool LongUI::UITextBox::GuiPaste() noexcept {
     static_assert(sizeof(*text.data()) == sizeof(char16_t), "");
     const auto ptr = reinterpret_cast<const char16_t*>(text.c_str());
     return doc.GuiText({ ptr,  ptr + text.length() });
+}
+
+/// <summary>
+/// has text
+/// </summary>
+/// <returns></returns>
+bool LongUI::UITextField::GuiHasText() const noexcept {
+    return pimpl()->document().GuiHasText();
 }
 
 // longui namespace
@@ -658,7 +671,7 @@ namespace LongUI {
 /// Determines whether this instance can copy.
 /// </summary>
 /// <returns></returns>
-bool LongUI::UITextBox::CanCopy() const noexcept {
+bool LongUI::UITextField::CanCopy() const noexcept {
     auto& doc = pimpl()->document();
     const auto range = doc.GetSelectionRange();
     // 拥有选择区既可复制
@@ -670,7 +683,7 @@ bool LongUI::UITextBox::CanCopy() const noexcept {
 /// Determines whether this instance can cut.
 /// </summary>
 /// <returns></returns>
-bool LongUI::UITextBox::CanCut() const noexcept {
+bool LongUI::UITextField::CanCut() const noexcept {
     const bool op1 = !(m_flag & RichED::Flag_GuiReadOnly);
     auto& doc = pimpl()->document();
     const auto range = doc.GetSelectionRange();
@@ -684,7 +697,7 @@ bool LongUI::UITextBox::CanCut() const noexcept {
 /// Determines whether this instance can redo.
 /// </summary>
 /// <returns></returns>
-bool LongUI::UITextBox::CanRedo() const noexcept {
+bool LongUI::UITextField::CanRedo() const noexcept {
     auto& doc = pimpl()->document();
     return false;
 }
@@ -693,7 +706,7 @@ bool LongUI::UITextBox::CanRedo() const noexcept {
 /// Determines whether this instance can undo.
 /// </summary>
 /// <returns></returns>
-bool LongUI::UITextBox::CanUndo() const noexcept {
+bool LongUI::UITextField::CanUndo() const noexcept {
     auto& doc = pimpl()->document();
     return false;
 }
@@ -703,23 +716,24 @@ bool LongUI::UITextBox::CanUndo() const noexcept {
 /// Renders this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::Render() const noexcept {
+void LongUI::UITextField::Render() const noexcept {
     Super::Render();
 #ifndef NDEBUG
-    const_cast<UITextBox*>(this)->dbg_counter = 0;
+    const_cast<UITextField*>(this)->dbg_counter = 0;
 #endif // !NDEBUG
     auto& ctx = UIManager.Ref2DRenderer();
     // 设置渲染偏移
     const auto lt = this->RefBox().GetContentPos();
     Matrix3X2F matrix;
     ctx.GetTransform(&auto_cast(matrix));
-    matrix._31 += lt.x;
-    matrix._32 += lt.y;
+    // TODO: 使用矩阵相乘
+    matrix._31 += (lt.x - render_positon.x) * matrix._11;
+    matrix._32 += (lt.y - render_positon.y) * matrix._22;
     ctx.SetTransform(&auto_cast(matrix));
     // 设置剪切区域
-    const auto sz = this->RefBox().GetContentSize();
-    const auto mode = D2D1_ANTIALIAS_MODE_PER_PRIMITIVE;
-    ctx.PushAxisAlignedClip({ 0, 0, sz.width, sz.height }, mode);
+    //const auto sz = this->RefBox().GetContentSize();
+    //const auto mode = D2D1_ANTIALIAS_MODE_PER_PRIMITIVE;
+    //ctx.PushAxisAlignedClip({ 0, 0, sz.width, sz.height }, mode);
     // TODO: 是移动到渲染线程加UI锁?
     //       还是移动到UI线程加渲染锁?
     //       还是用一个自己的锁?
@@ -729,7 +743,7 @@ void LongUI::UITextBox::Render() const noexcept {
         fpimpl()->document().Render(&ctx);
     }
     // 弹出剪切区域
-    ctx.PopAxisAlignedClip();
+    //ctx.PopAxisAlignedClip();
 }
 
 
@@ -737,7 +751,7 @@ void LongUI::UITextBox::Render() const noexcept {
 /// Sets the text.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::private_set_text() noexcept {
+void LongUI::UITextField::private_set_text() noexcept {
     const auto text = pimpl()->text_cached.view();
     //pimpl()->document().SetText({ text.begin(), text.end() });
     // 删除全部再添加 XXX: ???
@@ -751,7 +765,7 @@ void LongUI::UITextBox::private_set_text() noexcept {
 /// </summary>
 /// <param name="text">The text.</param>
 /// <returns></returns>
-void LongUI::UITextBox::SetText(CUIString&& text) noexcept {
+void LongUI::UITextField::SetText(CUIString&& text) noexcept {
     Private::SetText(*this, std::move(text));
 }
 
@@ -760,7 +774,7 @@ void LongUI::UITextBox::SetText(CUIString&& text) noexcept {
 /// </summary>
 /// <param name="text">The text.</param>
 /// <returns></returns>
-void LongUI::UITextBox::SetText(const CUIString & text) noexcept {
+void LongUI::UITextField::SetText(const CUIString & text) noexcept {
     return this->SetText(text.view());
 }
 
@@ -769,7 +783,7 @@ void LongUI::UITextBox::SetText(const CUIString & text) noexcept {
 /// </summary>
 /// <param name="view">The view.</param>
 /// <returns></returns>
-void LongUI::UITextBox::SetText(U16View view) noexcept {
+void LongUI::UITextField::SetText(U16View view) noexcept {
     Private::SetText(*this, view);
 }
 
@@ -778,26 +792,18 @@ void LongUI::UITextBox::SetText(U16View view) noexcept {
 /// Requests the text.
 /// </summary>
 /// <returns></returns>
-auto LongUI::UITextBox::RequestText() noexcept -> const CUIString & {
+auto LongUI::UITextField::RequestText() noexcept -> const CUIString & {
     auto& doc = pimpl()->document();
     if (pimpl()->need_request) {
         pimpl()->need_request = false;
+        pimpl()->text_cached.clear();
         doc.GenText(&pimpl()->text_cached, {}, { doc.GetLogicLineCount() });
     }
     return pimpl()->text_cached;
 }
 
 
-/// <summary>
-/// get value ass double
-/// </summary>
-/// <returns></returns>
-auto LongUI::UITextBox::GetValueAsDouble() noexcept -> double {
-    return this->RequestText().view().ToDouble(m_chDecimal);
-}
-
 // --------------------- IEDTextPlatform 实现 -------------------------
-
 
 
 /// <summary>
@@ -806,7 +812,7 @@ auto LongUI::UITextBox::GetValueAsDouble() noexcept -> double {
 /// <param name="retry_count">The retry count.</param>
 /// <param name="size">The size.</param>
 /// <returns></returns>
-auto LongUI::UITextBox::OnOOM(size_t retry_count, size_t size) noexcept->RichED::HandleOOM {
+auto LongUI::UITextField::OnOOM(size_t retry_count, size_t size) noexcept->RichED::HandleOOM {
 #ifdef RED_CUSTOM_ALLOCFUNC
     // 已经由LongUI处理了
     return RichED::OOM_Ignore;
@@ -821,7 +827,7 @@ auto LongUI::UITextBox::OnOOM(size_t retry_count, size_t size) noexcept->RichED:
 /// </summary>
 /// <param name="ch">The ch.</param>
 /// <returns></returns>
-bool LongUI::UITextBox::IsValidPassword(char32_t ch) noexcept {
+bool LongUI::UITextField::IsValidPassword(char32_t ch) noexcept {
     return ch > 0x20 && ch < 0x80;
 }
 
@@ -831,7 +837,7 @@ bool LongUI::UITextBox::IsValidPassword(char32_t ch) noexcept {
 /// <param name="ctx">The CTX.</param>
 /// <param name="view">The view.</param>
 /// <returns></returns>
-bool LongUI::UITextBox::AppendText(CtxPtr ctx, RichED::U16View view) noexcept {
+bool LongUI::UITextField::AppendText(CtxPtr ctx, RichED::U16View view) noexcept {
     const auto string = static_cast<CUIString*>(ctx);
     const auto guiview = U16View{ view.first, view.second };
     string->append(guiview);
@@ -845,7 +851,7 @@ bool LongUI::UITextBox::AppendText(CtxPtr ctx, RichED::U16View view) noexcept {
 /// <param name="data">The data.</param>
 /// <param name="len">The length.</param>
 /// <returns></returns>
-bool LongUI::UITextBox::WriteToFile(CtxPtr, const uint8_t data[], uint32_t len) noexcept {
+bool LongUI::UITextField::WriteToFile(CtxPtr, const uint8_t data[], uint32_t len) noexcept {
     return false;
 }
 
@@ -856,7 +862,7 @@ bool LongUI::UITextBox::WriteToFile(CtxPtr, const uint8_t data[], uint32_t len) 
 /// <param name="data">The data.</param>
 /// <param name="len">The length.</param>
 /// <returns></returns>
-bool LongUI::UITextBox::ReadFromFile(CtxPtr, uint8_t data[], uint32_t len) noexcept {
+bool LongUI::UITextField::ReadFromFile(CtxPtr, uint8_t data[], uint32_t len) noexcept {
     return false;
 }
 
@@ -866,7 +872,7 @@ bool LongUI::UITextBox::ReadFromFile(CtxPtr, uint8_t data[], uint32_t len) noexc
 /// </summary>
 /// <param name="cell">The cell.</param>
 /// <returns></returns>
-void LongUI::UITextBox::RecreateContext(CEDTextCell& cell) noexcept {
+void LongUI::UITextField::RecreateContext(CEDTextCell& cell) noexcept {
     // 图片
     if (cell.RefMetaInfo().metatype == RichED::Type_Image)
         this->recreate_img_context(cell);
@@ -880,7 +886,7 @@ void LongUI::UITextBox::RecreateContext(CEDTextCell& cell) noexcept {
 /// </summary>
 /// <param name="cell">The cell.</param>
 /// <returns></returns>
-void LongUI::UITextBox::DeleteContext(CEDTextCell& cell) noexcept {
+void LongUI::UITextField::DeleteContext(CEDTextCell& cell) noexcept {
 #ifndef NDEBUG
     if (cell.ctx.context) {
         int bk = 9;
@@ -902,7 +908,7 @@ void LongUI::UITextBox::DeleteContext(CEDTextCell& cell) noexcept {
 /// <param name="cell">The cell.</param>
 /// <param name="baseline">The baseline.</param>
 /// <returns></returns>
-void LongUI::UITextBox::DrawContext(CtxPtr ctx, CEDTextCell& cell, unit_t baseline) noexcept {
+void LongUI::UITextField::DrawContext(CtxPtr ctx, CEDTextCell& cell, unit_t baseline) noexcept {
     // 图片
     if (cell.RefMetaInfo().metatype == RichED::Type_Image)
         this->draw_img_context(ctx, cell, baseline);
@@ -922,7 +928,7 @@ void LongUI::UITextBox::DrawContext(CtxPtr ctx, CEDTextCell& cell, unit_t baseli
 /// <param name="cell">The cell.</param>
 /// <param name="offset">The offset.</param>
 /// <returns></returns>
-auto LongUI::UITextBox::HitTest(CEDTextCell& cell, unit_t offset) noexcept -> RichED::CellHitTest {
+auto LongUI::UITextField::HitTest(CEDTextCell& cell, unit_t offset) noexcept -> RichED::CellHitTest {
     RichED::CellHitTest rv = { 0 };
     // 内联对象
     if (cell.RefMetaInfo().metatype >= RichED::Type_InlineObject) {
@@ -958,7 +964,7 @@ auto LongUI::UITextBox::HitTest(CEDTextCell& cell, unit_t offset) noexcept -> Ri
 /// <param name="cell">The cell.</param>
 /// <param name="pos">The position.</param>
 /// <returns></returns>
-auto LongUI::UITextBox::GetCharMetrics(CEDTextCell& cell, uint32_t pos) noexcept -> RichED::CharMetrics {
+auto LongUI::UITextField::GetCharMetrics(CEDTextCell& cell, uint32_t pos) noexcept -> RichED::CharMetrics {
     RichED::CharMetrics cm = { 0 };
     // 内联对象
     if (cell.RefMetaInfo().metatype >= RichED::Type_InlineObject) {
@@ -1022,14 +1028,26 @@ auto LongUI::UITextBox::GetCharMetrics(CEDTextCell& cell, uint32_t pos) noexcept
 /// </summary>
 /// <param name="">The .</param>
 /// <returns></returns>
-void LongUI::UITextBox::DebugOutput(const char* txt, bool high) noexcept {
-    if (high) 
-        LUIDebug(Error) << CUIString::FromUtf8(txt) << endl;
+void LongUI::UITextField::DebugOutput(const char* txt, bool high) noexcept {
+    if (high)
+        LUIDebug(Warning) << CUIString::FromUtf8(txt) << endl;
     else if (m_state.dbg_output) 
         LUIDebug(Hint) << CUIString::FromUtf8(txt) << endl;
 }
 #endif
 
+
+/// <summary>
+/// set the rendering position
+/// </summary>
+/// <param name="pt"></param>
+/// <returns></returns>
+void LongUI::UITextField::UpdateRenderPostion() noexcept {
+    const auto pt = this->render_positon;
+    pimpl()->document().MoveViewportAbs({ pt.x, pt.y });
+    this->need_update();
+    this->show_caret();
+}
 
 
 /// <summary>
@@ -1037,7 +1055,7 @@ void LongUI::UITextBox::DebugOutput(const char* txt, bool high) noexcept {
 /// </summary>
 /// <param name="renderer">The renderer.</param>
 /// <returns></returns>
-void LongUI::UITextBox::draw_selection(I::Renderer2D& renderer) const noexcept {
+void LongUI::UITextField::draw_selection(I::Renderer2D& renderer) const noexcept {
     const auto& vec = fpimpl()->document().RefSelection();
     if (!vec.GetSize()) return;
     // XXX: 获取选择颜色
@@ -1061,7 +1079,7 @@ void LongUI::UITextBox::draw_selection(I::Renderer2D& renderer) const noexcept {
 /// <param name="cell">The cell.</param>
 /// <param name="baseline">The baseline.</param>
 /// <returns></returns>
-void LongUI::UITextBox::draw_img_context(CtxPtr ctx, CEDTextCell& cell, unit_t baseline) const noexcept {
+void LongUI::UITextField::draw_img_context(CtxPtr ctx, CEDTextCell& cell, unit_t baseline) const noexcept {
     assert(!"NOT IMPL");
 }
 
@@ -1072,7 +1090,7 @@ void LongUI::UITextBox::draw_img_context(CtxPtr ctx, CEDTextCell& cell, unit_t b
 /// <param name="cell">The cell.</param>
 /// <param name="baseline">The baseline.</param>
 /// <returns></returns>
-void LongUI::UITextBox::draw_nom_context(CtxPtr ctx, CEDTextCell& cell, unit_t baseline) const noexcept {
+void LongUI::UITextField::draw_nom_context(CtxPtr ctx, CEDTextCell& cell, unit_t baseline) const noexcept {
     const auto renderer = static_cast<I::Renderer2D*>(ctx);
     D2D1_POINT_2F point; assert(renderer);
     point.x = cell.metrics.pos + cell.metrics.offset.x;
@@ -1082,7 +1100,7 @@ void LongUI::UITextBox::draw_nom_context(CtxPtr ctx, CEDTextCell& cell, unit_t b
         point.y = baseline - cell.metrics.ar_height + cell.metrics.offset.y;
 #ifndef NDEBUG
         if (UIManager.flag & ConfigureFlag::Flag_DbgDrawTextCell) {
-            const auto cthis = const_cast<UITextBox*>(this);
+            const auto cthis = const_cast<UITextField*>(this);
             const auto& color_d = cthis->dbg_color[++cthis->dbg_counter & 1];
             D2D1_RECT_F cell_rect;
             cell_rect.left = point.x + cell.metrics.bounding.left;
@@ -1116,7 +1134,7 @@ void LongUI::UITextBox::draw_nom_context(CtxPtr ctx, CEDTextCell& cell, unit_t b
 /// <param name="cell">The cell.</param>
 /// <param name="baseline">The baseline.</param>
 /// <returns></returns>
-void LongUI::UITextBox::draw_efx_context(CtxPtr ctx, CEDTextCell & cell, unit_t baseline) const noexcept {
+void LongUI::UITextField::draw_efx_context(CtxPtr ctx, CEDTextCell & cell, unit_t baseline) const noexcept {
     // TODO: 富文本效果
     if (!(m_flag & RichED::Flag_RichText)) return;
     const auto renderer = static_cast<I::Renderer2D*>(ctx);
@@ -1140,7 +1158,7 @@ void LongUI::UITextBox::draw_efx_context(CtxPtr ctx, CEDTextCell & cell, unit_t 
 /// </summary>
 /// <param name="cell">The cell.</param>
 /// <returns></returns>
-void LongUI::UITextBox::recreate_img_context(CEDTextCell& cell) noexcept {
+void LongUI::UITextField::recreate_img_context(CEDTextCell& cell) noexcept {
     assert(!"NOT IMPL");
 }
 
@@ -1150,7 +1168,7 @@ void LongUI::UITextBox::recreate_img_context(CEDTextCell& cell) noexcept {
 /// </summary>
 /// <param name="cell">The cell.</param>
 /// <returns></returns>
-void LongUI::UITextBox::recreate_nom_context(CEDTextCell& cell) noexcept {
+void LongUI::UITextField::recreate_nom_context(CEDTextCell& cell) noexcept {
     // 释放之前的文本
     const auto prev_text = reinterpret_cast<I::Text*>(cell.ctx.context);
     cell.ctx.context = nullptr;

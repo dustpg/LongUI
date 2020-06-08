@@ -7,7 +7,7 @@
 // 子控件
 #include <core/ui_unsafe.h>
 #include <constexpr/const_bkdr.h>
-#include <control/ui_boxlayout.h>
+#include <control/ui_box.h>
 // Private
 #include "../private/ui_private_control.h"
 
@@ -114,6 +114,7 @@ LongUI::UICheckBox::UICheckBox(const MetaControl& meta) noexcept : Super(meta),
     m_oBox.padding = { 4, 1, 2, 1 };
     m_state.tabstop = true;
     m_state.focusable = true;
+    m_state.capturable = true;
     // 阻隔鼠标事件写入false之前需要写入
     m_oImage.RefInheritedMask() = State_MouseCutInher;
     m_oLabel.RefInheritedMask() = State_MouseCutInher;

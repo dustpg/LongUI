@@ -9,7 +9,7 @@
 
 const auto xul = u8R"xml(
 <?xml version="1.0"?>
-<window clearcolor="white" title="lui demo">
+<window lui:clearcolor="white" title="lui demo">
   <spacer flex="1"/>
   <hbox>
     <spacer flex="1"/>

@@ -35,9 +35,9 @@ LongUI::CUIFile::CUIFile(OpenFlag flag, const char16_t* filename) noexcept {
     // 总是打开, 没有就创建
     if (flag & Flag_OpenAlways) creation |= OPEN_ALWAYS;
     // UTF-8转换
-    CUIStringEx path;
+    CUIString path;
     if (flag & Flag_UTF8FileName) {
-        path = path.FromUtf8(reinterpret_cast<const char*>(filename));
+        path = CUIString::FromUtf8(reinterpret_cast<const char*>(filename));
         filename = path.c_str();
     }
     // 创建文件句柄

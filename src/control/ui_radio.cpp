@@ -6,7 +6,7 @@
 #include <debugger/ui_debug.h>
 #include <control/ui_radiogroup.h>
 // 子控件
-#include <control/ui_boxlayout.h>
+#include <control/ui_box.h>
 // Private
 #include "../private/ui_private_control.h"
 
@@ -37,6 +37,7 @@ LongUI::UIRadio::UIRadio(const MetaControl& meta) noexcept : Super(meta),
     m_oImage(this), m_oLabel(this) {
     m_state.tabstop = true;
     m_state.focusable = true;
+    m_state.capturable = true;
     m_state.orient = Orient_Horizontal;
     m_oStyle.align = AttributeAlign::Align_Center;
     // 阻隔鼠标事件写入false之前需要写入

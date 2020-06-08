@@ -73,7 +73,11 @@ namespace LongUI {
         // set default minsize
         void SetAsDefaultMinsize() noexcept;
         // as same tf to another label
-        void SameTfAs(const UILabel& l) noexcept { m_tfBuffer = l.m_tfBuffer; }
+        void SameTfAs(const TextFont& l) noexcept { m_tfBuffer = l; }
+        // as same tf to another label
+        void SameTfAs(const FontArg& l) noexcept { m_tfBuffer.font = l; }
+        // ref textfont
+        auto&RefTextFont() const noexcept { return m_tfBuffer; }
     public:
         // set connection control
         void SetControl(UIControl& ctrl) noexcept { m_control.SetControl(&ctrl); }

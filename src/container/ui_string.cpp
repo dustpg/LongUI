@@ -442,6 +442,7 @@ void LongUI::detail::string_helper::string_u16_u8(base_str& str, const char16_t*
     }
 }
 
+PCN_NOINLINE
 /// <summary>
 /// format double to string with decimal sysbol/places
 /// </summary>

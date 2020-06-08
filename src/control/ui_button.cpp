@@ -1,5 +1,10 @@
-﻿// Gui
+﻿// conf
 #include <luiconf.h>
+// 控件
+#include <control/ui_button.h>
+#include <control/ui_box.h>
+#include <control/ui_menupopup.h>
+// Gui
 #include <core/ui_string.h>
 #include <core/ui_window.h>
 #include <core/ui_manager.h>
@@ -8,10 +13,6 @@
 #include <debugger/ui_debug.h>
 #include <event/ui_group_event.h>
 #include <core/ui_popup_window.h>
-// 控件
-#include <control/ui_button.h>
-#include <control/ui_boxlayout.h>
-#include <control/ui_menupopup.h>
 #include <constexpr/const_bkdr.h>
 // Private
 #include <core/ui_unsafe.h>
@@ -73,6 +74,7 @@ LongUI::UIButton::UIButton(const MetaControl& meta) noexcept : Super(meta),
     m_state.focusable = true;
     m_state.tabstop = true;
     m_state.defaultable = true;
+    m_state.capturable = true;
     // 阻隔鼠标事件
     m_state.mouse_continue = false;
     this->make_offset_tf_direct(m_oLabel);
@@ -184,11 +186,15 @@ auto LongUI::UIButton::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
     switch (e.event)
     {
     case InputEvent::Event_KeyDown:
-        if (e.character == CUIInputKM::KB_RETURN) {
+        if (!e.sequence && e.character == CUIInputKM::KB_RETURN) {
             this->Click();
             return Event_Accept;
         }
         break;
+    case InputEvent::Event_KeyUp:
+        if (e.character == CUIInputKM::KB_SPACE)
+            this->Click();
+        [[fallthrough]];
     }
     return Super::DoInputEvent(e);
 }

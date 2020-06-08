@@ -435,7 +435,7 @@ auto LongUI::CUIDebug::operator<<(const LongUI::Size2F& sz) noexcept ->CUIDebug&
 /// <param name="s">The s.</param>
 /// <returns></returns>
 void LongUI::CUIDebug::Output(DebugStringLevel l, const char* s) noexcept {
-    const auto c = LongUI::CUIStringEx::FromUtf8(s);
+    const auto c = LongUI::CUIString::FromUtf8(s);
     this->Output(l, c.c_str());
 }
 
@@ -457,7 +457,7 @@ void LongUI::CUIDebug::Output(DebugStringLevel l, const char16_t* s) noexcept {
 /// <param name="s">The s.</param>
 /// <returns></returns>
 void LongUI::CUIDebug::OutputNoFlush(DebugStringLevel l, const char* s) noexcept {
-    const auto c = LongUI::CUIStringEx::FromUtf8(s);
+    const auto c = LongUI::CUIString::FromUtf8(s);
     this->OutputNoFlush(l, c.c_str());
 }
 

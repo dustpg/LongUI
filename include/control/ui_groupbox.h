@@ -27,7 +27,7 @@
 // ui
 #include "ui_control.h"
 // tmp->hbox
-#include "ui_boxlayout.h"
+#include "ui_box.h"
 
 // ui namespace
 namespace LongUI {

@@ -38,8 +38,14 @@ struct LongUI::UIControlPrivate {
     // ----------- INLINE ZONE ----------------
     // ref last end time capsule
     static auto&RefLastEnd(UIControl& ctrl) noexcept { return ctrl.m_pLastEnd; }
-    // set focusable
-    static void SetFocusable(UIControl& ctrl, bool f) noexcept { ctrl.m_state.focusable = f; }
+    // set focusable - false
+    static void SetFocusable0(UIControl& ctrl) noexcept { ctrl.m_state.focusable = false; }
+    // set focusable - true
+    static void SetFocusable1(UIControl& ctrl) noexcept { ctrl.m_state.focusable = true; }
+    // set capturable - false
+    static void SetCapturable0(UIControl& ctrl) noexcept { ctrl.m_state.capturable = false; }
+    // set capturable - true
+    static void SetCapturable1(UIControl& ctrl) noexcept { ctrl.m_state.capturable = true; }
     // set appearance
     static void SetAppearance(UIControl& ctrl, AttributeAppearance a) noexcept { ctrl.m_oStyle.appearance = a; }
     // set appearance if weak

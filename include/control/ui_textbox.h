@@ -25,6 +25,8 @@
 */
 
 // ui header
+#include "ui_label.h"
+#include "ui_textfield.h"
 #include "ui_scrollarea.h"
 #include "../style/ui_text.h"
 #include "../core/ui_string.h"
@@ -43,35 +45,14 @@
 // C++
 #include <type_traits>
 
-// ui namespace
+// longui namespace
 namespace LongUI {
-    // longui <-> riched
-    using RichED::unit_t;
-    using RichED::CtxPtr;
-    using RichED::CEDTextCell;
-    // impl
-    namespace impl {
-        template<size_t> struct textbox_helper;
-#ifndef NDEBUG
-        template<> struct textbox_helper<4> {
-            enum { uitextbox_private = 592 };
-        };
-        template<> struct textbox_helper<8> {
-            enum { uitextbox_private = 664 };
-        };
-#else
-        template<> struct textbox_helper<4> {
-            enum { uitextbox_private = 336 };
-        };
-        template<> struct textbox_helper<8> {
-            enum { uitextbox_private = 408 };
-        };
-#endif
-    }
+    // spin buttons
+    class UISpinButtons;
     // textbox
-    class UITextBox : public UIControl, protected RichED::IEDTextPlatform {
+    class UITextBox : public UIScrollArea {
         // super class
-        using Super = UIControl;
+        using Super = UIScrollArea;
         // private impl
         struct Private;
     protected:
@@ -86,25 +67,25 @@ namespace LongUI {
         //static inline constexpr auto _selectionChanged() noexcept { return GuiEvent::Event_Select; }
     public:
         // Gui OP - SelectAll
-        bool GuiSelectAll() noexcept;
+        bool GuiSelectAll() noexcept { return m_oTextField.GuiSelectAll(); }
         // Gui OP - Undo
-        bool GuiUndo() noexcept;
+        bool GuiUndo() noexcept { return m_oTextField.GuiUndo(); }
         // Gui OP - Redo
-        bool GuiRedo() noexcept;
+        bool GuiRedo() noexcept { return m_oTextField.GuiRedo(); }
         // Gui OP - Copy to Clipboard
-        bool GuiCopyCut(bool cut) noexcept;
+        bool GuiCopyCut(bool cut) noexcept { return m_oTextField.GuiCopyCut(cut); }
         // Gui OP - Paste from Clipboard
-        bool GuiPaste() noexcept;
+        bool GuiPaste() noexcept { return m_oTextField.GuiPaste(); }
     public:
         // can do 'Copy'
-        bool CanCopy() const noexcept;
+        bool CanCopy() const noexcept { return m_oTextField.CanCopy(); }
         // can do 'Cut'
-        bool CanCut() const noexcept;
+        bool CanCut() const noexcept { return m_oTextField.CanCut(); }
 #if 0
         // can do 'Redo'
-        bool CanRedo() const noexcept;
+        bool CanRedo() const noexcept { return m_oTextField.CanRedo(); }
         // can do 'Redo'
-        bool CanUndo() const noexcept;
+        bool CanUndo() const noexcept { return m_oTextField.CanUndo(); }
 #endif
     public:
         // class meta
@@ -113,6 +94,15 @@ namespace LongUI {
         ~UITextBox() noexcept;
         // ctor
         explicit UITextBox(UIControl* parent = nullptr) noexcept : UITextBox(UITextBox::s_meta) { this->final_ctor(parent); }
+        // type
+        enum TextBoxType : uint8_t {
+            // type:    normal
+            Type_Normal     = 0,
+            // type:    number
+            Type_Number,
+            // type:    password
+            Type_Password,
+        };
     public:
         // trigger event
         auto TriggerEvent(GuiEvent event) noexcept->EventAccept override;
@@ -121,66 +111,26 @@ namespace LongUI {
         // update this
         void Update(UpdateReason reason) noexcept override;
         // render
-        void Render() const noexcept override;
+        //void Render() const noexcept override;
         // mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept -> EventAccept override;
         // input event
         auto DoInputEvent(InputEventArg e) noexcept->EventAccept override;
-        // recreate device resource
-        auto Recreate(bool release_only) noexcept->Result override;
     protected:
-        // on out of memory, won't be called on ctor
-        auto OnOOM(size_t retry_count, size_t size) noexcept->RichED::HandleOOM override;
-        // is valid password
-        bool IsValidPassword(char32_t) noexcept override;
-        // append text
-        bool AppendText(CtxPtr ctx, RichED::U16View view) noexcept override;
-        // write to file
-        bool WriteToFile(CtxPtr, const uint8_t data[], uint32_t len) noexcept override;
-        // read from file
-        bool ReadFromFile(CtxPtr, uint8_t data[], uint32_t len) noexcept override;
-        // recreate context
-        void RecreateContext(CEDTextCell& cell) noexcept final override;
-        // delete context
-        void DeleteContext(CEDTextCell&) noexcept final override;
-        // draw context
-        void DrawContext(CtxPtr,CEDTextCell&, unit_t baseline) noexcept override;
-        // hit test
-        auto HitTest(CEDTextCell&, unit_t offset) noexcept->RichED::CellHitTest override;
-        // get char metrics
-        auto GetCharMetrics(CEDTextCell&, uint32_t pos) noexcept->RichED::CharMetrics override;
-#ifndef NDEBUG
-        // debug output
-        void DebugOutput(const char*, bool high) noexcept override;
-#endif
-    protected:
-        // draw selection
-        void draw_selection(I::Renderer2D&) const noexcept;
-        // draw img context
-        void draw_img_context(CtxPtr,CEDTextCell& cell, unit_t baseline) const noexcept;
-        // draw normal context
-        void draw_nom_context(CtxPtr,CEDTextCell& cell, unit_t baseline) const noexcept;
-        // draw effect context
-        void draw_efx_context(CtxPtr, CEDTextCell& cell, unit_t baseline) const noexcept;
-        // recreate img context
-        void recreate_img_context(CEDTextCell& cell) noexcept;
-        // recreate normal context
-        void recreate_nom_context(CEDTextCell& cell) noexcept;
-    protected:
-        // need update
-        void need_update() noexcept;
+        // init minsize
+        void init_minsize() noexcept;
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
-        // try trigger change event
-        bool try_trigger_change_event() noexcept;
-        // mark change event could be triggered
-        void mark_change_could_trigger() noexcept;
-        // clear change event could be triggered
-        void clear_change_could_trigger() noexcept;
-        // is change event could be triggered?
-        bool is_change_could_trigger() const noexcept;
-        // show caret
-        void show_caret() noexcept;
+        // need relayout
+        auto is_need_relayout() const noexcept { return m_state.reason & Reason_BasicRelayout; }
+        // event from textfield
+        auto event_from_textfield(GuiEvent) noexcept->EventAccept;
+        // relayout textbox
+        void relayout_textbox() noexcept;
+        // do the wheel event
+        auto do_wheel(int index, float wheel) noexcept->EventAccept;
+        // make UISpinButtons
+        void make_spin() noexcept;
     public:
         // set text
         void SetText(CUIString&& text) noexcept;
@@ -192,16 +142,8 @@ namespace LongUI {
         auto RequestText() noexcept -> const CUIString&;
         // get double value
         auto GetValueAsDouble() noexcept -> double;
-    private:
-        // private impl
-        std::aligned_storage<impl::textbox_helper<sizeof(void*)>::uitextbox_private, 8>
-            ::type              m_private;
-        // private impl
-        auto pimpl() noexcept { return reinterpret_cast<Private*>(&m_private); }
-        // private impl
-        auto pimpl() const noexcept { return reinterpret_cast<const Private*>(&m_private); }
-        // private impl - force
-        auto fpimpl() const noexcept { return const_cast<Private*>(reinterpret_cast<const Private*>(&m_private)); }
+        // get double value
+        auto SetValueAsDouble(double, bool increase = false) noexcept ->EventAccept;
     public:
         // max value
         double                  max_value/* = INFINITY*/;
@@ -210,79 +152,23 @@ namespace LongUI {
         // increment value
         double                  increment = 1;
     private:
-        // text used font
-        TextFont                m_tfBuffer;
-        // selection bgcolor
-        ColorF                  m_colorSelBg;
-        // caret color
-        ColorF                  m_colorCaret;
-        // hovered curor
-        CUICursor               m_hovered;
-        // max length
-        uint32_t                m_uMaxLength = 0x00ffffff;
-        // flag
-        uint32_t                m_flag = 0;
-        // password char
-        char32_t                m_chPassword = 0x25cf;
+        // text field
+        UITextField             m_oTextField;
+        // place holder
+        UILabel                 m_oPlaceHolder;
+        // to save memory
+        UISpinButtons*          m_pSpinButtons = nullptr;
         // cols/size
         uint32_t                m_uCols = 20;
         // rows
         uint32_t                m_uRows = 1;
-        // decimal mark
+        // decimal symbol
         char                    m_chDecimal = '.';
-        // init textbox
-        void init_textbox() noexcept;
-        // init private data
-        void init_private() noexcept;
-        // create private data
-        void create_private() noexcept;
-        // delete private data
-        void delete_private() noexcept;
-        // set text
-        void private_set_text() noexcept;
-        // private use cached
-        void private_use_cached() noexcept;
-        // private set text
-        void private_set_text(CUIString&& text) noexcept;
-        // private mark readonly
-        void private_mark_readonly() noexcept;
-        // private mark multiline
-        void private_mark_multiline() noexcept;
-        // private mark password
-        void private_mark_password() noexcept;
-        // private mouse down
-        bool private_mouse_down(Point2F, bool shift) noexcept;
-        // private mouse up
-        bool private_mouse_up(Point2F) noexcept;
-        // private mouse up
-        bool private_mouse_move(Point2F) noexcept;
-        // private key down
-        bool private_keydown(uint32_t key) noexcept;
-        // on char input
-        bool private_char(char32_t, uint16_t seq) noexcept;
-        // private update
-        bool private_update() noexcept;
-        // private resized
-        void private_resize(Size2F) noexcept;
-        // private font changed
-        void private_tf_changed(bool layout) noexcept;
-#ifdef LUI_TEXTBOX_USE_UNIFIED_INPUT
-        // private left
-        void private_left() noexcept;
-        // private up
-        void private_up() noexcept;
-        // private right
-        void private_right() noexcept;
-        // private down
-        void private_down() noexcept;
-#endif
-    public:
-#ifndef NDEBUG
-        // debug color
-        ColorF                  dbg_color[2];
-        // debug counter
-        uint32_t                dbg_counter = 0;
-#endif
+        // decimal places
+        uint8_t                 m_uDecimalPlaces = 0;
+        // type
+        TextBoxType             m_type = UITextBox::Type_Normal;
+
     };
     // get meta info for UITextBox
     LUI_DECLARE_METAINFO(UITextBox);

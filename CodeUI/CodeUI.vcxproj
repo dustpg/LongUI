@@ -176,7 +176,7 @@
     <ClCompile Include="..\src\container\ui_string_view.cpp" />
     <ClCompile Include="..\src\control\gapi\ui_control_g.cpp" />
     <ClCompile Include="..\src\control\gapi\ui_label_g.cpp" />
-    <ClCompile Include="..\src\control\gapi\ui_textbox_g.cpp" />
+    <ClCompile Include="..\src\control\gapi\ui_textfield_g.cpp" />
     <ClCompile Include="..\src\control\ui_box.cpp" />
     <ClCompile Include="..\src\control\ui_button.cpp" />
     <ClCompile Include="..\src\control\ui_caption.cpp" />
@@ -195,12 +195,14 @@
     <ClCompile Include="..\src\control\ui_scrollarea.cpp" />
     <ClCompile Include="..\src\control\ui_scrollbar.cpp" />
     <ClCompile Include="..\src\control\ui_spacer.cpp" />
+    <ClCompile Include="..\src\control\ui_spinbuttons.cpp" />
     <ClCompile Include="..\src\control\ui_splitter.cpp" />
     <ClCompile Include="..\src\control\ui_stackdeck.cpp" />
     <ClCompile Include="..\src\control\ui_statusbar.cpp" />
     <ClCompile Include="..\src\control\ui_tab.cpp" />
     <ClCompile Include="..\src\control\ui_test.cpp" />
     <ClCompile Include="..\src\control\ui_textbox.cpp" />
+    <ClCompile Include="..\src\control\ui_textfield.cpp" />
     <ClCompile Include="..\src\control\ui_toolbar.cpp" />
     <ClCompile Include="..\src\control\ui_tooltip.cpp" />
     <ClCompile Include="..\src\control\ui_tree.cpp" />
@@ -297,7 +299,7 @@
     <ClInclude Include="..\include\container\pod_sharedarray.h" />
     <ClInclude Include="..\include\container\pod_vector.h" />
     <ClInclude Include="..\include\container\ui_string_vector.h" />
-    <ClInclude Include="..\include\control\ui_boxlayout.h" />
+    <ClInclude Include="..\include\control\ui_box.h" />
     <ClInclude Include="..\include\control\ui_button.h" />
     <ClInclude Include="..\include\control\ui_caption.h" />
     <ClInclude Include="..\include\control\ui_checkbox.h" />
@@ -329,6 +331,7 @@
     <ClInclude Include="..\include\control\ui_scrollarea.h" />
     <ClInclude Include="..\include\control\ui_scrollbar.h" />
     <ClInclude Include="..\include\control\ui_spacer.h" />
+    <ClInclude Include="..\include\control\ui_spinbuttons.h" />
     <ClInclude Include="..\include\control\ui_splitter.h" />
     <ClInclude Include="..\include\control\ui_stack.h" />
     <ClInclude Include="..\include\control\ui_statusbar.h" />
@@ -340,6 +343,7 @@
     <ClInclude Include="..\include\control\ui_tabs.h" />
     <ClInclude Include="..\include\control\ui_test.h" />
     <ClInclude Include="..\include\control\ui_textbox.h" />
+    <ClInclude Include="..\include\control\ui_textfield.h" />
     <ClInclude Include="..\include\control\ui_toolbar.h" />
     <ClInclude Include="..\include\control\ui_toolbarbutton.h" />
     <ClInclude Include="..\include\control\ui_toolbarseparator.h" />

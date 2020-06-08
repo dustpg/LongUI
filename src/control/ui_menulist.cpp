@@ -11,7 +11,7 @@
 #include <control/ui_menupopup.h>
 #include <core/ui_popup_window.h>
 // 子控件
-#include <control/ui_boxlayout.h>
+#include <control/ui_box.h>
 // Private
 #include <core/ui_unsafe.h>
 #include "../private/ui_private_control.h"
@@ -65,6 +65,7 @@ namespace LongUI {
 LongUI::UIMenuItem::UIMenuItem(const MetaControl& meta) noexcept : Super(meta),
     m_oImage(this), m_oLabel(this) {
     m_state.focusable = true;
+    m_state.capturable = true;
     m_state.orient = Orient_Horizontal;
     m_oStyle.align = AttributeAlign::Align_Stretcht;
     //m_oBox.margin = { 4, 2, 4, 2 };
@@ -342,7 +343,7 @@ void LongUI::UIMenuItem::Update(UpdateReason reason) noexcept {
         m_oLabel.Update(r);
         // 存在快捷键文本的话 就同样的状态
         if (m_pAcceltext) {
-            m_pAcceltext->SameTfAs(m_oLabel);
+            m_pAcceltext->SameTfAs(m_oLabel.RefTextFont());
             m_pAcceltext->Update(r);
         }
     }
@@ -408,6 +409,7 @@ LongUI::UIMenuList::UIMenuList(const MetaControl& meta) noexcept : Super(meta),
     m_oImage(this), m_oLabel(this), m_oMarker(this) {
     m_state.focusable = true;
     m_state.defaultable = true;
+    m_state.capturable = true;
     // 阻隔鼠标事件写入false之前需要写入
     m_oImage.RefInheritedMask() = State_MouseCutInher;
     m_oLabel.RefInheritedMask() = State_MouseCutInher;
@@ -965,7 +967,7 @@ void LongUI::UIMenuPopup::add_attribute(uint32_t key, U8View view) noexcept {
         std::snprintf(
             buf, 128, "0x%p - %.*s\r\n", 
             this, 
-            view.end()- view.begin(), 
+            view.size(), 
             view.begin()
         );
         ::ui_debug_output_info(buf);

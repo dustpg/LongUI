@@ -8,7 +8,7 @@
 #include <core/ui_ctrlmeta.h>
 #include <control/ui_image.h>
 #include <control/ui_label.h>
-#include <control/ui_boxlayout.h>
+#include <control/ui_box.h>
 #include <input/ui_kminput.h>
 #include <constexpr/const_bkdr.h>
 #include <debugger/ui_debug.h>

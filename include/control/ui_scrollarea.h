@@ -48,7 +48,7 @@ namespace LongUI {
         // do mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
         // Update
-        void Update(UpdateReason) noexcept override;
+        //void Update(UpdateReason) noexcept override;
         // set auto overflow
         void SetAutoOverflow() noexcept;
         // force update scroll size
@@ -71,9 +71,9 @@ namespace LongUI {
         // get child flex sum
         auto sum_children_flex() const noexcept -> float;
         // synchronize the scroll bar
-        void sync_scroll_bar() noexcept;
+        void sync_scroll_bar(Point2F& offset) noexcept;
         // layout the scroll bar
-        auto layout_scroll_bar() noexcept->Size2F;
+        auto layout_scroll_bar(/*Size2F cs*/) noexcept->Size2F;
         // get layout position
         auto get_layout_position() const noexcept->Point2F;
     private:

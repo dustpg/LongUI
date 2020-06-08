@@ -2,7 +2,7 @@
 #include <core/ui_ctrlmeta.h>
 #include <control/ui_caption.h>
 #include <control/ui_progress.h>
-#include <control/ui_boxlayout.h>
+#include <control/ui_box.h>
 #include <util/ui_little_math.h>
 // Debug
 #include <debugger/ui_debug.h>

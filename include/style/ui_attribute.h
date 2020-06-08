@@ -181,6 +181,8 @@ namespace LongUI {
         Appearance_MenuRadio,               // [menuradio]
         Appearance_MenuCheckBox,            // [menucheckbox]
         Appearance_ToolBarButton,           // [toolbarbutton]
+        Appearance_SpinnerUpButton,         // [spinner-upbutton]
+        Appearance_SpinnerDownButton,       // [spinner-downbutton]
         Appearance_ScrollBarButtonUp,       // [scrollbarbutton-up]
         Appearance_ScrollBarButtonRight,    // [scrollbarbutton-right]
         Appearance_ScrollBarButtonDown,     // [scrollbarbutton-down]

@@ -5,35 +5,57 @@
         xmlns:html="http://www.w3.org/1999/xhtml"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
+        
+<script>
+<![CDATA[
+
+function setTextI(textBoxID)
+{
+  var result = document.getElementById(textBoxID).value;
+  document.getElementById("input").value = result;
+}
+
+]]>
+</script>
+
 <vbox flex="1" style="overflow: auto" >
    <hbox align="center">
       <label value="Default:"/>
-      <textbox id="default" oninput="setText('default');" />
+      <textbox id="default" oninput="setTextI('default');" />
    </hbox>
    <hbox align="center">
       <label value="Disabled:" />
       <textbox id="disabled" disabled="true" value="disabled" size="10"
-               oninput="setText('disabled');" />
+               oninput="setTextI('disabled');" />
    </hbox>
    <hbox align="center">
       <label  value="Readonly:" />
       <textbox id="readonly" readonly="true" value="readonly"  size="30"
-               oninput="setText('readonly');" />
+               oninput="setTextI('readonly');" />
    </hbox>
    <hbox align="center">
       <label value="Max length of 20:"  />
       <textbox id="max-length" maxlength="20"  size="20"
-               oninput="setText('max-length');" />
+               oninput="setTextI('max-length');" />
    </hbox>
    <hbox align="center">
       <label value="Password:"  />
       <textbox id="password" type="password" 
-               oninput="setText('password');" />
+               oninput="setTextI('password');" />
    </hbox>
    <hbox align="center">
       <label value="Multiline:"  />
       <textbox id="multiline" multiline="true" rows="7" cols="20"
-               oninput="setText('multiline');" />
+               oninput="setTextI('multiline');" />
+   </hbox>
+   <hbox align="center">
+      <label value="Number:"  />
+      <textbox id="number" type="number"
+      increment="0.01" decimalplaces="2" oninput="setTextI('number');" />
+   </hbox>
+   <hbox align="center">
+      <textbox id="placeholder" placeholder="placeholder here"
+               oninput="setTextI('placeholder');" />
    </hbox>
 
    <hbox  align="center">
@@ -43,6 +65,8 @@
    <hbox  align="center">
       <label value="Change:" id="change" />
    </hbox>
+
+
 
 </vbox>
 

@@ -63,9 +63,11 @@ namespace LongUI {
         // from latin1
         static auto FromLatin1(const char* a, const char* b) noexcept->Self { return FromUtf8(a, b); }
         // from latin1
-        static auto FromLatin1(const char* str) noexcept->Self { return FromUtf8(a); }
+        static auto FromLatin1(const char* str) noexcept->Self { return FromUtf8(str); }
         // from double
         static auto FromDouble(double value, double round, uint32_t places, char sysbol) noexcept->Self;
+        // as double
+        void AsDouble(double value, double round, uint32_t places, char sysbol) noexcept;
     public:
         // is empty?
         bool empty() const noexcept { return m_vector.empty(); }
@@ -278,6 +280,11 @@ namespace LongUI {
         CUIBasicString<T, B> str;
         detail::string_helper::string_double(str.m_vector, value, round, places, sysbol);
         return str;
+    }
+    template<typename T, unsigned B>
+    inline void LongUI::CUIBasicString<T, B>::AsDouble(double value, double round,
+        uint32_t places, char sysbol) noexcept  {
+        detail::string_helper::string_double(m_vector, value, round, places, sysbol);
     }
     // string from utf-8
     template<typename T, unsigned B> inline

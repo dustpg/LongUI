@@ -26,62 +26,54 @@
 
 // super
 #include "ui_box.h"
-//#include "../util/ui_double_click.h"
 // base
 #include "ui_image.h"
-#include "ui_label.h"
 
 // ui namespace
 namespace LongUI {
-    // tab item
-    class UITab : public UIBoxLayout {
+    // test control
+    class UISpinButtons final : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
     protected:
         // ctor
-        UITab(const MetaControl&) noexcept;
+        UISpinButtons(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
-        ~UITab() noexcept;
+        ~UISpinButtons() noexcept override;
         // ctor
-        explicit UITab(UIControl* parent = nullptr) noexcept : UITab(UITab::s_meta) { this->final_ctor(parent); }
+        explicit UISpinButtons(UIControl* parent = nullptr) noexcept : UISpinButtons(UISpinButtons::s_meta) { this->final_ctor(parent); }
     public:
-        // set selected
-        void SetSelected() noexcept;
-        // set text
-        void SetText(const CUIString& str) noexcept;
-        // force mark selected
-        void ForceMark() noexcept { m_oStyle.state = m_oStyle.state | State_Selected; }
-        // force mark after
-        void ForceAfter() noexcept { m_oStyle.state = m_oStyle.state | State_TAST; }
-        // force clear after
-        void ForceBefore() noexcept { m_oStyle.state = m_oStyle.state & ~State_TAST; }
+        // when decrease button pressed if vaild
+        static constexpr auto _onDecrease() noexcept { return GuiEvent::Event_OnDecrease; }
+        // when increase button pressed if vaild
+        static constexpr auto _onIncrease() noexcept { return GuiEvent::Event_OnIncrease; }
+        // set decrease button enable
+        void SetDecreaseDisabled(bool value) noexcept { m_oDecreaseButton.SetDisabled(value); }
+        // set increase button enable
+        void SetIncreaseDisabled(bool value) noexcept { m_oIncreaseButton.SetDisabled(value); }
     public:
         // do normal event
         //auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         // do mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
-        // update, postpone change some data
-        void Update(UpdateReason) noexcept override;
+        // update
+        //void Update(UpdateReason reason) noexcept override;
         // render this control only, [Global rendering and Incremental rendering]
         //void Render() const noexcept override;
         // recreate/init device(gpu) resource
-        //auto Recreate() noexcept->Result override;
+        //auto Recreate(bool release_only) noexcept->Result override;
     protected:
-        // add attribute
-        void add_attribute(uint32_t key, U8View value) noexcept override;
-#ifdef LUI_ACCESSIBLE
-        // accessible api
-        auto accessible(const AccessibleEventArg& args) noexcept->EventAccept override;
-#endif
-    private: // private control impl
-        // private image
-        UIImage             m_oImage;
-        // private label
-        UILabel             m_oLabel;
+        // add child
+        //void add_child(UIControl&) noexcept override;
+    private: // private impl
+        // increase button
+        UIImage             m_oIncreaseButton;
+        // decrease button
+        UIImage             m_oDecreaseButton;
     };
-    // get meta info for UITab
-    LUI_DECLARE_METAINFO(UITab);
+    // get meta info for UISpinButtons
+    LUI_DECLARE_METAINFO(UISpinButtons);
 }

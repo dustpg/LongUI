@@ -1092,8 +1092,9 @@ auto LongUI::UIControl::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
         s = Event_Accept;
         this->StartAnimation({ State_Active, State_Active });
         m_pWindow->SetDefault(*this);
-        // 可以设为焦点-设为捕捉控件
-        if (this->SetFocus()) m_pWindow->SetCapture(*this);
+        m_pWindow->SetFocus(*this);
+        // 可以捕捉-设为捕捉控件
+        if (m_state.capturable) m_pWindow->SetCapture(*this);
         m_pClicked = m_pHovered;
         break;
     case LongUI::MouseEvent::Event_LButtonUp:

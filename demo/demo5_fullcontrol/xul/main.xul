@@ -1,5 +1,8 @@
 ﻿<?xml version="1.0"?>
-<window clearcolor="white" title="lui demo">
+<?xml-stylesheet href="chrome://global/skin" type="text/css"?>
+<window lui:clearcolor="white" title="lui demo" 
+        xmlns:lui="http://www.w3.org/1999/xhtml"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <hbox>
     <checkbox label="modal window" id="modal"/>
     <button label="disabled button" disabled="true"/>
@@ -25,4 +28,19 @@
       <button label="image" id="image"/>
     </vbox>
   </hbox>
+  <!-- <hbox style="display: block">
+    <button label="box layout" id="layout"/>
+    <button label="text box" id="textbox"/>
+    <button label="scrolling" id="scrolling" disabled="true"/>
+    <button label="popup" id="popup"/>
+    <button label="text box 2" id="textbox2"/>
+    <button label="checkbox" id="checkbox"/>
+    <button label="radio" id="radio"/>
+    <button label="menubar" id="menubar"/>
+    <button label="stack" id="stack"/>
+    <button label="scale" id="scale"/>
+    <button label="tab" id="tab"/>
+    <button label="button" id="button"/>
+    <button label="image" id="image"/>
+  </hbox> -->
 </window>

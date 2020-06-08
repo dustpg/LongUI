@@ -1,9 +1,9 @@
 ﻿// Gui
+#include <core/ui_unsafe.h>
+#include <control/ui_box.h>
 #include <core/ui_ctrlmeta.h>
 #include <control/ui_caption.h>
-#include <core/ui_unsafe.h>
 #include <control/ui_groupbox.h>
-#include <control/ui_boxlayout.h>
 // Debug
 #include <debugger/ui_debug.h>
 // Private

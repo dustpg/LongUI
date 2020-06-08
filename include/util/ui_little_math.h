@@ -2,10 +2,9 @@
 
 // longui::detail namespace
 namespace LongUI { namespace detail {
-    // clamp for float
-    inline auto clamp(float d, float min, float max) noexcept {
-        const float t = d < min ? min : d;
-        return t > max ? max : t;
+    // clamp for float/double
+    template<typename T> inline auto clamp(T v, T lo, T hi) noexcept {
+        return (v < lo) ? lo : (hi < v) ? hi : v;
     }
     // is percent value?
     inline auto is_percent_value(float f) noexcept { return f > -1.f && f < 1.f; }

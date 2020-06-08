@@ -356,9 +356,6 @@
     <ClCompile Include="..\src\control\ui_textbox.cpp">
       <Filter>source\control</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\control\gapi\ui_textbox_g.cpp">
-      <Filter>source\control\gapi</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\accessible\ui_accessible_win.cpp">
       <Filter>source\accessible</Filter>
     </ClCompile>
@@ -475,6 +472,15 @@
     </ClCompile>
     <ClCompile Include="..\src\style\ui_win10.cpp">
       <Filter>source\style</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_textfield.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\gapi\ui_textfield_g.cpp">
+      <Filter>source\control\gapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_spinbuttons.cpp">
+      <Filter>source\control</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -969,9 +975,6 @@
     <ClInclude Include="..\include\control\ui_toolbarseparator.h">
       <Filter>header\control</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\control\ui_boxlayout.h">
-      <Filter>header\control</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\event\ui_group_event.h">
       <Filter>header\event</Filter>
     </ClInclude>
@@ -1061,6 +1064,15 @@
     </ClInclude>
     <ClInclude Include="..\include\style\ui_behavior_type.h">
       <Filter>header\style</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_textfield.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_box.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_spinbuttons.h">
+      <Filter>header\control</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

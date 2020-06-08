@@ -6,7 +6,7 @@
 
 const auto xul = u8R"xml(
 <?xml version="1.0"?>
-<window clearcolor="white" title="lui demo">
+<window lui:clearcolor="white" title="lui demo">
   <label id="display" flex="1"/>
   <hbox flex="1">
     <button flex="1" label="7" id="btn7"/>

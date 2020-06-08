@@ -27,6 +27,7 @@ namespace LongUI {
 /// </summary>
 /// <param name="meta">The meta data.</param>
 LongUI::UIScale::UIScale(const MetaControl& meta) noexcept : Super(meta), thumb(this) {
+    m_state.capturable = true;
     m_state.focusable = true;
     //UIControlPrivate::SetFocusable(this->thumb, false);
 #ifndef NDEBUG
