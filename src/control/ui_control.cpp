@@ -322,9 +322,16 @@ void LongUI::UIControl::SpecifyMaxSize(Size2F size) noexcept {
 auto LongUI::UIControl::init() noexcept -> Result {
     assert(this && "bad action");
     assert(m_state.inited == false && "this control has been inited");
-    // XXX: 注册访问按键
-    if (m_oStyle.accessKey >= 'A' && m_oStyle.accessKey <= 'Z' && m_pWindow)
-        m_pWindow->RegisterAccessKey(*this);
+#ifndef NDEBUG
+    //if (m_oStyle.accesskey) {
+    //    if (!m_pWindow) 
+    //        LUIDebug(Error) 
+    //            << "accesskey("
+    //            << m_oStyle.accesskey
+    //            << ") but no window" 
+    //            << endl;
+    //}
+#endif // !NDEBUG
 #ifndef LUI_DISABLE_STYLE_SUPPORT
     // 重新连接样式表
     this->link_style_sheet();
@@ -580,13 +587,14 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
         break;
     case BKDR_ACCESSKEY:
         // accesskey  : 快捷访问键
-        assert(value.end() > value.begin() && "bad accesskey");
-        //if (value.end() > value.begin()) {
-        if (true) {
+        if (value.end() > value.begin()) {
             auto ch = *value.begin();
             if (ch >= 'a' && ch <= 'z') ch -= 'a' - 'A';
-            m_oStyle.accessKey = ch;
+            m_oStyle.accesskey = ch;
         }
+#ifndef NDEBUG
+        else LUIDebug(Error) << "bad accesskey" << endl;
+#endif // !NDEBUG
         break;
     case BKDR_DRAGGABLE:
         // draggable  : 允许拖拽

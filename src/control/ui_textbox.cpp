@@ -203,6 +203,7 @@ auto LongUI::UITextBox::DoEvent(UIControl * sender, const EventArg & e) noexcept
     case NoticeEvent::Event_Initialize:
         // 初始化
         this->init_minsize();
+        this->SetValueAsDouble(0, true);
         //[[fallthrough]];
     }
     // 基类处理
@@ -226,7 +227,7 @@ auto LongUI::UITextBox::SetValueAsDouble(double value, bool increase) noexcept -
     const auto minv = this->min_value;
     const auto new_value = detail::clamp(target, minv, maxv);
     //  没变
-    if (new_value == cur_value) return Event_Ignore;
+    //if (new_value == cur_value) return Event_Ignore;
     const uint32_t places = m_uDecimalPlaces;
     //m_pSpinButtons->SetIncreaseDisabled(new_value == maxv);
     //m_pSpinButtons->SetDecreaseDisabled(new_value == minv);
@@ -244,9 +245,16 @@ auto LongUI::UITextBox::SetValueAsDouble(double value, bool increase) noexcept -
 /// <param name="eid">event id</param>
 /// <returns></returns>
 auto LongUI::UITextBox::event_from_textfield(GuiEvent eid) noexcept -> EventAccept {
-    // 针对Input处理
-    if (eid == UITextField::_onInput()) {
+    switch (eid)
+    {
+    case UITextField::_onInput():
+        // 针对Input处理
         m_oPlaceHolder.SetVisible(!m_oTextField.GuiHasText());
+        break;
+    case UITextField::_onChange():
+        // 针对Change处理
+        this->SetValueAsDouble(0, true);
+        break;
     }
     return this->TriggerEvent(eid);
 }

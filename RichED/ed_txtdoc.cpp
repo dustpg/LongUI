@@ -365,7 +365,7 @@ namespace RichED {
         // rich range
         static bool RichRange(const CheckRangeCtx&, CellPoint out[2]) noexcept;
         // check range
-        static bool CheckRange(CEDTextDocument& doc, DocPoint begin, DocPoint end, CheckRangeCtx& ctx) noexcept;
+        static bool CheckRange(CEDTextDocument& doc, DocPoint begin, DocPoint& end, CheckRangeCtx& ctx) noexcept;
         // check wrap mode
         static auto CheckWrap(CEDTextDocument& doc, CEDTextCell& cell, unit_t pos) noexcept->CEDTextCell*;
         // expand visual line clean area
@@ -2982,12 +2982,10 @@ bool RichED::CEDTextDocument::Private::RemoveText(
         auto& llv = doc.m_vLogic;
         const auto len = llv.GetSize();
         assert(len > end.line);
-        //if (len > end.line) {
         const auto ptr = llv.GetData();
         const auto bsize = sizeof(ptr[0]) * (len - end.line - 1);
         std::memmove(ptr + begin.line + 1, ptr + end.line + 1, bsize);
         llv.ReduceSize(len + begin.line - end.line);
-        //}
     }
     on_success();
     return true;
@@ -3041,11 +3039,11 @@ void RichED::CEDTextDocument::Private::Dirty(CEDTextDocument& doc, CEDTextCell& 
 /// <param name="ctx">The CTX.</param>
 /// <returns></returns>
 bool RichED::CEDTextDocument::Private::CheckRange(
-    CEDTextDocument& doc, DocPoint begin, DocPoint end, CheckRangeCtx& ctx) noexcept {
+    CEDTextDocument& doc, DocPoint begin, DocPoint& end, CheckRangeCtx& ctx) noexcept {
     const auto line = doc.m_vLogic.GetSize();
     // { line-count, 0} 允许选择末尾
-    if (end.line == line && end.line && !end.pos) {
-        --end.line;
+    if (end.line >= line && end.line && !end.pos) {
+        end.line = line - 1;
         end.pos = doc.m_vLogic[end.line].length;
     }
     // 正常

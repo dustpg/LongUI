@@ -88,7 +88,7 @@ LongUI::UIButton::UIButton(const MetaControl& meta) noexcept : Super(meta),
     m_oStyle.pack = Pack_Center;
     m_oStyle.align = Align_Center;
     m_oBox.margin = { 5, 5, 5, 5 };
-    m_oBox.padding = { 2, 2, 2, 2 };
+    m_oBox.padding = { 4, 2, 4, 2 };
 
     //UIControlPrivate::SetFocusable(image, false);
     //UIControlPrivate::SetFocusable(label, false);
@@ -252,6 +252,17 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
             // TODO: 没有文本时候的处理
             m_oLabel.SetAsDefaultMinsize();
             this->add_private_child();
+        }
+        // 为普通按钮增加dropdown标记
+        if (!(m_bToolBar | m_bMenuBar)) {
+            if (m_type == BehaviorType::Type_Menu) {
+                if (const auto dropdown = new(std::nothrow)UIImage{ this }) {
+                    constexpr auto app = Appearance_WeakApp | Appearance_DropDownMarker;
+                    UIControlPrivate::SetAppearance(*dropdown, app);
+                    UIControlPrivate::SetFlex(m_oLabel, 1);
+                    m_oLabel.SetTextAlign(TAlign_Center);
+                }
+            }
         }
         break;
     //case NoticeEvent::Event_RefreshBoxMinSize:

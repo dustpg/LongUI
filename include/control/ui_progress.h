@@ -68,7 +68,7 @@ namespace LongUI {
         void SetValue(float value) noexcept;
     private:
         // init this bar
-        void init_bar() noexcept;
+        //void init_bar() noexcept;
         // adjust flex
         void adjust_flex() noexcept;
     private: // private impl

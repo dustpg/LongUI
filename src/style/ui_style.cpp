@@ -166,7 +166,7 @@ LongUI::Style::Style() noexcept {
     inherited = State_Disabled;
     pack = Pack_Start;
     tduration = 0;
-    accessKey = 0;
+    accesskey = 0;
     extra_abcount = 0;
     align = Align_Stretcht;
     appearance = AttributeAppearance::Appearance_WeakApp;

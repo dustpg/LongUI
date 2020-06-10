@@ -194,15 +194,13 @@ namespace LongUI {
         void SetCaretColor(const ColorF&) noexcept;
         // hide caret
         void HideCaret() noexcept;
-        // register access key
-        void RegisterAccessKey(UIControl& ctrl) noexcept;
         // find control, return null if notfound
         auto FindControl(const char* id) noexcept->UIControl*;
         // find control, return null if notfound
         auto FindControl(U8View view) noexcept ->UIControl*;
         // find control with UID-String, return null if notfound
         auto FindControl(ULID) noexcept->UIControl*;
-        // control attached
+        // control attached                 [null this ptr acceptable]
         void ControlAttached(UIControl& ctrl) noexcept;
         // control disattached              [null this ptr acceptable]
         void ControlDisattached(UIControl& ctrl) noexcept;

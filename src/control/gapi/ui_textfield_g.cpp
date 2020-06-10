@@ -756,8 +756,10 @@ void LongUI::UITextField::private_set_text() noexcept {
     //pimpl()->document().SetText({ text.begin(), text.end() });
     // 删除全部再添加 XXX: ???
     auto& doc = pimpl()->document();
-    doc.RemoveText({ 0, 0 }, { doc.GetLogicLineCount(), 0 });
+    doc.BeginOp();
+    doc.RemoveText({ 0, 0 }, { RichED::MAX_LINE_COUNT, 0 });
     doc.InsertText({ 0, 0 }, { text.begin(), text.end() });
+    doc.EndOp();
 }
 
 /// <summary>
@@ -797,7 +799,7 @@ auto LongUI::UITextField::RequestText() noexcept -> const CUIString & {
     if (pimpl()->need_request) {
         pimpl()->need_request = false;
         pimpl()->text_cached.clear();
-        doc.GenText(&pimpl()->text_cached, {}, { doc.GetLogicLineCount() });
+        doc.GenText(&pimpl()->text_cached, {}, { RichED::MAX_LINE_COUNT });
     }
     return pimpl()->text_cached;
 }

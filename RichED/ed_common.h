@@ -41,6 +41,11 @@
 namespace RichED {
     // context pointer
     using CtxPtr = void*;
+    // const value
+    enum Const : uint32_t {
+        // max line count
+        MAX_LINE_COUNT = uint32_t(-1),
+    };
     // HandleOOM
     enum HandleOOM : uint32_t {
         // ignore

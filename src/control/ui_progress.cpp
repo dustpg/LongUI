@@ -31,6 +31,7 @@ LongUI::UIProgress::UIProgress(const MetaControl& meta) noexcept : Super(meta),
     m_oRemainder.RefInheritedMask() = State_MouseCutInher;
     // 阻隔鼠标事件
     m_state.mouse_continue = false;
+    m_state.orient = Orient_Horizontal;
 #ifdef LUI_ACCESSIBLE
     // 没有逻辑子控件
     m_pAccCtrl = nullptr;
@@ -43,6 +44,11 @@ LongUI::UIProgress::UIProgress(const MetaControl& meta) noexcept : Super(meta),
     m_oBar.name_dbg = "progress::bar";
     m_oRemainder.name_dbg = "progress::remainder";
 #endif
+    // TODO: 垂直方向
+    constexpr auto thisapp = Appearance_WeakApp | Appearance_ProgressBarH;
+    constexpr auto barapp = Appearance_WeakApp | Appearance_ProgressChunkH;
+    UIControlPrivate::SetAppearance(*this, thisapp);
+    UIControlPrivate::SetAppearance(m_oBar, barapp);
 }
 
 /// <summary>
@@ -66,7 +72,7 @@ auto LongUI::UIProgress::DoEvent(UIControl * sender,
     const EventArg & e) noexcept -> EventAccept {
     // 初始化
     if (e.nevent == NoticeEvent::Event_Initialize) {
-        this->init_bar();
+        //this->init_bar();
         this->adjust_flex();
     }
     // 基类处理
@@ -114,6 +120,7 @@ void LongUI::UIProgress::add_attribute(uint32_t key, U8View value) noexcept {
     constexpr auto BKDR_MAX         = 0x001cbcf0_ui32;
     constexpr auto BKDR_MODE        = 0x0eb84f77_ui32;
     constexpr auto BKDR_VALUE       = 0x246df521_ui32;
+    constexpr auto BKDR_ORIENT      = 0xeda466cd_ui32;
 
     // 分类处理
     switch (key)
@@ -131,6 +138,10 @@ void LongUI::UIProgress::add_attribute(uint32_t key, U8View value) noexcept {
         if (*value.begin() == 'u')
             m_oStyle.state = m_oStyle.state | State_Indeterminate;
         break;
+    //case BKDR_ORIENT:
+    //    // 超类处理
+    //    Super::add_attribute(key, value);
+    //    break;
     default:
         // 超类处理
         return Super::add_attribute(key, value);
@@ -162,6 +173,7 @@ void LongUI::UIProgress::SetValue(float value) noexcept {
     }
 }
 
+#if 0
 /// <summary>
 /// Initializes the bar.
 /// </summary>
@@ -170,8 +182,6 @@ void LongUI::UIProgress::init_bar() noexcept {
     AttributeAppearance thisapp, barapp;
     // 根据方向确定初始化类型
     if (this->GetOrient() == Orient_Horizontal) {
-        thisapp = Appearance_ProgressBarH;
-        barapp = Appearance_ProgressChunkH;
     }
     // 垂直方向
     else {
@@ -182,7 +192,7 @@ void LongUI::UIProgress::init_bar() noexcept {
     UIControlPrivate::SetAppearanceIfWeakNon(*this, thisapp);
     UIControlPrivate::SetAppearanceIfWeakNon(m_oBar, barapp);
 }
-
+#endif
 
 
 /// <summary>

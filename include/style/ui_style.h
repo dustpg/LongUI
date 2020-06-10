@@ -99,7 +99,7 @@ namespace LongUI {
         // overflow-y       [1]
         AttributeOverflow   overflow_y;
         // accesskey char   [1]
-        char                accessKey;
+        char                accesskey;
         // extri-anima-buck [1]
         uint8_t             extra_abcount;
 

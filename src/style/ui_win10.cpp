@@ -1387,7 +1387,8 @@ void LongUI::CUINativeStyleWindows10::draw_tab(
     // 调整位置
     const auto draw_bottom = !(args.to & State_Selected);
     //const auto draw_left = args.to.selected || !args.to.after_seltab;
-    const auto draw_left = args.to & State_Selected;
+    //const auto draw_left = args.to & State_Selected;
+    const auto draw_left = (args.to ^ State_TAST) & (State_Selected | State_TAST);
     const auto draw_right = args.to & (State_Selected | State_TAST);
     rect.top += 1.f;
     if (draw_left) rect.left += 1.f;

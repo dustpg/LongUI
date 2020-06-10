@@ -288,7 +288,7 @@ namespace LongUI {
         // set visible
         void SetVisible(bool visible) noexcept;
         // get access key
-        auto GetAccessKey() const noexcept { return m_oStyle.accessKey; }
+        auto GetAccessKey() const noexcept { return m_oStyle.accesskey; }
         // get id, default as ""
         auto GetID() const noexcept { return m_id; }
         // set tooltip text

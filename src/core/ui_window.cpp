@@ -773,29 +773,6 @@ auto LongUI::CUIWindow::GetAbsoluteSize() const noexcept -> Size2L {
     return { pimpl()->rect.width , pimpl()->rect.height };
 }
 
-/// <summary>
-/// Registers the access key.
-/// </summary>
-/// <param name="ctrl">The control.</param>
-/// <returns></returns>
-void LongUI::CUIWindow::RegisterAccessKey(UIControl& ctrl) noexcept {
-    const auto ch = ctrl.GetAccessKey();
-    if (ch >= 'A' && ch <= 'Z') {
-        const auto index = ch - 'A';
-        const auto map = pimpl()->access_key_map;
-#ifndef NDEBUG
-        if (map[index]) {
-            LUIDebug(Warning)
-                << "Access key("
-                << ch
-                << ") existed"
-                << endl;
-        }
-#endif
-        map[index] = &ctrl;
-    }
-    else assert(ch == 0 && "unsupported access key");
-}
 
 /// <summary>
 /// Finds the control.
@@ -843,6 +820,7 @@ auto LongUI::CUIWindow::FindControl(ULID id) noexcept -> UIControl * {
 /// <param name="ctrl">The control.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::ControlAttached(UIControl& ctrl) noexcept {
+    if (!this) return;
     // 本函数调用地点
     // A. UIControl::init
     // B. UIControl::set_window_force
@@ -866,6 +844,20 @@ void LongUI::CUIWindow::ControlAttached(UIControl& ctrl) noexcept {
 #endif
         const size_t offset = offsetof(UIControl, m_oManager.next_tabstop);
         CUIControlControl::AddControlToList(ctrl, list, offset);
+    }
+    // 注册快捷键
+    if (const auto ch = ctrl.GetAccessKey()) {
+        if (ch >= 'A' && ch <= 'Z') {
+            const auto index = ch - 'A';
+            const auto map = pimpl()->access_key_map;
+#ifndef NDEBUG
+            if (map[index]) LUIDebug(Warning) << "Access-key(" << ch << ") existed" << endl;
+#endif
+            map[index] = &ctrl;
+        }
+#ifndef NDEBUG
+        else if (ch)  LUIDebug(Warning) << "unsupported Access-key" << endl;
+#endif
     }
 }
 
