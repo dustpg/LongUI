@@ -30,7 +30,6 @@ LongUI::CUIRendererBackground::CUIRendererBackground() noexcept {
 /// <returns></returns>
 LongUI::CUIRendererBackground::~CUIRendererBackground() noexcept {  
     // 需要释放设备资源
-    CUIRenderAutoLocker locker;
     this->ReleaseDeviceData();
 }
 
@@ -38,9 +37,13 @@ LongUI::CUIRendererBackground::~CUIRendererBackground() noexcept {
 /// Releases the device data.
 /// </summary>
 void LongUI::CUIRendererBackground::ReleaseDeviceData() {
-    LongUI::SafeRelease(m_pOutput);
-    LongUI::SafeRelease(m_pBackground);
+    UIManager.PushLaterReleaseCOM(LUI_OBJECT_TO_COM(m_pOutput));
+    UIManager.PushLaterReleaseCOM(LUI_OBJECT_TO_COM(m_pBackground));
     //LongUI::SafeRelease(m_pImageBrush);
+#ifndef DEBUG
+    m_pBackground = reinterpret_cast<I::Effect*>(1);
+    m_pOutput = reinterpret_cast<I::EOutput*>(1);
+#endif // !DEBUG
 }
 
 /// <summary>

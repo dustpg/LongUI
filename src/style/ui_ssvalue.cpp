@@ -105,7 +105,7 @@ namespace LongUI {
         // dtor
         ~CUICssStream() noexcept;
         // make inline style
-        void MakeInlineStlye(SSValues& out) noexcept;
+        void MakeInlineStyle(SSValues& out) noexcept;
     public:
         // add comment
         void add_comment(StrPair) noexcept override;
@@ -147,11 +147,11 @@ namespace LongUI {
 
     };
     /// <summary>
-    /// Makes the inline stlye.
+    /// Makes the inline style.
     /// </summary>
     /// <param name="out">The out.</param>
     /// <returns></returns>
-    void CUICssStream::MakeInlineStlye(SSValues& out) noexcept {
+    void CUICssStream::MakeInlineStyle(SSValues& out) noexcept {
         this->property_finished();
         out = std::move(m_values);
     }
@@ -619,12 +619,12 @@ namespace LongUI {
 
 
 /// <summary>
-/// Parses the inline stlye.
+/// Parses the inline style.
 /// </summary>
 /// <param name="values">The values.</param>
 /// <param name="view">The view.</param>
 /// <returns></returns>
-bool LongUI::ParseInlineStlye(SSValues& values, U8View view) noexcept {
+bool LongUI::ParseInlineStyle(SSValues& values, U8View view) noexcept {
     CUICssStream stream{ nullptr };
     const auto rv = [&]() noexcept {
         // 设置长跳转环境
@@ -632,7 +632,7 @@ bool LongUI::ParseInlineStlye(SSValues& values, U8View view) noexcept {
         // 错误处理
         if (code) return false;
         stream.Load({ view.begin(), view.end() }, true);
-        stream.MakeInlineStlye(values);
+        stream.MakeInlineStyle(values);
         const auto src_len = values.size();
         if (!src_len) return false;
         SSValuePCL marker;

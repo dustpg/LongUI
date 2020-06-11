@@ -51,8 +51,8 @@ LongUI::UILabel::UILabel(const MetaControl& meta) noexcept
     assert(tfbuf_offset > style_offset);
     const auto offset_tf = tfbuf_offset - style_offset;
     m_oStyle.offset_tf = static_cast<uint16_t>(offset_tf);
-    // XXX: 写入默认外间距
-    m_oBox.margin = { 6, 1, 5, 2 };
+    // 写入默认外间距
+    m_oBox.margin = UIManager.RefNativeStyle().margin_baselabel;
 }
 
 /// <summary>

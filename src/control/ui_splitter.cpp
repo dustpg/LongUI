@@ -58,6 +58,7 @@ LongUI::UISplitter::UISplitter(const MetaControl& meta) noexcept
     // 允许焦点?
     m_state.capturable = true;
     m_state.focusable = true;
+    // XXX: 硬编码
     m_oBox.padding = { 2, 2, 2, 2 };
 }
 

@@ -175,8 +175,18 @@ void LongUI::CUIManager::OneFrame() noexcept {
     meter.Start();
     int while_count = 0;
 #endif
-    // 交换初始化数据
-    this_()->swap_init_list(this_()->m_uiCtorLocker);
+    // 延迟释放锁, 失败就下帧处理
+    if (this_()->m_uiLaterLocker.TryLock()) {
+        // 交换初始化数据, 控件创建不会阻塞
+        this_()->swap_init_list();
+        // 释放延迟释放渲染数据, 释放延迟不会阻塞
+        this_()->release_later_release();
+        // 延迟释放锁 OFF
+        this_()->m_uiLaterLocker.Unlock();
+    }
+#ifndef NDEBUG
+    else LUIDebug(Hint) << "Later locker locked in other thread" << endl;
+#endif // !NDEBUG
     // 数据更新区域
     this_()->DataLock();
     // 尝试重新创建

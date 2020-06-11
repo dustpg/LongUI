@@ -2,12 +2,12 @@
 
 #include "ui_style.h"
 #include "ui_attribute.h"
+#include "../core/ui_color.h"
+//#include "../core/ui_object.h"
 #include "../core/ui_basic_type.h"
 
 // ui namespace
 namespace LongUI {
-    // color
-    struct ColorF;
     // draw args
     struct NativeDrawArgs {
         // border edge rect
@@ -26,6 +26,31 @@ namespace LongUI {
         // type
         AttributeAppearance appearance;
     };
+    /// <summary>
+    /// native style
+    /// </summary>
+    /// <seealso cref="CUIObject" />
+    struct CUINativeStyle /*: CUISmallObject*/ {
+        // ctxmenu  clear color
+        ColorF          clearcolor_ctxmenu;
+        // combobox clear color
+        ColorF          clearcolor_combobox;
+        // base label margin
+        RectF           margin_baselabel;
+        // base textfiled margin
+        RectF           margin_basetextfiled;
+        // draw native style
+        void DrawStyle(const NativeDrawArgs& args) noexcept;
+        // draw native focus rect
+        void DrawFocus(const RectF& rect) noexcept;
+        // init native style
+        void InitStyle(UIControl& ctrl, AttributeAppearance) noexcept;
+        // get animation dur
+        auto GetDuration(const GetDurationArgs) noexcept->uint32_t;
+        // get foreground color if changed
+        auto GetFgColor(StyleState now) noexcept->uint32_t;
+    };
+
     // control class
     // sub element type
     /*enum class SubElement : uint8_t {
@@ -33,16 +58,4 @@ namespace LongUI {
     };*/
     // adjust sub element rect in native style
     //void NativeStyleAdjustSubElement(SubElement sube, RectF& rect) noexcept;
-    // draw native style
-    void NativeStyleDraw(const NativeDrawArgs& args) noexcept;
-    // draw native focus rect
-    void NativeStyleFocus(const RectF& rect) noexcept;
-    // init native style
-    void NativeStyleInit(UIControl& ctrl, AttributeAppearance) noexcept;
-    // get animation dur
-    auto NativeStyleDuration(const GetDurationArgs) noexcept -> uint32_t;
-    // get foreground color if changed
-    auto NativeFgColor(StyleState now) noexcept->uint32_t;
-    // get foreground color if exist
-    //bool NativeStyleGetForeground(const NativeDrawArgs& args, ColorF&) noexcept;
 }

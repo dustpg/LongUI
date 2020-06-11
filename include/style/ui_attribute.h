@@ -176,6 +176,7 @@ namespace LongUI {
         Appearance_None = 0,                // [none]
         Appearance_Radio,                   // [radio]
         Appearance_Button,                  // [button]
+        Appearance_MenuList,                // [menulist]
         Appearance_Resizer,                 // [resizer]
         Appearance_CheckBox,                // [checkbox]
         Appearance_MenuRadio,               // [menuradio]

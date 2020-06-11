@@ -100,21 +100,14 @@ struct LongUI::CUIControlControl::Private {
 /// move list-b to list-a
 /// </summary>
 /// <returns></returns>
-void LongUI::CUIControlControl::swap_init_list(CUILocker& locker) noexcept {
+void LongUI::CUIControlControl::swap_init_list() noexcept {
+    // m_uiLaterLocker 上锁目的不是仅仅安全写入init_list
+    // 而是阻断其他线程进入构造函数
 #ifdef LUI_USING_CTOR_LOCKER
     auto& obj = cc();
-    // 尝试进入, 失败就下帧处理, 控件创建不会阻塞
-    if (locker.TryLock()) {
-        // 上锁目的不是仅仅安全写入init_list
-        // 而是阻断其他线程进入构造函数
-        assert(obj.init_list.first == nullptr);
-        assert(obj.init_list.last == nullptr);
-        std::swap(obj.init_list_lock_free, obj.init_list);
-        locker.Unlock();
-    }
-#ifndef NDEBUG
-    else LUIDebug(Hint) << "Ctor locker locked in other thread" << endl;
-#endif // !NDEBUG
+    assert(obj.init_list.first == nullptr);
+    assert(obj.init_list.last == nullptr);
+    std::swap(obj.init_list_lock_free, obj.init_list);
 #endif
 }
 
@@ -964,14 +957,13 @@ auto LongUI::CUIControlControl::FindBasicAnimation(
 /// <param name="ctrl">The control.</param>
 /// <param name="type">The type.</param>
 /// <returns></returns>
-void LongUI::CUIControlControl::StartBasicAnimation(
-    UIControl& ctrl, 
-    StyleStateChange type) noexcept {
+void LongUI::CUIControlControl::StartBasicAnimation(UIControl& ctrl, StyleStateChange type) noexcept {
+    auto& naive_style = UIManager.RefNativeStyle();
     // 检测类型
     const auto native_type = ctrl.m_oStyle.appearance;
     assert(native_type != AttributeAppearance::Appearance_None);
     // 获取动画时间
-    const auto dur = LongUI::NativeStyleDuration({ native_type });
+    const auto dur = naive_style.GetDuration({ native_type });
     // 没有动画
     if (!dur) { ctrl.change_state(type); return; }
     // TODO: 整理代码, 比如先保证vector有效性
@@ -983,7 +975,7 @@ void LongUI::CUIControlControl::StartBasicAnimation(
         init_ca.ctrl = &ctrl;
         init_ca.done = 0;
         init_ca.origin = ctrl.m_oStyle.state;
-        init_ca.fgcolor1 = LongUI::NativeFgColor(init_ca.origin);
+        init_ca.fgcolor1 = naive_style.GetFgColor(init_ca.origin);
         init_ca.fgcolor2 = init_ca.fgcolor1;
         anima.push_back(init_ca);
         // OOM处理: 变了就不管了
@@ -1002,7 +994,7 @@ void LongUI::CUIControlControl::StartBasicAnimation(
     cab->duration = dur;
     ctrl.change_state(type);
     // 获取目标前景色
-    cab->fgcolor2 = LongUI::NativeFgColor(ctrl.m_oStyle.state);
+    cab->fgcolor2 = naive_style.GetFgColor(ctrl.m_oStyle.state);
     // 标记动画中
     cab->ctrl->setup_basic_animation();
 }

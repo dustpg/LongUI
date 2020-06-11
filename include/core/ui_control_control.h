@@ -111,7 +111,7 @@ namespace LongUI {
         // has time capsule?
         bool has_time_capsule() const noexcept;
         // swap list
-        void swap_init_list(CUILocker&) noexcept;
+        void swap_init_list() noexcept;
         // update control
         void update_control_in_list() noexcept;
         // init control, return true if update-list not empty

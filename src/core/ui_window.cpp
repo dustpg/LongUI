@@ -3185,7 +3185,7 @@ void LongUI::CUIWindow::Private::render_focus(I::Renderer2D& renderer) const noe
         renderer.PushAxisAlignedClip(auto_cast(visible), D2D1_ANTIALIAS_MODE_ALIASED);
         auto rect = this->foucs;
         this->focused->MapToWindow(rect);
-        LongUI::NativeStyleFocus(rect);
+        UIManager.RefNativeStyle().DrawFocus(rect);
         renderer.PopAxisAlignedClip();
     }
 #endif

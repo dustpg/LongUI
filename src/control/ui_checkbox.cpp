@@ -109,9 +109,7 @@ void LongUI::UICheckBox::changed() noexcept {
 /// <param name="meta">The meta.</param>
 LongUI::UICheckBox::UICheckBox(const MetaControl& meta) noexcept : Super(meta),
     m_oImage(this), m_oLabel(this) {
-    // XXX: 硬编码
-    m_oBox.margin = { 4, 2, 4, 2 };
-    m_oBox.padding = { 4, 1, 2, 1 };
+    m_state.orient = Orient_Horizontal;
     m_state.tabstop = true;
     m_state.focusable = true;
     m_state.capturable = true;
@@ -125,11 +123,6 @@ LongUI::UICheckBox::UICheckBox(const MetaControl& meta) noexcept : Super(meta),
     // 没有逻辑子控件
     m_pAccCtrl = nullptr;
 #endif
-    m_state.orient = Orient_Horizontal;
-    m_oStyle.align = AttributeAlign::Align_Center;
-    // 私有实现
-    //UIControlPrivate::SetFocusable(image, false);
-    //UIControlPrivate::SetFocusable(label, false);
 #ifndef NDEBUG
     m_oImage.name_dbg = "checkbox::image";
     m_oLabel.name_dbg = "checkbox::label";

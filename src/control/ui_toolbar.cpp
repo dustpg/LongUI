@@ -62,8 +62,6 @@ LongUI::UIToolBarButton::~UIToolBarButton() noexcept {
 /// <param name="meta">The meta.</param>
 LongUI::UIToolBarButton::UIToolBarButton(const MetaControl& meta) noexcept : Super(meta) {
     m_bToolBar = true;
-    m_oBox.margin = { 0 };
-    m_oBox.padding = { 2, 2, 2, 2 };
     // 弱外貌
     m_oStyle.appearance = Appearance_WeakApp | Appearance_ToolBarButton;
 }

@@ -111,8 +111,9 @@ namespace LongUI {
 
         // LongUI Max Control Tree Depth(level in byte for 256)
         MAX_CONTROL_TREE_DEPTH = 256,
-        // LongUI Max Control Type Count
-        MAX_CONTROL_TYPE_COUNT = 256
+        // LongUI Later Relase Rendering Object Max Length
+        MAX_LATER_RELEASE_RENDERING_LEN = 1024
+
     };
     // attribute [pseudo] namespace
     struct Attribute {

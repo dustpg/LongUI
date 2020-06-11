@@ -3,7 +3,7 @@
 #include <core/ui_manager.h>
 #include <core/ui_color_list.h>
 // private
-#include "../private/ui_win10_stlye.h"
+#include "../private/ui_win10_style.h"
 // c++
 #include <cassert>
 
@@ -43,57 +43,52 @@ namespace LongUI {
 /// </summary>
 /// <param name="args">The arguments.</param>
 /// <returns></returns>
-auto LongUI::NativeStyleDuration(const GetDurationArgs args) noexcept -> uint32_t {
-    const auto ptr = UIManager.GetNativeRenderer();
-    const auto style = static_cast<CUINativeStyleNow*>(ptr);
-    return style->NativeStyleDuration(args);
+auto LongUI::CUINativeStyle::GetDuration(const GetDurationArgs args) noexcept -> uint32_t {
+    // HINT: 可以使用虚函数
+    return static_cast<CUINativeStyleNow*>(this)->NativeStyleDuration(args);
 }
+
 
 /// <summary>
 /// Natives the color of the fg.
 /// </summary>
 /// <param name="now">The now.</param>
 /// <returns></returns>
-auto LongUI::NativeFgColor(StyleState now) noexcept -> uint32_t {
-    const auto ptr = UIManager.GetNativeRenderer();
-    const auto style = static_cast<CUINativeStyleNow*>(ptr);
-    return style->NativeFgColor(now);
+auto LongUI::CUINativeStyle::GetFgColor(StyleState now) noexcept -> uint32_t {
+    // HINT: 可以使用虚函数
+    return static_cast<CUINativeStyleNow*>(this)->NativeFgColor(now);
 }
 
-PCN_NOINLINE
 /// <summary>
 /// Draws the native style.
 /// </summary>
 /// <param name="args">The arguments.</param>
 /// <returns></returns>
-void LongUI::NativeStyleDraw(const NativeDrawArgs& args) noexcept {
-    const auto ptr = UIManager.GetNativeRenderer();
-    const auto style = static_cast<CUINativeStyleNow*>(ptr);
-    style->DrawNative(args);
+void LongUI::CUINativeStyle::DrawStyle(const NativeDrawArgs & args) noexcept {
+    // HINT: 可以使用虚函数
+    static_cast<CUINativeStyleNow*>(this)->DrawNative(args);
 }
 
-/// <summary>
-/// Draws the native style focus rect.
-/// </summary>
-/// <param name="args">The arguments.</param>
-/// <returns></returns>
-void LongUI::NativeStyleFocus(const RectF& rect) noexcept {
-#ifdef LUI_DRAW_FOCUS_RECT
-    const auto ptr = UIManager.GetNativeRenderer();
-    const auto style = static_cast<CUINativeStyleNow*>(ptr);
-    style->FocusNative(rect);
-#endif
-}
-
-PCN_NOINLINE
 /// <summary>
 /// Initializes the native style.
 /// </summary>
 /// <param name="ctrl">The control.</param>
 /// <param name="aa">The appearance.</param>
 /// <returns></returns>
-void LongUI::NativeStyleInit(UIControl& ctrl, AttributeAppearance aa) noexcept {
-    const auto ptr = UIManager.GetNativeRenderer();
-    const auto style = static_cast<CUINativeStyleNow*>(ptr);
-    style->InitCtrl(ctrl, aa);
+void LongUI::CUINativeStyle::DrawFocus(const RectF& rect) noexcept {
+#ifdef LUI_DRAW_FOCUS_RECT
+    // HINT: 可以使用虚函数
+    static_cast<CUINativeStyleNow*>(this)->FocusNative(rect);
+#endif
+}
+
+/// <summary>
+/// Initializes the native style.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <param name="aa">The appearance.</param>
+/// <returns></returns>
+void LongUI::CUINativeStyle::InitStyle(UIControl & ctrl, AttributeAppearance aa) noexcept {
+    // HINT: 可以使用虚函数
+    static_cast<CUINativeStyleNow*>(this)->InitCtrl(ctrl, aa);
 }

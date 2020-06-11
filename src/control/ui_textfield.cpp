@@ -40,7 +40,8 @@ LongUI::UITextField::UITextField(const MetaControl& meta) noexcept
     m_oStyle.offset_tf = static_cast<uint16_t>(address1 - address2);
     m_colorSelBg = ColorF::FromRGBA_CT<RGBA_TianyiBlue>();
     m_colorCaret = ColorF::FromRGBA_CT<RGBA_Black>();
-    m_oBox.padding = { 4, 2, 4, 2 };
+    // 写入默认外间距
+    m_oBox.margin = UIManager.RefNativeStyle().margin_basetextfiled;
     // 允许焦点
     m_state.focusable = true;
 #ifdef LUI_TEXTBOX_USE_UNIFIED_INPUT

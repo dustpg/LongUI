@@ -84,14 +84,6 @@ LongUI::UIButton::UIButton(const MetaControl& meta) noexcept : Super(meta),
 #endif
     // 水平布局
     m_state.orient = Orient_Horizontal;
-    // 居中
-    m_oStyle.pack = Pack_Center;
-    m_oStyle.align = Align_Center;
-    m_oBox.margin = { 5, 5, 5, 5 };
-    m_oBox.padding = { 4, 2, 4, 2 };
-
-    //UIControlPrivate::SetFocusable(image, false);
-    //UIControlPrivate::SetFocusable(label, false);
 #ifndef NDEBUG
     m_oImage.name_dbg = "button::image";
     m_oLabel.name_dbg = "button::label";

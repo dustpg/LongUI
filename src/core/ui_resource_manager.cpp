@@ -22,6 +22,7 @@
 // c++
 #include <cassert>
 #include <cstring>
+#include <algorithm>
 
 // system
 #include <graphics/ui_graphics_impl.h>
@@ -409,6 +410,10 @@ struct LongUI::CUIResMgr::Private {
     IWICImagingFactory*     wicfactroy;
     // alpha mode
     const GUID*             alpha;
+    // rendering release begin pointer
+    I::COM**                later0;
+    // rendering release end pointer MAX_LATER_RELEASE_RENDERING_LEN
+    I::COM**                later1;
     // default font
     I::Font*                deffont;
     // resource data
@@ -963,13 +968,44 @@ auto LongUI::CUIResMgr::create_bitmap_private(
 }
 
 
-
 /// <summary>
 /// Gets the default font.
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIResMgr::RefDefaultFont()const noexcept->const FontArg& {
     return rm().defarg;
+}
+
+
+
+
+PCN_NOINLINE
+/// <summary>
+/// push com object to later release
+/// </summary>
+/// <param name="object"> COM object </param>
+/// <returns></returns>
+void LongUI::CUIResMgr::PushLaterReleaseCOM(I::COM* object) noexcept {
+    if (!object) return;
+    const auto later_begin = rm().later0;
+    auto& later_end = rm().later1;
+    assert(later_begin && later_end);
+    const auto last = later_begin + MAX_LATER_RELEASE_RENDERING_LEN;
+    // 没满就加入
+    if (later_end < last) {
+        auto& locker_sp = UIManager.RefLaterLocker();
+        locker_sp.Lock();
+        *later_end = object;
+        ++later_end;
+        locker_sp.Unlock();
+    }
+    // 太多了也就没有延迟释放的理由, 直接释放
+    else {
+        UIManager.RenderLock();
+        const auto com = reinterpret_cast<IUnknown*>(object);
+        com->Release();
+        UIManager.RenderUnlock();
+    }
 }
 
 // ----------------------------------------------------------------------------
@@ -1008,7 +1044,7 @@ auto LongUI::CUIResMgr::CreateCtlText(
         ) };
         longui_debug_hr(hr, L"QueryInterface 'IDWriteTextLayout1' faild");
     // 释放数据
-    if (layout) layout->Release();
+    LongUI::SafeRelease(layout);
 #endif
     return hr;
 }
@@ -1260,6 +1296,12 @@ LongUI::CUIResMgr::CUIResMgr(IUIConfigure* cfg, Result& out) noexcept {
         assert(ptr == p);
         rm().bitbank.native = true;
     }
+    // XXX: 合并内存申请
+    if (hr) {
+        const auto ptr = LongUI::NormalAllocT<I::COM*>(MAX_LATER_RELEASE_RENDERING_LEN);
+        rm().later0 = rm().later1 = ptr;
+        if (!ptr) hr.code = Result::RE_OUTOFMEMORY;
+    }
     // 返回结果
     out = hr;
 }
@@ -1270,12 +1312,13 @@ LongUI::CUIResMgr::CUIResMgr(IUIConfigure* cfg, Result& out) noexcept {
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIResMgr::init_default_font(IUIConfigure* cfg) noexcept->Result {
+    auto& obj = rm();
     // 配置默认字体
-    auto& arg = rm().defarg;
+    auto& arg = obj.defarg;
     // 获取配置的默认字体
     cfg->DefaultFontArg(arg);
     // 创建默认字体
-    return this->CreateCtlFont(arg, rm().deffont);
+    return this->CreateCtlFont(arg, obj.deffont);
 }
 
 /// <summary>
@@ -1283,24 +1326,41 @@ auto LongUI::CUIResMgr::init_default_font(IUIConfigure* cfg) noexcept->Result {
 /// </summary>
 /// <returns></returns>
 LongUI::CUIResMgr::~CUIResMgr() noexcept {
+    auto& obj = rm();
+    // 释放延迟释放对象
+    this->release_later_release();
+    // XXX: 合并就不用 释放指针
+    LongUI::NormalFree(obj.later0);
     // 释放渲染器
-    if (rm().bitbank.native) {
-        const auto ptr = this->GetNativeRenderer();
-        impl::delete_native_style_renderer(ptr);
+    if (obj.bitbank.native) {
+        auto& naive_style  = this->RefNativeStyle();
+        impl::delete_native_style_renderer(&naive_style);
     }
     // 释放设备资源
     this->release_device();
     // 释放资源列表
     this->release_res_list();
     // 释放无关资源
-    rm().release();
+    obj.release();
     // 调用析构函数
-    rm().~Private();
+    obj.~Private();
 #ifndef NDEBUG
     delete m_pDebug;
 #endif
 }
 
+/// <summary>
+/// release later release object
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIResMgr::release_later_release() noexcept {
+    auto& obj = rm();
+    // 释放延迟释放链
+    std::for_each(obj.later0, obj.later1, [](I::COM* object) noexcept {
+        reinterpret_cast<IUnknown*>(object)->Release();
+    });
+    obj.later1 = obj.later0;
+}
 
 /// <summary>
 /// Recreates this instance.
@@ -1601,8 +1661,8 @@ auto LongUI::CUIResMgr::recreate_resource() noexcept -> Result {
     }
     // 正常重建,  即便错误也要继续, 目的是释放数据
     assert(rm().bitbank.native);
-    const auto ptr = this->GetNativeRenderer();
-    const auto naive_hr = impl::recreate_native_style_renderer(ptr);
+    auto& naive_style = this->RefNativeStyle();
+    const auto naive_hr = impl::recreate_native_style_renderer(&naive_style);
     if (!naive_hr) rv = naive_hr;
     return rv;
 }

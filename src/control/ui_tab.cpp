@@ -80,22 +80,13 @@ LongUI::UITab::UITab(const MetaControl& meta) noexcept : Super( meta),
     m_oImage(this), m_oLabel(this) {
     // 水平布局
     m_state.orient = Orient_Horizontal;
-    // tab类型
-    //m_oBox.margin = { 1, 1, 1, 1 };
-    m_oBox.border = { 1, 1, 1, 1 };
-    m_oBox.padding = { 0, 1, 0, 1 };
     m_oStyle.appearance = Appearance_WeakApp | Appearance_Tab;
-    m_oStyle.overflow_x = Overflow_Hidden;
-    m_oStyle.overflow_y = Overflow_Hidden;
     // 阻隔鼠标事件写入false之前需要写入
     m_oImage.RefInheritedMask() = State_MouseCutInher;
     m_oLabel.RefInheritedMask() = State_MouseCutInher;
     // 阻隔鼠标事件
     m_state.mouse_continue = false;
     this->make_offset_tf_direct(m_oLabel);
-    // 私有实现
-    //UIControlPrivate::SetFocusable(image, false);
-    //UIControlPrivate::SetFocusable(label, false);
 #ifndef NDEBUG
     m_oImage.name_dbg = "tab::image";
     m_oLabel.name_dbg = "tab::label";
@@ -539,5 +530,4 @@ LongUI::UITabPanels::~UITabPanels() noexcept {
 LongUI::UITabPanels::UITabPanels(const MetaControl& meta) noexcept : Super(meta) {
     // TabPanels类型
     m_oStyle.appearance = Appearance_WeakApp | Appearance_TabPanels;
-    m_oBox.border = { 1, 1, 1, 1 };
 }

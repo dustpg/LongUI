@@ -85,9 +85,6 @@ LongUI::UIListBox::UIListBox(const MetaControl& meta) noexcept : Super(meta),
     //m_state.focusable = true;
     // 默认为列表框
     m_oStyle.appearance = Appearance_WeakApp | Appearance_ListBox;
-    // 默认样式
-    m_oBox.border = { 1, 1, 1, 1 };
-    m_oBox.margin = { 4, 2, 4, 2 };
     // 至少一个
     m_selected.reserve(1);
     // TODO: OOM处理
@@ -531,18 +528,13 @@ auto LongUI::UIListItem::RefText() const noexcept -> const CUIString&{
 LongUI::UIListItem::UIListItem(const MetaControl& meta) noexcept : Super(meta),
     m_oImage(nullptr), m_oLabel(nullptr) {
     //m_state.focusable = true;
-    m_oBox.padding = { 2, 0, 2, 0 };
     // 阻隔鼠标事件
     m_state.mouse_continue = false;
     this->make_offset_tf_direct(m_oLabel);
     // 水平布局
     m_state.orient = Orient_Horizontal;
-    m_oStyle.align = AttributeAlign::Align_Center;
     // 列表项目
     m_oStyle.appearance = Appearance_WeakApp | Appearance_ListItem;
-    // 私有实现
-    //UIControlPrivate::SetFocusable(image, false);
-    //UIControlPrivate::SetFocusable(label, false);
 #ifndef NDEBUG
     m_oImage.name_dbg = "listitem::image";
     m_oLabel.name_dbg = "listitem::label";
@@ -993,15 +985,10 @@ namespace LongUI {
 LongUI::UIListHeader::UIListHeader(const MetaControl& meta) noexcept : Super(meta),
     m_oImage(this), m_oLabel(this), m_oSortDir(this) {
     //m_state.focusable = true;
-    // 内间距
-    m_oBox.padding = { 4, 0, 4, 0 };
     // 水平布局
     m_state.orient = Orient_Horizontal;
     // 属于HEADER CELL
     m_oStyle.appearance = Appearance_WeakApp | Appearance_TreeHeaderCell;
-    // 私有实现
-    //UIControlPrivate::SetFocusable(image, false);
-    //UIControlPrivate::SetFocusable(label, false);
 #ifndef NDEBUG
     m_oImage.name_dbg = "listheader::image";
     m_oLabel.name_dbg = "listheader::label";

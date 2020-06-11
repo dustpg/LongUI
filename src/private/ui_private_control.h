@@ -107,4 +107,8 @@ struct LongUI::UIControlPrivate {
     static void MarkWindowMinsizeChanged(UIControl& ctrl) noexcept { ctrl.mark_window_minsize_changed(); }
     // add child
     static void AddChild(UIControl& o, UIControl& c) noexcept { o.add_child(c); }
+    // ref style
+    static auto&RefStyle(UIControl& o) noexcept { return o.m_oStyle; }
+    // ref box
+    static auto&RefBox(UIControl& o) noexcept { return o.m_oBox; }
 };

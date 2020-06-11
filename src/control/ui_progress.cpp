@@ -36,9 +36,6 @@ LongUI::UIProgress::UIProgress(const MetaControl& meta) noexcept : Super(meta),
     // 没有逻辑子控件
     m_pAccCtrl = nullptr;
 #endif
-    // 基本样式
-    m_oBox.margin = { 4.f, 2.f, 4.f, 1.f };
-    m_oBox.border = { 1.f, 1.f, 1.f, 1.f };
     // 私有实现
 #ifndef NDEBUG
     m_oBar.name_dbg = "progress::bar";

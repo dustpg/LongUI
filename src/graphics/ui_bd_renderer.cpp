@@ -29,7 +29,6 @@ LongUI::CUIRendererBorder::CUIRendererBorder() noexcept {
 /// <returns></returns>
 LongUI::CUIRendererBorder::~CUIRendererBorder() noexcept {
     // 需要释放设备资源
-    CUIRenderAutoLocker locker;
     this->ReleaseDeviceData();
 }
 
@@ -46,8 +45,12 @@ void LongUI::CUIRendererBorder::ReleaseDeviceData() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIRendererBorder::release_effect() noexcept {
-    LongUI::SafeRelease(m_pBorder);
-    LongUI::SafeRelease(m_pOutput);
+    UIManager.PushLaterReleaseCOM(LUI_OBJECT_TO_COM(m_pBorder));
+    UIManager.PushLaterReleaseCOM(LUI_OBJECT_TO_COM(m_pOutput));
+#ifndef DEBUG
+    m_pBorder = reinterpret_cast<I::Effect*>(1);
+    m_pOutput = reinterpret_cast<I::EOutput*>(1);
+#endif // !DEBUG
 }
 
 /// <summary>

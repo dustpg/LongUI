@@ -105,10 +105,6 @@ namespace LongUI {
         auto save_selected_true() noexcept { m_bSaveSel = true; }
         // save selected: false
         auto save_selected_false() noexcept { m_bSaveSel = false; }
-        // init clear color for defualt ctxmenu
-        void init_clear_color_for_default_ctxmenu() noexcept;
-        // init clear color for defualt combobox
-        void init_clear_color_for_default_combobox() noexcept;
         // selected before init
         //void selected_before_init(UIControl&c) noexcept { m_pPerSelected = &c; }
     public:

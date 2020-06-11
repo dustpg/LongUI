@@ -26,7 +26,6 @@ LongUI::UIStatusBar::UIStatusBar(const MetaControl& meta) noexcept :Super(meta) 
 /// </summary>
 /// <param name="meta">The meta.</param>
 LongUI::UIStatusBarPanel::UIStatusBarPanel(const MetaControl& meta) noexcept :Super(meta) {
-    m_oBox.padding = { 10, 0, 10, 0 };
     m_oStyle.appearance = Appearance_StatusBarPanel;
 }
 

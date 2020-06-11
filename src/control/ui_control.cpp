@@ -332,10 +332,6 @@ auto LongUI::UIControl::init() noexcept -> Result {
     //            << endl;
     //}
 #endif // !NDEBUG
-#ifndef LUI_DISABLE_STYLE_SUPPORT
-    // 重新连接样式表
-    this->link_style_sheet();
-#endif
     // 初始化对象
     EventInitializeArg arg; 
     this->DoEvent(this, arg);
@@ -345,7 +341,7 @@ auto LongUI::UIControl::init() noexcept -> Result {
         // 取消弱标识
         m_oStyle.appearance = m_oStyle.appearance & Appearance_AppMask;
         // 依赖类型初始化控件
-        LongUI::NativeStyleInit(*this, this->RefStyle().appearance);
+        UIManager.RefNativeStyle().InitStyle(*this, m_oStyle.appearance);
         // 重建对象资源
         UIManager.RenderLock();
         hr = this->Recreate(false);
@@ -355,6 +351,10 @@ auto LongUI::UIControl::init() noexcept -> Result {
             this->Resize({ DEFAULT_CONTROL_WIDTH, DEFAULT_CONTROL_HEIGHT });
         }
     }
+#ifndef LUI_DISABLE_STYLE_SUPPORT
+    // 重新连接样式表
+    this->link_style_sheet();
+#endif
     // 设置初始化状态
     this->setup_init_state();
     // 初始化完毕
@@ -375,7 +375,8 @@ void LongUI::UIControl::setup_init_state() noexcept {
     if (m_oStyle.appearance != Appearance_None) {
         // 静止
         if (this->IsDisabled()) {
-            const auto color = LongUI::NativeFgColor(m_oStyle.state);
+            auto& naive_style = UIManager.RefNativeStyle();
+            const auto color = naive_style.GetFgColor(m_oStyle.state);
             this->SetFgColor({ color });
         }
     }
@@ -536,7 +537,7 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
 #ifndef LUI_DISABLE_STYLE_SUPPORT
     case BKDR_STYLE:
         // style      : 内联样式表
-        if (LongUI::ParseInlineStlye(m_oStyle.matched, value))
+        if (LongUI::ParseInlineStyle(m_oStyle.matched, value))
             m_state.has_inline_style = true;
 
         break;
@@ -782,7 +783,7 @@ void LongUI::UIControl::MapToParent(Point2F& point) const noexcept {
 /// <returns></returns>
 void LongUI::UIControl::ControlMakingBegin() noexcept {
 #ifdef LUI_USING_CTOR_LOCKER
-    UIManager.RefCtorLocker().Lock();
+    UIManager.RefLaterLocker().Lock();
 #else
     UIManager.DataLock();
 #endif
@@ -795,7 +796,7 @@ void LongUI::UIControl::ControlMakingBegin() noexcept {
 /// <returns></returns>
 void LongUI::UIControl::ControlMakingEnd() noexcept {
 #ifdef LUI_USING_CTOR_LOCKER
-    UIManager.RefCtorLocker().Unlock();
+    UIManager.RefLaterLocker().Unlock();
 #else
     UIManager.DataUnlock();
 #endif
@@ -1167,22 +1168,23 @@ LongUI::UIControl::~UIControl() noexcept {
     }
     // 移除被触发列表
     this->remove_triggered();
+    // 清理渲染器
+    this->delete_renderer();
     // 移除高层引用
     UIManager.ControlDisattached(*this);
     // 移除窗口引用
     m_pWindow->ControlDisattached(*this);
+    // #DTOR# 同样适用
+    UIControl::ControlMakingBegin();
     // 清理子节点
     while (begin() != end()) delete begin();
-    // 清理渲染器
-    this->delete_renderer();
     // 清除父节点中的自己
-    if (m_pParent) {
-        m_pParent->remove_child(*this);
+    if (m_pParent) m_pParent->remove_child(*this);
+    // #DTOR# 同样适用
+    UIControl::ControlMakingEnd();
 #ifndef NDEBUG
-        m_pParent = nullptr;
-        m_pParent++;
+    m_pParent = reinterpret_cast<UIControl*>(1);
 #endif
-    }
 }
 
 /// <summary>

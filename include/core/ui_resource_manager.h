@@ -29,6 +29,11 @@
 #include "../text/ui_ctl_decl.h"
 #include "../resource/ui_resource.h"
 #include "../graphics/ui_graphics_decl.h"
+#include "../style/ui_native_style.h"
+
+
+// ez helper
+#define LUI_OBJECT_TO_COM(x) reinterpret_cast<I::COM*>(static_cast<IUnknown*>(x))
 
 // ui namespace
 namespace LongUI {
@@ -39,6 +44,8 @@ namespace LongUI {
       - gif
       - and more
 */
+    // com object to later release
+    namespace I { struct COM; }
     // rgba-color
     union RGBA;
     // config
@@ -56,9 +63,9 @@ namespace LongUI {
         // private data
         enum : size_t {
             // naive!
-            naive = 8,
+            naive = 8 + sizeof(CUINativeStyle) / sizeof(void*),
             // pointer count
-            p_ptr_count = 12,
+            p_ptr_count = 14,
             // 32bit count
             p_32b_count = 10,
             // size count
@@ -78,8 +85,8 @@ namespace LongUI {
         auto&Ref3DRenderer() noexcept { return *m_p3DRenderer; }
         // get 3d device
         auto&Ref3DDevice() noexcept { return *m_p3DDevice; }
-        // get native renderer
-        void*GetNativeRenderer() noexcept { return m_bufNative; }
+        // ref native style
+        auto&RefNativeStyle() noexcept { return *reinterpret_cast<CUINativeStyle*>(m_bufNative); }
         // get common color brush with color
         static auto RefCCBrush(const ColorF&) noexcept->I::Brush&;
         // ref 2d factory, use reinterpret_cast<XX&>
@@ -91,6 +98,8 @@ namespace LongUI {
         auto CreateCtlText(const TextArg&, I::Text*&) noexcept->Result;
         // get default font data
         auto RefDefaultFont() const noexcept -> const FontArg&;
+        // push later release COM object
+        void PushLaterReleaseCOM(I::COM*) noexcept;
     public:
         // set alpha ch. premultiply for reading image
         void SetAlphaMode(bool premultiply) noexcept;
@@ -116,6 +125,8 @@ namespace LongUI {
     protected:
         // init default font data
         auto init_default_font(IUIConfigure*) noexcept->Result;
+        // release later release
+        void release_later_release() noexcept;
     protected:
         // graphics factory
         I::FactoryGraphics*     m_pGraphicsFactory = nullptr;

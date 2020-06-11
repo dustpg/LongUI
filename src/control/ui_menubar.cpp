@@ -67,8 +67,7 @@ LongUI::UIMenu::~UIMenu() noexcept {
 LongUI::UIMenu::UIMenu(const MetaControl& meta) noexcept : Super(meta) {
     m_bMenuBar = true;
     m_type = BehaviorType::Type_Menu;
-    m_oBox.margin = { 0 };
-    m_oBox.padding = { 2, 2, 2, 2 };
+    m_oStyle.appearance = Appearance_WeakApp | Appearance_ToolBarButton;
 }
 
 

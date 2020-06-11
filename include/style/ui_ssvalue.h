@@ -35,7 +35,7 @@ namespace LongUI {
     // match style sheet
     void MatchStyleSheet(UIControl&, CUIStyleSheet* ptr) noexcept;
     // parse inline style
-    bool ParseInlineStlye(SSValues&, U8View) noexcept;
+    bool ParseInlineStyle(SSValues&, U8View) noexcept;
     // stylesheets: value pc
     struct SSValuePC {
         // yes pseudo-classes

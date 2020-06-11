@@ -67,9 +67,6 @@ LongUI::UIMenuItem::UIMenuItem(const MetaControl& meta) noexcept : Super(meta),
     m_state.focusable = true;
     m_state.capturable = true;
     m_state.orient = Orient_Horizontal;
-    m_oStyle.align = AttributeAlign::Align_Stretcht;
-    //m_oBox.margin = { 4, 2, 4, 2 };
-    m_oBox.padding = { 4, 1, 2, 1 };
     // 阻隔鼠标事件写入false之前需要写入
     m_oImage.RefInheritedMask() = State_MouseCutInher;
     m_oLabel.RefInheritedMask() = State_MouseCutInher;
@@ -78,9 +75,6 @@ LongUI::UIMenuItem::UIMenuItem(const MetaControl& meta) noexcept : Super(meta),
     this->make_offset_tf_direct(m_oLabel);
     // 将事件传送给父节点
     UIControlPrivate::SetGuiEvent2Parent(*this);
-    // 私有实现
-    //UIControlPrivate::SetFocusable(image, false);
-    //UIControlPrivate::SetFocusable(label, false);
     const_cast<RectF&>(m_oImage.RefBox().margin) = { 2.f, 2.f, 2.f, 2.f };
     m_oImage.JustSetAsIcon();
 #ifndef NDEBUG
@@ -303,12 +297,6 @@ void LongUI::UIMenuItem::init_menuitem() noexcept {
             m_oImage.SetStyleMinSize({ float(ICON_WIDTH), 0.f });
         }
     }
-
-    //constexpr auto iapp = Appearance_CheckBox;
-    //UIControlPrivate::SetAppearanceIfNotSet(m_oImage, iapp);
-    // 标签数据
-    //auto& label = m_oLabel;
-    //const auto a = label.GetText();
 }
 
 
@@ -419,17 +407,9 @@ LongUI::UIMenuList::UIMenuList(const MetaControl& meta) noexcept : Super(meta),
     this->make_offset_tf_direct(m_oLabel);
     // 默认是处于关闭状态
     m_oStyle.state = m_oStyle.state | State_Closed;
-    // 布局方向
-    m_oStyle.align = Align_Center;
-    // 垂直布局
     m_state.orient = Orient_Horizontal;
-    m_oBox.margin = { 5, 5, 5, 5 };
-    m_oBox.padding.right = 5;
     // 私有实现
     UIControlPrivate::SetFlex(m_oLabel, 1.f);
-    //UIControlPrivate::SetFocusable(image, false);
-    //UIControlPrivate::SetFocusable(label, false);
-    //UIControlPrivate::SetFocusable(marker, false);
 #ifndef NDEBUG
     m_oImage.name_dbg = "menulist::image";
     m_oLabel.name_dbg = "menulist::label";
@@ -441,7 +421,7 @@ LongUI::UIMenuList::UIMenuList(const MetaControl& meta) noexcept : Super(meta),
 #endif
     // 设置弱外貌
     auto& marker = m_oMarker;
-    UIControlPrivate::SetAppearance(*this, Appearance_WeakApp | Appearance_Button);
+    UIControlPrivate::SetAppearance(*this, Appearance_WeakApp | Appearance_MenuList);
     UIControlPrivate::SetAppearance(marker, Appearance_WeakApp | Appearance_DropDownMarker);
 }
 
@@ -675,30 +655,6 @@ LongUI::UIMenuPopup::UIMenuPopup(UIControl* hoster, const MetaControl& meta) noe
 }
 
 /// <summary>
-/// Initializes the clear color for default ctxmenu.
-/// </summary>
-/// <returns></returns>
-void LongUI::UIMenuPopup::init_clear_color_for_default_ctxmenu() noexcept {
-    constexpr float single = float(0xf0) / float(0xff);
-    ColorF color;
-    color.r = single; color.g = single;
-    color.b = single; color.a = 1.f;
-    m_window.SetClearColor(color);
-}
-
-/// <summary>
-/// Initializes the clear color for default combobox.
-/// </summary>
-/// <returns></returns>
-void LongUI::UIMenuPopup::init_clear_color_for_default_combobox() noexcept {
-    constexpr float single = float(0xff) / float(0xff);
-    ColorF color;
-    color.r = single; color.g = single;
-    color.b = single; color.a = 1.f;
-    m_window.SetClearColor(color);
-}
-
-/// <summary>
 /// Updates this instance.
 /// </summary>
 /// <returns></returns>
@@ -785,14 +741,17 @@ auto LongUI::UIMenuPopup::DoEvent(
     switch (arg.nevent)
     {
     case NoticeEvent::Event_Initialize:
-        // XXX: 由NativeStyle提供
-        // 保存选择的认为是组合框
-        if (this->is_save_selected())
-            this->init_clear_color_for_default_combobox();
-        // 否则认为是一般菜单
-        else
-            this->init_clear_color_for_default_ctxmenu();
+    {
+        auto& native_style = UIManager.RefNativeStyle();
+        m_window.SetClearColor(
+            this->is_save_selected()
+            // 保存选择的认为是组合框
+            ? native_style.clearcolor_combobox
+            // 否则认为是一般菜单
+            : native_style.clearcolor_ctxmenu
+        );
         break;
+    }
     case NoticeEvent::Event_UIEvent:
         // 自己不处理自己的UIEvent 否则就stackoverflow了
         if (sender == this) return Event_Accept;

@@ -50,9 +50,6 @@ LongUI::UITextBox::UITextBox(const MetaControl& meta) noexcept
     // XXX: 默认颜色
     const_cast<ColorF&>(m_oPlaceHolder.RefTextFont().text.color) = { 0.5, 0.5, 0.5, 1 };
     //const_cast<AttributeFontStyle&>(m_oPlaceHolder.RefTextFont().font.style) = Style_Italic;
-    // XXX: 默认间距
-    m_oBox.margin = { 4, 2, 4, 2 };
-    m_oBox.border = { 1, 1, 1, 1 };
     m_oStyle.appearance = Appearance_WeakApp | Appearance_TextField;
     this->make_offset_tf_direct(m_oTextField);
     UIControlPrivate::SetFlex(m_oTextField, 1.f);

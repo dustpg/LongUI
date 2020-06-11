@@ -18,33 +18,34 @@ namespace LongUI {
     LUI_CONTROL_META_INFO(UIHBoxLayout, "hbox");
     // UIBoxLayout类 元信息
     LUI_CONTROL_META_INFO(UIBoxLayout, "box");
-    // impl
-    namespace impl {
-        PCN_NOINLINE
-        /// <summary>
-        /// Gets the align factor.
-        /// </summary>
-        /// <param name="align">The align.</param>
-        /// <returns></returns>
-        auto get_align_factor(AttributeAlign align) noexcept {
-            switch (align)
-            {
-            case LongUI::Align_Stretcht:
-                return -1.0f;
-            default: assert(!"error"); 
-                [[fallthrough]];
-            case LongUI::Align_Baseline:
-                [[fallthrough]];
-            case LongUI::Align_Start:
-                return 0.0f;
-            case LongUI::Align_Center:
-                return 0.5f;
-            case LongUI::Align_End:
-                return 1.0f;
-            }
+}
+
+// ui::impl namespace
+namespace LongUI { namespace impl {
+    PCN_NOINLINE
+    /// <summary>
+    /// Gets the align factor.
+    /// </summary>
+    /// <param name="align">The align.</param>
+    /// <returns></returns>
+    auto get_align_factor(AttributeAlign align) noexcept {
+        switch (align)
+        {
+        case LongUI::Align_Stretcht:
+            return -1.0f;
+        default: assert(!"error");
+            [[fallthrough]];
+        case LongUI::Align_Baseline:
+            [[fallthrough]];
+        case LongUI::Align_Start:
+            return 0.0f;
+        case LongUI::Align_Center:
+            return 0.5f;
+        case LongUI::Align_End:
+            return 1.0f;
         }
     }
-}
+}}
 
 
 /// <summary>

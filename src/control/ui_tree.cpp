@@ -77,9 +77,6 @@ LongUI::UITree::UITree(const MetaControl& meta) noexcept : Super(meta) {
     m_pTree = this;
     // 默认为列表框
     m_oStyle.appearance = Appearance_WeakApp | Appearance_ListBox;
-    // 默认样式
-    m_oBox.border = { 1, 1, 1, 1 };
-    m_oBox.margin = { 4, 2, 4, 2 };
 }
 
 /// <summary>
@@ -1352,7 +1349,6 @@ LongUI::UITreeCell::~UITreeCell() noexcept {
 /// </summary>
 /// <param name="meta">The meta.</param>
 LongUI::UITreeCell::UITreeCell(const MetaControl& meta) noexcept : Super(meta) {
-    m_oBox.padding = { 4, 1, 1, 1 };
     // 暂时用ListItem?
     //m_oStyle.appearance =  Appearance_WeakApp | Appearance_ListItem;
 }

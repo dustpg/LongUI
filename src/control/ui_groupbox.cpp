@@ -25,14 +25,8 @@ LongUI::UIGroupBox::UIGroupBox(const MetaControl& meta) noexcept : Super(meta),
     m_oHeadLayout(this), m_oBodyLayout(this) {
     // 垂直布局
     m_state.orient = Orient_Vertical;
-    // 原子性, 子控件为本控件的组成部分
-    //m_state.atomicity = true;
     // 默认为分组框样式
     m_oStyle.appearance = Appearance_WeakApp | Appearance_GroupBox;
-    // 基本样式
-    m_oBox.border = { 1.f, 1.f, 1.f, 1.f };
-    m_oBox.margin = { 3.f, 3.f, 3.f, 3.f };
-    m_oBox.padding = { 3.f, 3.f, 3.f, 6.f };
     // 私有实现
     UIControlPrivate::SetFlex(m_oBodyLayout, 1.f);
 #ifdef LUI_ACCESSIBLE

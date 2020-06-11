@@ -39,7 +39,6 @@ LongUI::UIRadio::UIRadio(const MetaControl& meta) noexcept : Super(meta),
     m_state.focusable = true;
     m_state.capturable = true;
     m_state.orient = Orient_Horizontal;
-    m_oStyle.align = AttributeAlign::Align_Center;
     // 阻隔鼠标事件写入false之前需要写入
     m_oImage.RefInheritedMask() = State_MouseCutInher;
     m_oLabel.RefInheritedMask() = State_MouseCutInher;
@@ -50,12 +49,6 @@ LongUI::UIRadio::UIRadio(const MetaControl& meta) noexcept : Super(meta),
 #ifdef LUI_ACCESSIBLE
     m_pAccCtrl = nullptr;
 #endif
-    // XXX: 硬编码
-    m_oBox.margin = { 4, 2, 4, 2 };
-    m_oBox.padding = { 4, 1, 2, 1 };
-    // 私有实现
-    //UIControlPrivate::SetFocusable(image, false);
-    //UIControlPrivate::SetFocusable(label, false);
 #ifndef NDEBUG
     m_oImage.name_dbg = "radio::image";
     m_oLabel.name_dbg = "radio::label";

@@ -71,7 +71,7 @@ bool LongUI::UIControl::native_style_render() const noexcept {
         }
     }
     // 渲染本地风格
-    LongUI::NativeStyleDraw(arg);
+    UIManager.RefNativeStyle().DrawStyle(arg);
     // 表示已经渲染
     return false;
 }

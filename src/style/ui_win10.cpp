@@ -6,7 +6,8 @@
 #include <style/ui_native_style.h>
 #include <graphics/ui_graphics_impl.h>
 // private
-#include "../private/ui_win10_stlye.h"
+#include "../private/ui_win10_style.h"
+#include "../private/ui_private_control.h"
 
 
 /// <summary>
@@ -81,6 +82,7 @@ void LongUI::CUINativeStyleWindows10::DrawNative(const NativeDrawArgs& args) noe
     case LongUI::Appearance_MenuRadio:
         return this->draw_radio(args);
     case LongUI::Appearance_Button:
+    case LongUI::Appearance_MenuList:
         return this->draw_button(args);
     case LongUI::Appearance_Resizer:
         return this->draw_rasizer(args);
@@ -204,6 +206,12 @@ void LongUI::CUINativeStyleWindows10::FocusNative(const RectF& rect) noexcept {
 /// <param name="hr"></param>
 /// <returns></returns>
 LongUI::CUINativeStyleWindows10::CUINativeStyleWindows10(Result& hr) noexcept {
+    // 初始化基础数据
+    this->clearcolor_ctxmenu = { 0.94f, 0.94f, 0.94f, 1.00f };
+    this->clearcolor_combobox = { 1, 1, 1, 1 };
+    this->margin_baselabel = { 6, 1, 5, 2 };
+    this->margin_basetextfiled = { 4, 2, 4, 2 };
+
 #ifdef LUI_DRAW_ARROW_IN_MESH
     // 创建箭头网格
     constexpr uint32_t tri_count = sizeof(WIN10_ARROW_MESH)
@@ -287,13 +295,86 @@ auto LongUI::CUINativeStyleWindows10::Recreate() noexcept -> Result {
 /// <param name="ctrl">The control.</param>
 /// <param name="">The .</param>
 /// <returns></returns>
-void LongUI::CUINativeStyleWindows10::InitCtrl(
-    UIControl& ctrl, AttributeAppearance type) noexcept{
+void LongUI::CUINativeStyleWindows10::InitCtrl(UIControl& ctrl, AttributeAppearance type) noexcept{
     // NONE场合特殊处理
     if (type == Appearance_None) return;
     // 分类讨论
     switch (type)
     {
+    case LongUI::Appearance_CheckBoxContainer:
+        UIControlPrivate::RefStyle(ctrl).align = AttributeAlign::Align_Center;
+        UIControlPrivate::RefBox(ctrl).margin = { 4, 2, 4, 2 };
+        UIControlPrivate::RefBox(ctrl).padding = { 4, 1, 2, 1 };
+        break;
+    case LongUI::Appearance_Button:
+        // 居中
+        UIControlPrivate::RefStyle(ctrl).pack = Pack_Center;
+        UIControlPrivate::RefStyle(ctrl).align = Align_Center;
+        UIControlPrivate::RefBox(ctrl).margin = { 5, 5, 5, 5 };
+        UIControlPrivate::RefBox(ctrl).padding = { 4, 2, 4, 2 };
+        break;
+    case LongUI::Appearance_MenuList:
+        UIControlPrivate::RefStyle(ctrl).align = Align_Center;
+        UIControlPrivate::RefBox(ctrl).margin = { 5, 5, 5, 5 };
+        UIControlPrivate::RefBox(ctrl).padding.right = 5;
+        break;
+    case LongUI::Appearance_GroupBox:
+        // 基本样式
+        UIControlPrivate::RefBox(ctrl).border = { 1, 1, 1, 1 };
+        UIControlPrivate::RefBox(ctrl).margin = { 3, 3, 3, 3 };
+        UIControlPrivate::RefBox(ctrl).padding = { 3, 3, 3, 6 };
+        break;
+    case LongUI::Appearance_ListBox:
+        UIControlPrivate::RefBox(ctrl).border = { 1, 1, 1, 1 };
+        UIControlPrivate::RefBox(ctrl).margin = { 4, 2, 4, 2 };
+        break;
+    case LongUI::Appearance_ListItem:
+        UIControlPrivate::RefBox(ctrl).padding = { 2, 0, 2, 0 };
+        UIControlPrivate::RefStyle(ctrl).align = AttributeAlign::Align_Center;
+        break;
+    case LongUI::Appearance_TreeHeaderCell:
+        UIControlPrivate::RefBox(ctrl).padding = { 4, 0, 4, 0 };
+        break;
+    case LongUI::Appearance_ToolBarButton:
+        UIControlPrivate::RefStyle(ctrl).pack = Pack_Center;
+        UIControlPrivate::RefStyle(ctrl).align = Align_Center;
+        UIControlPrivate::RefBox(ctrl).margin = { 0 };
+        UIControlPrivate::RefBox(ctrl).padding = { 2, 2, 2, 2 };
+        break;
+    case LongUI::Appearance_MenuItem:
+        UIControlPrivate::RefStyle(ctrl).align = AttributeAlign::Align_Stretcht;
+        //UIControlPrivate::RefBox(ctrl).margin = { 4, 2, 4, 2 };
+        UIControlPrivate::RefBox(ctrl).padding = { 4, 1, 2, 1 };
+        // 包含文字, 不适合设置
+        //ctrl.SetStyleMinSize({ 0, MENUITEM_HEIGHT });
+        break;
+    case LongUI::Appearance_ProgressBarH:
+        UIControlPrivate::RefBox(ctrl).margin = { 4, 2, 4, 1 };
+        UIControlPrivate::RefBox(ctrl).border = { 1, 1, 1, 1 };
+        ctrl.SetStyleMinSize({ 0, SLIDER_THUMB_HH });
+        break;
+    case LongUI::Appearance_ProgressBarV:
+        UIControlPrivate::RefBox(ctrl).margin = { 4, 2, 4, 1 };
+        UIControlPrivate::RefBox(ctrl).border = { 1, 1, 1, 1 };
+        ctrl.SetStyleMinSize({ SLIDER_THUMB_HH, 0 });
+        break;
+    case LongUI::Appearance_StatusBarPanel:
+        UIControlPrivate::RefBox(ctrl).padding = { 10, 0, 10, 0 };
+        //ctrl.SetStyleMinSize({ 5, 5 });
+        break;
+    case LongUI::Appearance_Tab:
+        UIControlPrivate::RefStyle(ctrl).overflow_x = Overflow_Hidden;
+        UIControlPrivate::RefStyle(ctrl).overflow_y = Overflow_Hidden;
+        UIControlPrivate::RefBox(ctrl).border = { 1, 1, 1, 1 };
+        UIControlPrivate::RefBox(ctrl).padding = { 0, 1, 0, 1 };
+        break;
+    case LongUI::Appearance_TabPanels:
+        UIControlPrivate::RefBox(ctrl).border = { 1, 1, 1, 1 };
+        break;
+    case LongUI::Appearance_TextField:
+        UIControlPrivate::RefBox(ctrl).margin = { 4, 2, 4, 2 };
+        UIControlPrivate::RefBox(ctrl).border = { 1, 1, 1, 1 };
+        break;
     case LongUI::Appearance_Radio:
     case LongUI::Appearance_CheckBox:
         // 固定大小
@@ -302,18 +383,11 @@ void LongUI::CUINativeStyleWindows10::InitCtrl(
     case LongUI::Appearance_Resizer:
         ctrl.SetFixedSize({ ARROW_SIZE, ARROW_SIZE });
         break;
-    case LongUI::Appearance_MenuItem:
-        // 包含文字, 不适合设置
-        //ctrl.SetStyleMinSize({ 0, MENUITEM_HEIGHT });
-        break;
     case LongUI::Appearance_MenuSeparator:
         ctrl.SetStyleMinSize({ -1, MENUSEPARATOR_HEIGHT });
         break;
     //case LongUI::Appearance_StatusBar:
     //    ctrl.SetStyleMinSize({ -1, -1 });
-    //    break;
-    //case LongUI::Appearance_StatusBarPanel:
-    //    ctrl.SetStyleMinSize({ 5, 5 });
     //    break;
     case LongUI::Appearance_MenuArrow:
     case LongUI::Appearance_TreeTwisty:
@@ -337,12 +411,10 @@ void LongUI::CUINativeStyleWindows10::InitCtrl(
         ctrl.SetStyleMinSize({ ARROW_SIZE, 0 });
         break;
     case LongUI::Appearance_ScaleH:
-    case LongUI::Appearance_ProgressBarH:
     //case LongUI::Appearance_ProgressChunkH:
         ctrl.SetStyleMinSize({ 0, SLIDER_THUMB_HH });
         break;
     case LongUI::Appearance_ScaleV:
-    case LongUI::Appearance_ProgressBarV:
     //case LongUI::Appearance_ProgressChunkV:
         ctrl.SetStyleMinSize({ SLIDER_THUMB_HH, 0 });
         break;
