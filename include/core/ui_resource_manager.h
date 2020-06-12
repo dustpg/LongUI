@@ -98,8 +98,8 @@ namespace LongUI {
         auto CreateCtlText(const TextArg&, I::Text*&) noexcept->Result;
         // get default font data
         auto RefDefaultFont() const noexcept -> const FontArg&;
-        // push later release COM object
-        void PushLaterReleaseCOM(I::COM*) noexcept;
+        // thread safe release COM object 
+        void TSReleaseCOM(I::COM*) noexcept;
     public:
         // set alpha ch. premultiply for reading image
         void SetAlphaMode(bool premultiply) noexcept;

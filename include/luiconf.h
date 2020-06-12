@@ -73,6 +73,8 @@ namespace LongUI {
         EMPTY_HEIGHT_PER_ROW = 24,
         // min scrollbar display size       : for scrollbar
         MIN_SCROLLBAR_DISPLAY_SIZE = 64,
+        // later-relase max length          : for later-relase
+        MAX_LATER_RELEASE_LENGTH = 1024,
         // default control max width/height :
         DEFAULT_CONTROL_MAX_SIZE = 100000,
 
@@ -111,8 +113,6 @@ namespace LongUI {
 
         // LongUI Max Control Tree Depth(level in byte for 256)
         MAX_CONTROL_TREE_DEPTH = 256,
-        // LongUI Later Relase Rendering Object Max Length
-        MAX_LATER_RELEASE_RENDERING_LEN = 1024
 
     };
     // attribute [pseudo] namespace

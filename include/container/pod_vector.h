@@ -11,6 +11,7 @@
 #include "../typecheck/int_by_size.h"
 #include "../util/ui_unimacro.h"
 #include "../util/ui_ctordtor.h"
+#include "../constexpr/const_log2.h"
 
 namespace LongUI {
     // string class
@@ -32,11 +33,6 @@ namespace LongUI { namespace POD {
     /// detail namespace
     /// </summary>
     namespace detail {
-        // log2 helper
-        template <size_t x>
-        struct log2 { enum : size_t { value = 1 + log2<x / 2>::value }; };
-        // log2 helper
-        template <> struct log2<1> { enum : size_t { value = 0 }; };
         // using
         using LongUI::detail::ctor_dtor;
         // push_back_helper impl
@@ -98,7 +94,7 @@ namespace LongUI { namespace POD {
                 static_assert(res < 16, "must less than 16");
                 static_assert(fbl < 256, "must less than 256");
                 static_assert(res <= fbl, "must less or eq than fbl");
-                enum : size_t { value = (fbl<< EX_FBL1) | (res << EX_RESERVED1) | (log2<ali>::value <<  EX_ALIGNED1) };
+                enum : size_t { value = (fbl<< EX_FBL1) | (res << EX_RESERVED1) | (LongUI::detail::log2<size_t>(ali) <<  EX_ALIGNED1) };
             };
         protected:
             // ctor

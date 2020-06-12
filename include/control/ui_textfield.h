@@ -91,6 +91,8 @@ namespace LongUI {
         bool GuiPaste() noexcept;
         // Gui OP - Has Text?
         bool GuiHasText() const noexcept;
+        // Gui OP - Is Password Mode
+        bool GuiIsPasswordMode() const noexcept;
     public:
         // can do 'Copy'
         bool CanCopy() const noexcept;

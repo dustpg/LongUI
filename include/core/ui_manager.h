@@ -123,6 +123,8 @@ namespace LongUI {
         void DataUnlock() noexcept { m_uiDataLocker.Unlock(); }
         // lock rendering
         void RenderLock() noexcept { m_uiRenderLocker.Lock(); }
+        // try lock rendering
+        auto TryRenderLock() noexcept { return m_uiRenderLocker.TryLock(); }
         // unlock rendering
         void RenderUnlock() noexcept { m_uiRenderLocker.Unlock(); }
         // get data locker recursion count

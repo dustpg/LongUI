@@ -976,21 +976,24 @@ auto LongUI::CUIResMgr::RefDefaultFont()const noexcept->const FontArg& {
     return rm().defarg;
 }
 
-
-
-
 PCN_NOINLINE
 /// <summary>
 /// push com object to later release
 /// </summary>
 /// <param name="object"> COM object </param>
 /// <returns></returns>
-void LongUI::CUIResMgr::PushLaterReleaseCOM(I::COM* object) noexcept {
+void LongUI::CUIResMgr::TSReleaseCOM(I::COM* object) noexcept {
     if (!object) return;
+    // 先尝试上锁
+    if (UIManager.TryRenderLock()) {
+        // 成功上锁
+        goto release_and_unlock;
+    }
+    // 尝试加入延迟释放队列
     const auto later_begin = rm().later0;
     auto& later_end = rm().later1;
     assert(later_begin && later_end);
-    const auto last = later_begin + MAX_LATER_RELEASE_RENDERING_LEN;
+    const auto last = later_begin + MAX_LATER_RELEASE_LENGTH;
     // 没满就加入
     if (later_end < last) {
         auto& locker_sp = UIManager.RefLaterLocker();
@@ -1002,6 +1005,7 @@ void LongUI::CUIResMgr::PushLaterReleaseCOM(I::COM* object) noexcept {
     // 太多了也就没有延迟释放的理由, 直接释放
     else {
         UIManager.RenderLock();
+    release_and_unlock:
         const auto com = reinterpret_cast<IUnknown*>(object);
         com->Release();
         UIManager.RenderUnlock();
@@ -1298,7 +1302,7 @@ LongUI::CUIResMgr::CUIResMgr(IUIConfigure* cfg, Result& out) noexcept {
     }
     // XXX: 合并内存申请
     if (hr) {
-        const auto ptr = LongUI::NormalAllocT<I::COM*>(MAX_LATER_RELEASE_RENDERING_LEN);
+        const auto ptr = LongUI::NormalAllocT<I::COM*>(MAX_LATER_RELEASE_LENGTH);
         rm().later0 = rm().later1 = ptr;
         if (!ptr) hr.code = Result::RE_OUTOFMEMORY;
     }

@@ -339,9 +339,9 @@ auto LongUI::CUIAccessible::GetPropertyValue(PROPERTYID propertyId,
     // msdn.microsoft.com/en-us/library/windows/desktop/ee671212(v=vs.85).aspx
     switch (propertyId)
     {
+        AccessibleControlType type;
     case UIA_ControlTypePropertyId:
-    {
-        const auto type = get_control_type(m_control);
+        type = get_control_type(m_control);
         // 类型有效
         if (uint32_t(type) < TYPE_MAX) {
             pRetVal->vt = VT_I4;
@@ -350,8 +350,6 @@ auto LongUI::CUIAccessible::GetPropertyValue(PROPERTYID propertyId,
         }
         // 类型无效
         else pRetVal->vt = VT_EMPTY;
-
-    }
         break;
     case UIA_NamePropertyId:
         pRetVal->vt = VT_BSTR;
@@ -452,7 +450,6 @@ auto LongUI::CUIAccessible::GetRuntimeId(SAFEARRAY** pRetVal) noexcept -> HRESUL
 auto LongUI::CUIAccessible::Navigate(NavigateDirection direction,
     IRawElementProviderFragment ** pRetVal) noexcept -> HRESULT {
     CUIDataAutoLocker locker;
-
     assert(pRetVal && "bad pointer");
     UIControl* ctrl = nullptr;
     switch (direction)
@@ -470,11 +467,11 @@ auto LongUI::CUIAccessible::Navigate(NavigateDirection direction,
         else ctrl = m_control.GetParent();
         break;
     case NavigateDirection_NextSibling:
-        if (m_control.next && m_control.next->next) 
+        if (m_control.GetParent() && !m_control.IsLastChild())
             ctrl = static_cast<UIControl*>(m_control.next);
         break;
     case NavigateDirection_PreviousSibling:
-        if (m_control.prev && m_control.prev->prev)
+        if (m_control.GetParent() && !m_control.IsFirstChild())
             ctrl = static_cast<UIControl*>(m_control.prev);
         break;
     case NavigateDirection_FirstChild:
@@ -590,7 +587,6 @@ auto LongUI::CUIAccessible::get_CanSelectMultiple(BOOL*pRetVal)noexcept->HRESULT
 auto LongUI::CUIAccessible::get_IsSelectionRequired(BOOL* rv) noexcept->HRESULT {
     return E_NOTIMPL;
 }
-
 
 // ----------------------------------------------------------------------------
 // -----------------------  ISelectionItemProvider  ---------------------------
@@ -1465,8 +1461,6 @@ auto LongUI::CUIAccessibleWnd::GetFocus(
     *pRetVal = nullptr;
     return S_OK;
 }
-
-
 
 /// <summary>
 /// Accessibles the specified object.

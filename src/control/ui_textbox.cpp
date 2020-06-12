@@ -20,6 +20,11 @@
 #ifndef NDEBUG
 #include <debugger/ui_debug.h>
 #endif
+#ifdef LUI_ACCESSIBLE
+#include <accessible/ui_accessible_callback.h>
+#include <accessible/ui_accessible_event.h>
+#include <accessible/ui_accessible_type.h>
+#endif
 
 // ui namespace
 namespace LongUI {
@@ -47,6 +52,8 @@ namespace LongUI {
 LongUI::UITextBox::UITextBox(const MetaControl& meta) noexcept
     : Super(meta), max_value(std::numeric_limits<double>::infinity()),
     m_oTextField(this), m_oPlaceHolder(this) {
+    //m_oBox.margin = { 4, 2, 4, 2 };
+    //m_oBox.border = { 1, 1, 1, 1 };
     // XXX: 默认颜色
     const_cast<ColorF&>(m_oPlaceHolder.RefTextFont().text.color) = { 0.5, 0.5, 0.5, 1 };
     //const_cast<AttributeFontStyle&>(m_oPlaceHolder.RefTextFont().font.style) = Style_Italic;
@@ -170,7 +177,10 @@ auto LongUI::UITextBox::DoEvent(UIControl * sender, const EventArg & e) noexcept
     {
         GuiEvent eid;
     case NoticeEvent::Event_RefreshBoxMinSize:
-        // 不会改变
+        if (m_bNeedMinsize) {
+            m_bNeedMinsize = false;
+            this->update_minsize();
+        }
         return Event_Accept;
     case NoticeEvent::Event_DoAccessAction:
         // 默认行为(聚焦)
@@ -199,7 +209,7 @@ auto LongUI::UITextBox::DoEvent(UIControl * sender, const EventArg & e) noexcept
         }
     case NoticeEvent::Event_Initialize:
         // 初始化
-        this->init_minsize();
+        //this->update_minsize();
         this->SetValueAsDouble(0, true);
         //[[fallthrough]];
     }
@@ -286,7 +296,7 @@ auto LongUI::UITextBox::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
 /// Initializes the textbox.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::init_minsize() noexcept {
+void LongUI::UITextBox::update_minsize() noexcept {
     const auto cols = static_cast<float>(m_uCols);
     const auto rows = static_cast<float>(m_uRows);
     auto& tf = m_oTextField.RefTextFont();
@@ -486,4 +496,48 @@ auto LongUI::UITextBox::DoMouseEvent(const MouseEventArg& e) noexcept->EventAcce
     return Super::DoMouseEvent(e);
 }
 
+#ifdef LUI_ACCESSIBLE
 
+//#define LUI_TEXTBOX_PASSWORD_ALWAYS_VISIBLE
+
+/// <summary>
+/// Accessibles the specified .
+/// </summary>
+/// <param name="args">The arguments.</param>
+/// <returns></returns>
+auto LongUI::UITextBox::accessible(const AccessibleEventArg& args) noexcept -> EventAccept {
+    switch (args.event)
+    {
+        using get0_t = AccessibleGetPatternsArg;
+        using get1_t = AccessibleGetCtrlTypeArg;
+        using get2_t = AccessibleGetAccNameArg;
+    case AccessibleEvent::Event_GetPatterns:
+        // + 继承基类行为模型
+        Super::accessible(args);
+        static_cast<const get0_t&>(args).patterns |=
+            // + 读写值的行为模型
+            Pattern_Value
+            ;
+        return Event_Accept;
+    case AccessibleEvent::Event_All_GetControlType:
+        // 获取控件类型
+        static_cast<const get1_t&>(args).type =
+            AccessibleControlType::Type_TextEdit;
+        return Event_Accept;
+    case AccessibleEvent::Event_All_GetAccessibleName:
+        // XXX: 获取Acc名称
+        if (m_oTextField.GuiIsPasswordMode()) {
+            auto& output = *static_cast<const get2_t&>(args).name;
+            output = u"[PASSWORD]"_sv;
+        }
+        else {
+            auto& output = *static_cast<const get2_t&>(args).name;
+            output = this->RequestText();
+        }
+        return Event_Accept;
+    }
+    // 超类处理
+    return Super::accessible(args);
+}
+
+#endif

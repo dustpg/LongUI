@@ -15,6 +15,7 @@
 #include <../RichED/ed_txtdoc.h>
 #include <../RichED/ed_txtcell.h>
 
+#include <constexpr/const_log2.h>
 
 
 
@@ -305,8 +306,6 @@ void LongUI::UITextField::private_mark_multiline() noexcept {
 void LongUI::UITextField::InitMarkPassword() noexcept {
     m_flag |= RichED::Flag_UsePassword;
 }
-
-
 
 /// <summary>
 /// Marks the change could trigger.
@@ -655,6 +654,21 @@ bool LongUI::UITextField::GuiPaste() noexcept {
 /// <returns></returns>
 bool LongUI::UITextField::GuiHasText() const noexcept {
     return pimpl()->document().GuiHasText();
+}
+
+
+/// <summary>
+/// is password mode
+/// </summary>
+/// <returns></returns>
+bool LongUI::UITextField::GuiIsPasswordMode() const noexcept {
+#if 0
+    using flag_t = decltype(m_flag);
+    constexpr auto shift = detail::log2<flag_t>(RichED::Flag_UsePassword);
+    return (m_flag >> shift) & 1;
+#else
+    return !!(m_flag & RichED::Flag_UsePassword);
+#endif
 }
 
 // longui namespace

@@ -9,7 +9,6 @@
 #include <accessible/ui_accessible_callback.h>
 #include <accessible/ui_accessible_event.h>
 #include <accessible/ui_accessible_type.h>
-//#include <core/ui_string.h>
 #endif
 
 // ui namespace

@@ -177,6 +177,8 @@ void LongUI::CUIManager::OneFrame() noexcept {
 #endif
     // 延迟释放锁, 失败就下帧处理
     if (this_()->m_uiLaterLocker.TryLock()) {
+        // 删除队列中的控件
+        this_()->delete_controls();
         // 交换初始化数据, 控件创建不会阻塞
         this_()->swap_init_list();
         // 释放延迟释放渲染数据, 释放延迟不会阻塞
@@ -195,8 +197,6 @@ void LongUI::CUIManager::OneFrame() noexcept {
     this_()->m_fDeltaTime = this_()->update_delta_time();
     // 刷新控件控制
     this_()->normal_update();
-    // 删除队列中的控件
-    this_()->delete_controls();
     // 初始化控件
     while (this_()->init_control_in_list() || m_flagWndMinSizeChanged) {
         // 标记为空
@@ -798,18 +798,10 @@ PCN_NOINLINE
 void LongUI::CUIManager::DeleteLater(UIControl& ctrl) noexcept {
     // 检查删除性
     if (!LongUI::CheckControlDeleteLater(ctrl)) {
+        this_()->m_uiLaterLocker.Lock();
         LongUI::MarkControlDeleteLater(ctrl);
-        this_()->DataLock();
         this_()->delete_later(ctrl);
-        this_()->DataUnlock();
-#if 0
-        // 进行标记删除
-        const HWND hwnd = UIManager.m_hToolWnd;
-        const UINT msg = CallLater::Later_DeleteControl;
-        const auto wpa = reinterpret_cast<WPARAM>(&ctrl);
-        const auto rv = ::PostMessageW(hwnd, msg, wpa, 0); rv;
-        assert(rv && "post message failed, maybe too many messages");
-#endif
+        this_()->m_uiLaterLocker.Unlock();
     }
 }
 

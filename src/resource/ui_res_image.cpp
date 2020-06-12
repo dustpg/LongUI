@@ -26,7 +26,7 @@ namespace LongUI { namespace detail {
 /// </summary>
 /// <returns></returns>
 LongUI::CUIImage::~CUIImage() noexcept {
-    // XXX: PushLaterReleaseCOM?
+    // XXX: TSReleaseCOM?
     // 需要释放设备资源
     CUIRenderAutoLocker locker;
 

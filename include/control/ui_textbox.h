@@ -117,10 +117,12 @@ namespace LongUI {
         // input event
         auto DoInputEvent(InputEventArg e) noexcept->EventAccept override;
     protected:
-        // init minsize
-        void init_minsize() noexcept;
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
+#ifdef LUI_ACCESSIBLE
+        // accessible api
+        auto accessible(const AccessibleEventArg& args) noexcept->EventAccept override;
+#endif
         // need relayout
         auto is_need_relayout() const noexcept { return m_state.reason & Reason_BasicRelayout; }
         // event from textfield
@@ -131,6 +133,8 @@ namespace LongUI {
         auto do_wheel(int index, float wheel) noexcept->EventAccept;
         // make UISpinButtons
         void make_spin() noexcept;
+        // init minsize
+        void update_minsize() noexcept;
     public:
         // set text
         void SetText(CUIString&& text) noexcept;
@@ -162,6 +166,8 @@ namespace LongUI {
         uint32_t                m_uCols = 20;
         // rows
         uint32_t                m_uRows = 1;
+        // need update minsize
+        bool                    m_bNeedMinsize = true;
         // decimal symbol
         char                    m_chDecimal = '.';
         // decimal places

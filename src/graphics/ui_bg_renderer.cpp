@@ -37,8 +37,8 @@ LongUI::CUIRendererBackground::~CUIRendererBackground() noexcept {
 /// Releases the device data.
 /// </summary>
 void LongUI::CUIRendererBackground::ReleaseDeviceData() {
-    UIManager.PushLaterReleaseCOM(LUI_OBJECT_TO_COM(m_pOutput));
-    UIManager.PushLaterReleaseCOM(LUI_OBJECT_TO_COM(m_pBackground));
+    UIManager.TSReleaseCOM(LUI_OBJECT_TO_COM(m_pOutput));
+    UIManager.TSReleaseCOM(LUI_OBJECT_TO_COM(m_pBackground));
     //LongUI::SafeRelease(m_pImageBrush);
 #ifndef DEBUG
     m_pBackground = reinterpret_cast<I::Effect*>(1);

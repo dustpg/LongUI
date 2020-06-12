@@ -14,7 +14,7 @@
 /// </summary>
 /// <returns></returns>
 LongUI::CUITextLayout::~CUITextLayout() noexcept {
-    UIManager.PushLaterReleaseCOM(LUI_OBJECT_TO_COM(m_text));
+    UIManager.TSReleaseCOM(LUI_OBJECT_TO_COM(m_text));
 #ifndef DEBUG
     m_text = reinterpret_cast<I::Text*>(1);
 #endif // !DEBUG
