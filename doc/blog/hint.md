@@ -7,3 +7,4 @@ Changed延迟处理
 强弱引用 [m_pMiniWorldChange 不是清零]
 卸载特效透明
 T&& 效率不一定比 const T& 高
+旋转窗口，背面是设置
