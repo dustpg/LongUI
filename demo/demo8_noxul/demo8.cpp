@@ -128,7 +128,6 @@ CDemo8NoXul::CDemo8NoXul() noexcept :
 
 CDemo8ContextMenu::CDemo8ContextMenu() noexcept : UIPopup(CUIWindow::Config_FixedSize | CUIWindow::Config_Popup),
 m_oItemPearl(this), m_oItemAramis(this), m_oItemYakima(this) {
-    this->init_clear_color_for_default_ctxmenu();
     const auto id = "id"_bkdr;
     const auto label = "label"_bkdr;
     Unsafe::AddAttrUninited(*this, id, "demo8context"_sv);

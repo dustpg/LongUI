@@ -801,9 +801,6 @@
     <ClInclude Include="..\include\graphics\ui_bd_renderer.h">
       <Filter>header\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\private\ui_win10_stlye.h">
-      <Filter>source\private</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\graphics\ui_geometry.h">
       <Filter>header\graphics</Filter>
     </ClInclude>
@@ -1073,6 +1070,12 @@
     </ClInclude>
     <ClInclude Include="..\include\control\ui_spinbuttons.h">
       <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\private\ui_win10_style.h">
+      <Filter>source\private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\constexpr\const_log2.h">
+      <Filter>header\constexpr</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -20,8 +20,8 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{99b73ac1-1de1-463c-8e9b-1ad75867b80b}</ProjectGuid>
-    <RootNamespace>demo8_noxul</RootNamespace>
+    <ProjectGuid>{82d4f694-9826-47cb-aa07-7a0a41a2a563}</ProjectGuid>
+    <RootNamespace>demo9_posteffect</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -162,7 +162,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="demo8.cpp" />
+    <ClCompile Include="demo9.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

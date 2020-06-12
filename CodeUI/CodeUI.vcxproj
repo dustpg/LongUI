@@ -294,6 +294,7 @@
     <ClInclude Include="..\include\accessible\ui_accessible_type.h" />
     <ClInclude Include="..\include\accessible\ui_accessible_win.h" />
     <ClInclude Include="..\include\constexpr\const_bkdr.h" />
+    <ClInclude Include="..\include\constexpr\const_log2.h" />
     <ClInclude Include="..\include\container\const_string_list.h" />
     <ClInclude Include="..\include\container\pod_hash.h" />
     <ClInclude Include="..\include\container\pod_sharedarray.h" />
@@ -471,7 +472,7 @@
     <ClInclude Include="..\src\private\ui_memory_stream.h" />
     <ClInclude Include="..\src\private\ui_private_control.h" />
     <ClInclude Include="..\src\private\ui_private_effect.h" />
-    <ClInclude Include="..\src\private\ui_win10_stlye.h" />
+    <ClInclude Include="..\src\private\ui_win10_style.h" />
     <ClInclude Include="..\src\private\ui_wndarg.h" />
   </ItemGroup>
   <ItemGroup>
