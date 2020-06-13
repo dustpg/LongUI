@@ -169,9 +169,8 @@ namespace LongUI {
     /// appearance attr
     /// </summary>
     enum AttributeAppearance : uint8_t {
-        // hige bit set 1 as weak appearance flag
-        Appearance_WeakApp = uint8_t(0x80), // init value
-        Appearance_AppMask = uint8_t(0x7f), // init value
+        // appearance set via parent
+        //Appearance_ViaParent = uint8_t(-1),
         // appearance list
         Appearance_None = 0,                // [none]
         Appearance_Radio,                   // [radio]
@@ -214,19 +213,12 @@ namespace LongUI {
         Appearance_DropDownMarker,          // used for menu list drop down marker
         Appearance_ListItem,                // [listitem]
         Appearance_MenuItem,                // [menuitem]
+        Appearance_Menu,                    // [menu]
         Appearance_Tab,                     // [tab]
         Appearance_TabPanels,               // [tabpanels]
         Appearance_TextField,               // [textfield]
         Appearance_TreeRowModeCell,         // [treerow] on cell mode
     };
-    // operator |
-    inline constexpr AttributeAppearance operator|(AttributeAppearance a, AttributeAppearance b) noexcept {
-        return AttributeAppearance(uint8_t(a) | uint8_t(b));
-    }
-    // operator |
-    inline constexpr AttributeAppearance operator&(AttributeAppearance a, AttributeAppearance b) noexcept {
-        return AttributeAppearance(uint8_t(a) & uint8_t(b));
-    }
     /// <summary>
     /// select type
     /// </summary>

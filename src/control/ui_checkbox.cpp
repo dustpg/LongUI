@@ -133,8 +133,8 @@ LongUI::UICheckBox::UICheckBox(const MetaControl& meta) noexcept : Super(meta),
     // 设置连接控件
     m_oLabel.SetControl(*this);
     // 设置弱外貌
-    UIControlPrivate::SetAppearance(*this, Appearance_WeakApp | Appearance_CheckBoxContainer);
-    UIControlPrivate::SetAppearance(m_oImage, Appearance_WeakApp | Appearance_CheckBox);
+    m_oStyle.appearance = Appearance_CheckBoxContainer;
+    UIControlPrivate::SetAppearance(m_oImage, Appearance_CheckBox);
 }
 
 

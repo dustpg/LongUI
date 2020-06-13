@@ -42,10 +42,8 @@ LongUI::UIProgress::UIProgress(const MetaControl& meta) noexcept : Super(meta),
     m_oRemainder.name_dbg = "progress::remainder";
 #endif
     // TODO: 垂直方向
-    constexpr auto thisapp = Appearance_WeakApp | Appearance_ProgressBarH;
-    constexpr auto barapp = Appearance_WeakApp | Appearance_ProgressChunkH;
-    UIControlPrivate::SetAppearance(*this, thisapp);
-    UIControlPrivate::SetAppearance(m_oBar, barapp);
+    m_oStyle.appearance = Appearance_ProgressBarH;
+    UIControlPrivate::SetAppearance(m_oBar, Appearance_ProgressChunkH);
 }
 
 /// <summary>

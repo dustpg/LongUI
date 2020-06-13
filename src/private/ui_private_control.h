@@ -47,21 +47,9 @@ struct LongUI::UIControlPrivate {
     // set capturable - true
     static void SetCapturable1(UIControl& ctrl) noexcept { ctrl.m_state.capturable = true; }
     // set appearance
-    static void SetAppearance(UIControl& ctrl, AttributeAppearance a) noexcept { ctrl.m_oStyle.appearance = a; }
-    // set appearance if weak
-    static void SetAppearanceIfWeak(UIControl& ctrl, AttributeAppearance a) noexcept {
-        auto& appearance = ctrl.m_oStyle.appearance;
-        if (appearance & Appearance_WeakApp) ctrl.m_oStyle.appearance = a;
-    }
-    // set appearance if weak and non
-    static void SetAppearanceIfWeakNon(UIControl& ctrl, AttributeAppearance a) noexcept {
-        auto& appearance = ctrl.m_oStyle.appearance;
-        if (appearance == Appearance_WeakApp) ctrl.m_oStyle.appearance = a;
-    }
-    // set appearance if non
-    static void SetAppearanceIfNon(UIControl& ctrl, AttributeAppearance a) noexcept {
-        auto& appearance = ctrl.m_oStyle.appearance;
-        if ((appearance & Appearance_AppMask) == Appearance_None) ctrl.m_oStyle.appearance = a;
+    static void SetAppearance(UIControl& ctrl, AttributeAppearance a) noexcept { 
+        assert(ctrl.is_inited() == false);
+        ctrl.m_oStyle.appearance = a;
     }
     // set flex
     static void SetFlex(UIControl& ctrl, float flex) noexcept { ctrl.m_oStyle.flex = flex; }

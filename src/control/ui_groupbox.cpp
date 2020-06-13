@@ -26,7 +26,7 @@ LongUI::UIGroupBox::UIGroupBox(const MetaControl& meta) noexcept : Super(meta),
     // 垂直布局
     m_state.orient = Orient_Vertical;
     // 默认为分组框样式
-    m_oStyle.appearance = Appearance_WeakApp | Appearance_GroupBox;
+    m_oStyle.appearance = Appearance_GroupBox;
     // 私有实现
     UIControlPrivate::SetFlex(m_oBodyLayout, 1.f);
 #ifdef LUI_ACCESSIBLE

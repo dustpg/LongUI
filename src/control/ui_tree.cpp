@@ -76,7 +76,7 @@ LongUI::UITree::UITree(const MetaControl& meta) noexcept : Super(meta) {
     // 树节点即为自己
     m_pTree = this;
     // 默认为列表框
-    m_oStyle.appearance = Appearance_WeakApp | Appearance_ListBox;
+    m_oStyle.appearance = Appearance_ListBox;
 }
 
 /// <summary>
@@ -546,7 +546,7 @@ LongUI::UITreeRow::UITreeRow(const MetaControl& meta) noexcept : Super(meta),
     m_oImage.name_dbg = "treerow::image";
 #endif
     UIControlPrivate::SetGuiEvent2Parent(m_oTwisty);
-    UIControlPrivate::SetAppearance(m_oTwisty, Appearance_WeakApp | Appearance_TreeTwisty);
+    UIControlPrivate::SetAppearance(m_oTwisty, Appearance_TreeTwisty);
     // 继承选择/禁止状态
     m_oStyle.inherited = State_Disabled | State_Selected;
     // 一开始假定没有数据
@@ -597,12 +597,10 @@ auto LongUI::UITreeRow::DoEvent(UIControl* sender, const EventArg& e) noexcept->
 #endif
         if (const auto parent = longui_cast<UITreeItem*>(m_pParent)) {
             if (const auto tree = parent->GetTreeNode()) {
-                AttributeAppearance app;
                 if (tree->IsSelCell())
-                    app = Appearance_WeakApp | Appearance_TreeRowModeCell;
+                    UIControlPrivate::SetAppearance(*this, Appearance_TreeRowModeCell);
                 else
-                    app = Appearance_WeakApp | Appearance_ListItem;
-                UIControlPrivate::SetAppearanceIfWeak(*this, app);
+                    UIControlPrivate::SetAppearance(*this, Appearance_ListItem);
             }
         }
         [[fallthrough]];
@@ -812,10 +810,10 @@ void LongUI::UITreeItem::add_child(UIControl& child) noexcept {
         m_pRow = static_cast<UITreeRow*>(&child);
         if (m_pTree) {
             const auto app = m_pTree->IsSelCell()
-                ? Appearance_WeakApp | Appearance_TreeRowModeCell
-                : Appearance_WeakApp | Appearance_ListItem
+                ? Appearance_TreeRowModeCell
+                : Appearance_ListItem
                 ;
-            UIControlPrivate::SetAppearanceIfWeak(*m_pRow, app);
+            UIControlPrivate::SetAppearance(*m_pRow, app);
         }
     }
 #ifndef NDEBUG
@@ -1395,16 +1393,14 @@ auto LongUI::UITreeCell::DoEvent(UIControl* sender, const EventArg& e) noexcept 
     {
     case NoticeEvent::Event_Initialize:
         // TODO: 重写
-        if (m_oStyle.appearance == Appearance_WeakApp) {
 #ifndef NDEBUG
-            if (m_pParent)
+        if (m_pParent)
 #endif // !NDEBUG
-            if (const auto ptr = longui_cast<UITreeRow*>(m_pParent)) {
-                const auto item = longui_cast<UITreeItem*>(ptr->GetParent());
-                if (const auto tree = item->GetTreeNode())
-                    if (tree->IsSelCell())
-                        m_oStyle.appearance = Appearance_WeakApp | Appearance_ListItem;
-            }
+        if (const auto ptr = longui_cast<UITreeRow*>(m_pParent)) {
+            const auto item = longui_cast<UITreeItem*>(ptr->GetParent());
+            if (const auto tree = item->GetTreeNode())
+                if (tree->IsSelCell())
+                    UIControlPrivate::SetAppearance(*this, Appearance_ListItem);
         }
         [[fallthrough]];
     default:

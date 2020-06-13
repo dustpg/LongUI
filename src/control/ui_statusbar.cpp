@@ -17,7 +17,7 @@ namespace LongUI {
 /// </summary>
 /// <param name="meta">The meta.</param>
 LongUI::UIStatusBar::UIStatusBar(const MetaControl& meta) noexcept :Super(meta) {
-    m_oStyle.appearance = Appearance_WeakApp | Appearance_StatusBar;
+    m_oStyle.appearance = Appearance_StatusBar;
     m_state.orient = Orient_Horizontal;
 }
 

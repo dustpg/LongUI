@@ -84,7 +84,7 @@ LongUI::UIListBox::UIListBox(const MetaControl& meta) noexcept : Super(meta),
     // 焦点允许
     //m_state.focusable = true;
     // 默认为列表框
-    m_oStyle.appearance = Appearance_WeakApp | Appearance_ListBox;
+    m_oStyle.appearance = Appearance_ListBox;
     // 至少一个
     m_selected.reserve(1);
     // TODO: OOM处理
@@ -534,7 +534,7 @@ LongUI::UIListItem::UIListItem(const MetaControl& meta) noexcept : Super(meta),
     // 水平布局
     m_state.orient = Orient_Horizontal;
     // 列表项目
-    m_oStyle.appearance = Appearance_WeakApp | Appearance_ListItem;
+    m_oStyle.appearance = Appearance_ListItem;
 #ifndef NDEBUG
     m_oImage.name_dbg = "listitem::image";
     m_oLabel.name_dbg = "listitem::label";
@@ -988,7 +988,7 @@ LongUI::UIListHeader::UIListHeader(const MetaControl& meta) noexcept : Super(met
     // 水平布局
     m_state.orient = Orient_Horizontal;
     // 属于HEADER CELL
-    m_oStyle.appearance = Appearance_WeakApp | Appearance_TreeHeaderCell;
+    m_oStyle.appearance = Appearance_TreeHeaderCell;
 #ifndef NDEBUG
     m_oImage.name_dbg = "listheader::image";
     m_oLabel.name_dbg = "listheader::label";

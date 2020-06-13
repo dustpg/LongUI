@@ -1,11 +1,24 @@
 ﻿#pragma once
 
-// VECTOR
-#include "../container/pod_vector.h"
-#include "../core/ui_ctrlmeta.h"
+#include <luiconf.h>
+#include <cassert>
 
 // ui namespace
 namespace LongUI {
+    // meta info
+    struct MetaControl;
+    // meta info const point
+    using MetaControlCP = const MetaControl*;
     // control info list
-    struct ControlInfoList : POD::Vector<const MetaControl*> {};
+    struct ControlInfoList {
+        // control infos end
+        MetaControlCP*          end_of_list;
+        // control infos
+        MetaControlCP           info_list[MAX_CONTROL_TYPE_COUNT];
+        // push back
+        void Push(LongUI::MetaControlCP cp) noexcept {
+            assert(end_of_list < info_list + MAX_CONTROL_TYPE_COUNT);
+            *end_of_list = cp; ++end_of_list;
+        };
+    };
 }

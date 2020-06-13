@@ -43,5 +43,6 @@ void LongUI::UISpacer::Render() const noexcept {
 /// </summary>
 /// <param name="meta">The meta.</param>
 LongUI::UIMenuSeparator::UIMenuSeparator(const MetaControl& meta) noexcept : Super(meta) {
-    m_oStyle.appearance = Appearance_WeakApp | Appearance_MenuSeparator;
+    // XXX: 换一个?
+    m_oStyle.appearance = Appearance_MenuSeparator;
 }

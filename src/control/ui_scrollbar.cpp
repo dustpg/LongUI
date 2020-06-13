@@ -121,37 +121,44 @@ void LongUI::UIScrollBar::SetIncrement(float pi) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIScrollBar::init_bar_weakapp(AttributeOrient o) noexcept {
-    AttributeAppearance aut, adt, asd, ast, aub, adb, ats;
     // 根据方向确定初始化类型
     if (o == Orient_Horizontal) {
-        aut = Appearance_WeakApp | Appearance_ScrollBarButtonLeft;
-        adt = Appearance_WeakApp | Appearance_ScrollBarButtonRight;
+        constexpr auto aut = Appearance_ScrollBarButtonLeft;
+        constexpr auto adt = Appearance_ScrollBarButtonRight;
         // XXX: 换一个?
-        asd = Appearance_WeakApp | Appearance_CheckBoxContainer;
-        ast = Appearance_WeakApp | Appearance_ScrollbarThumbH;
-        aub = Appearance_WeakApp | Appearance_ScrollBarButtonLeft;
-        adb = Appearance_WeakApp | Appearance_ScrollBarButtonRight;
-        ats = Appearance_WeakApp | Appearance_ScrollbarTrackH;
+        constexpr auto asd = Appearance_CheckBoxContainer;
+        constexpr auto ast = Appearance_ScrollbarThumbH;
+        constexpr auto aub = Appearance_ScrollBarButtonLeft;
+        constexpr auto adb = Appearance_ScrollBarButtonRight;
+        constexpr auto ats = Appearance_ScrollbarTrackH;
+
+        UIControlPrivate::SetAppearance(m_oUpTop, aut);
+        UIControlPrivate::SetAppearance(m_oDownTop, adt);
+        UIControlPrivate::SetAppearance(m_oSlider, asd);
+        UIControlPrivate::SetAppearance(m_oSlider.thumb, ast);
+        UIControlPrivate::SetAppearance(m_oUpBottom, aub);
+        UIControlPrivate::SetAppearance(m_oDownBottom, adb);
+        UIControlPrivate::SetAppearance(*this, ats);
     }
     // 垂直方向
     else {
-        aut = Appearance_WeakApp | Appearance_ScrollBarButtonUp;
-        adt = Appearance_WeakApp | Appearance_ScrollBarButtonDown;
+        constexpr auto aut = Appearance_ScrollBarButtonUp;
+        constexpr auto adt = Appearance_ScrollBarButtonDown;
         // XXX: 换一个?
-        asd = Appearance_WeakApp | Appearance_CheckBoxContainer;
-        ast = Appearance_WeakApp | Appearance_ScrollbarThumbV;
-        aub = Appearance_WeakApp | Appearance_ScrollBarButtonUp;
-        adb = Appearance_WeakApp | Appearance_ScrollBarButtonDown;
-        ats = Appearance_WeakApp | Appearance_ScrollbarTrackV;
+        constexpr auto asd = Appearance_CheckBoxContainer;
+        constexpr auto ast = Appearance_ScrollbarThumbV;
+        constexpr auto aub = Appearance_ScrollBarButtonUp;
+        constexpr auto adb = Appearance_ScrollBarButtonDown;
+        constexpr auto ats = Appearance_ScrollbarTrackV;
+
+        UIControlPrivate::SetAppearance(m_oUpTop, aut);
+        UIControlPrivate::SetAppearance(m_oDownTop, adt);
+        UIControlPrivate::SetAppearance(m_oSlider, asd);
+        UIControlPrivate::SetAppearance(m_oSlider.thumb, ast);
+        UIControlPrivate::SetAppearance(m_oUpBottom, aub);
+        UIControlPrivate::SetAppearance(m_oDownBottom, adb);
+        UIControlPrivate::SetAppearance(*this, ats);
     }
-    // 设置Appearance类型
-    UIControlPrivate::SetAppearance(m_oUpTop, aut);
-    UIControlPrivate::SetAppearance(m_oDownTop, adt);
-    UIControlPrivate::SetAppearance(m_oSlider, asd);
-    UIControlPrivate::SetAppearance(m_oSlider.thumb, ast);
-    UIControlPrivate::SetAppearance(m_oUpBottom, aub);
-    UIControlPrivate::SetAppearance(m_oDownBottom, adb);
-    UIControlPrivate::SetAppearance(*this, ats);
 }
 
 /// <summary>

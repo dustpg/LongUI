@@ -24,12 +24,14 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include "../constexpr/const_bkdr.h"
+
 namespace LongUI {
     // control
     class UIControl;
     // using
     using luisize_t = decltype(sizeof(0));
-    // inner control flag
+    // inner control flag [???]
     enum class InnerFlag : luisize_t {
         // unknown control
         Flag_Non            = 0 ,
@@ -78,34 +80,61 @@ namespace LongUI {
     };
     // control meta info
     struct MetaControl {
+        // create control
+        auto (*create_func)(UIControl*) noexcept->UIControl*;
         // super class
         const MetaControl*  super_class;
         // element name
         const char*         element_name;
-        // create control
-        auto (*create_func)(UIControl*) noexcept->UIControl*;
-        // inner flags to test control type in O(1)
-        InnerFlag           inner_flags;
+        // bkdr-hashed element-name
+        uint32_t            bkdr_hash;
     };
 }
 
 // control meta info 
+#define LUI_CONTROL_META_INFO_TOP(T, ele) \
+    enum : uint32_t { LUI_BKDR_##T = ele##_bkdr };\
+    static UIControl* create_##T(UIControl* p) noexcept {return new(std::nothrow) T{ p };}\
+    const MetaControl T::s_meta = {\
+        create_##T,\
+        nullptr,\
+        ele,\
+        LUI_BKDR_##T \
+    };
+
+// control meta info 
 #define LUI_CONTROL_META_INFO(T, ele) \
+    enum : uint32_t { LUI_BKDR_##T = ele##_bkdr };\
     static UIControl* create_##T(UIControl* p) noexcept {\
         return new(std::nothrow) T{ p };\
     }\
     const MetaControl T::s_meta = {\
+        create_##T,\
         &T::Super::s_meta,\
         ele,\
-        create_##T,\
-        InnerFlag::Flag_Non \
+        LUI_BKDR_##T \
     };
 
 // control meta info 
 #define LUI_CONTROL_META_INFO_NO(T, ele) \
     const MetaControl T::s_meta = {\
+        nullptr,\
         &T::Super::s_meta,\
         ele,\
-        nullptr,\
-        InnerFlag::Flag_Non \
+        ele##_bkdr \
+    };
+
+// control meta info 
+#define LUI_CONTROL_META_INFO_FAKE_A(T) \
+    static const MetaControl T##__s_meta;\
+    static UIControl* create_##T(UIControl* p) noexcept { return new(std::nothrow) T{ p }; }
+
+// control meta info 
+#define LUI_CONTROL_META_INFO_FAKE_B(T, ele) \
+    enum : uint32_t { LUI_BKDR_##T = ele##_bkdr };\
+    const MetaControl UIMetaTypeDef::##T##__s_meta = {\
+        UIMetaTypeDef::create_##T,\
+        &T::Super::s_meta,\
+        ele,\
+        LUI_BKDR_##T \
     };

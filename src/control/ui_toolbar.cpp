@@ -63,6 +63,6 @@ LongUI::UIToolBarButton::~UIToolBarButton() noexcept {
 LongUI::UIToolBarButton::UIToolBarButton(const MetaControl& meta) noexcept : Super(meta) {
     m_bToolBar = true;
     // 弱外貌
-    m_oStyle.appearance = Appearance_WeakApp | Appearance_ToolBarButton;
+    m_oStyle.appearance = Appearance_ToolBarButton;
 }
 

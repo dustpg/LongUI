@@ -270,15 +270,15 @@ void LongUI::UIScale::mouse_click(Point2F pt) noexcept {
 void LongUI::UIScale::setup_weakapp() noexcept {
     AttributeAppearance this_app, thumbapp;
     if (this->GetOrient() == Orient_Horizontal) {
-        this_app = Appearance_WeakApp | Appearance_ScaleH;
-        thumbapp = Appearance_WeakApp | Appearance_ScaleThumbH;
+        this_app = Appearance_ScaleH;
+        thumbapp = Appearance_ScaleThumbH;
     }
     else {
-        this_app = Appearance_WeakApp | Appearance_ScaleV;
-        thumbapp = Appearance_WeakApp | Appearance_ScaleThumbV;
+        this_app = Appearance_ScaleV;
+        thumbapp = Appearance_ScaleThumbV;
     }
-    UIControlPrivate::SetAppearanceIfWeak(*this, this_app);
-    UIControlPrivate::SetAppearanceIfWeak(thumb, thumbapp);
+    UIControlPrivate::SetAppearance(*this, this_app);
+    UIControlPrivate::SetAppearance(thumb, thumbapp);
 }
 
 

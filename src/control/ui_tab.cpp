@@ -80,7 +80,7 @@ LongUI::UITab::UITab(const MetaControl& meta) noexcept : Super( meta),
     m_oImage(this), m_oLabel(this) {
     // 水平布局
     m_state.orient = Orient_Horizontal;
-    m_oStyle.appearance = Appearance_WeakApp | Appearance_Tab;
+    m_oStyle.appearance = Appearance_Tab;
     // 阻隔鼠标事件写入false之前需要写入
     m_oImage.RefInheritedMask() = State_MouseCutInher;
     m_oLabel.RefInheritedMask() = State_MouseCutInher;
@@ -529,5 +529,5 @@ LongUI::UITabPanels::~UITabPanels() noexcept {
 /// <param name="meta">The meta.</param>
 LongUI::UITabPanels::UITabPanels(const MetaControl& meta) noexcept : Super(meta) {
     // TabPanels类型
-    m_oStyle.appearance = Appearance_WeakApp | Appearance_TabPanels;
+    m_oStyle.appearance = Appearance_TabPanels;
 }

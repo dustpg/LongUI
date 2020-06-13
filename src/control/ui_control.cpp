@@ -41,12 +41,8 @@ namespace LongUI {
     void MarkControlDeleteLater(UIControl& ctrl) noexcept {
         ctrl.MarkDeleteLater();
     }
-    // 创建UIControl
-    static UIControl* CreateControl(UIControl* p) noexcept {
-        return new(std::nothrow) UIControl{ p };
-    }
     // UIControll类 元信息
-    const MetaControl UIControl::s_meta = { nullptr,"ctrl",CreateControl };
+    LUI_CONTROL_META_INFO_TOP(UIControl, "ctrl")
 }
 
 
@@ -338,8 +334,8 @@ auto LongUI::UIControl::init() noexcept -> Result {
     Result hr = arg.GetResult();
     // 初始化其他
     if (hr) {
-        // 取消弱标识
-        m_oStyle.appearance = m_oStyle.appearance & Appearance_AppMask;
+        // 检查特殊外貌
+        //assert(m_oStyle.appearance != Appearance_ViaParent);
         // 依赖类型初始化控件
         UIManager.RefNativeStyle().InitStyle(*this, m_oStyle.appearance);
         // 重建对象资源

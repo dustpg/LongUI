@@ -45,8 +45,8 @@ LongUI::UISpinButtons::UISpinButtons(const MetaControl& meta) noexcept :
     UIControlPrivate::SetCapturable1(m_oDecreaseButton);
     UIControlPrivate::SetCapturable1(m_oIncreaseButton);
     // 设置弱外貌
-    UIControlPrivate::SetAppearance(m_oDecreaseButton, Appearance_WeakApp | Appearance_SpinnerDownButton);
-    UIControlPrivate::SetAppearance(m_oIncreaseButton, Appearance_WeakApp | Appearance_SpinnerUpButton);
+    UIControlPrivate::SetAppearance(m_oDecreaseButton, Appearance_SpinnerDownButton);
+    UIControlPrivate::SetAppearance(m_oIncreaseButton, Appearance_SpinnerUpButton);
 }
 
 

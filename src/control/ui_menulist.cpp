@@ -84,7 +84,7 @@ LongUI::UIMenuItem::UIMenuItem(const MetaControl& meta) noexcept : Super(meta),
     assert(m_oLabel.IsFocusable() == false);
 #endif
     // 设置弱外貌
-    m_oStyle.appearance = Appearance_WeakApp | Appearance_MenuItem;
+    m_oStyle.appearance = Appearance_MenuItem;
 }
 
 
@@ -222,7 +222,15 @@ void LongUI::UIMenuItem::add_attribute(uint32_t key, U8View value) noexcept {
         //      : normal
         //      : checkbox
         //      : radio
-        m_type = LongUI::ParseBehaviorType(value);
+        switch (m_type = LongUI::ParseBehaviorType(value))
+        {
+        case BehaviorType::Type_Checkbox:
+            UIControlPrivate::SetAppearance(m_oImage, Appearance_MenuCheckBox);
+            break;
+        case BehaviorType::Type_Radio:
+            UIControlPrivate::SetAppearance(m_oImage, Appearance_MenuRadio);
+            break;
+        }
         break;
     case BKDR_SELECTED:
         // selected: 选择
@@ -277,24 +285,19 @@ void LongUI::UIMenuItem::init_menuitem() noexcept {
     if (const auto ptr = longui_cast<UIMenuPopup*>(m_pParent)) {
         // 不是COMBOBOX
         if (ptr->HasPaddingForItem()) {
-            const auto init_state = [this]() noexcept {
-                auto& state = UIControlPrivate::RefStyleState(m_oImage);
-                state = state | (m_oStyle.state & State_Checked);
-            };
+            // 同步初始状态
             switch (m_type)
             {
             case BehaviorType::Type_Checkbox:
-                UIControlPrivate::SetAppearanceIfWeakNon(m_oImage, Appearance_MenuCheckBox);
-                init_state();
-                break;
             case BehaviorType::Type_Radio:
-                UIControlPrivate::SetAppearanceIfWeakNon(m_oImage, Appearance_MenuRadio);
-                init_state();
+                auto& state = UIControlPrivate::RefStyleState(m_oImage);
+                state = state | (m_oStyle.state & State_Checked);
                 break;
             }
             // XXX: 标准化
-            m_oBox.padding.right = float(ICON_WIDTH);
-            m_oImage.SetStyleMinSize({ float(ICON_WIDTH), 0.f });
+            constexpr float ICON_WIDTH = 22;
+            UIControlPrivate::RefBox(m_oLabel).margin.right += ICON_WIDTH;
+            m_oImage.SetStyleMinSize({ ICON_WIDTH, 0.f });
         }
     }
 }
@@ -421,8 +424,8 @@ LongUI::UIMenuList::UIMenuList(const MetaControl& meta) noexcept : Super(meta),
 #endif
     // 设置弱外貌
     auto& marker = m_oMarker;
-    UIControlPrivate::SetAppearance(*this, Appearance_WeakApp | Appearance_MenuList);
-    UIControlPrivate::SetAppearance(marker, Appearance_WeakApp | Appearance_DropDownMarker);
+    m_oStyle.appearance = Appearance_MenuList;
+    UIControlPrivate::SetAppearance(marker, Appearance_DropDownMarker);
 }
 
 

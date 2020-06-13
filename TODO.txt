@@ -1,16 +1,15 @@
-﻿m_oBox.xxx = { a ,b ,c d } 移动到NativeStyleInit
+﻿
+构建析构控件会阻塞渲染线程
 
-控件创建使用折半查找 MAX_CONTROL_TYPE_COUNT
+对于大型控件，不可视控件没有必要更新一些东西
  
 MinSizeChange [针对文本] 测试
-
-创建控件时候应该放入新的数据链避免阻断渲染线程, 创建完毕后再统一加入表中?
-
-树节点最差应该是重新渲染树
 
 内部uisafe_cast ->简单META-FLAG判断 CLASS-MAP 修改
 
 TAB 会移动视口
+
+NODE偏移 vs 虚指针
 
 使用接口释放设备资源避免上锁?
 
@@ -20,31 +19,18 @@ pod_hash OOM 处理 测试
 
 CUIWaiter单独测试?
 
-Node 继承 偏移量调整
-
 超过大部分(比如90%)渲染面积应该全渲染?
 
 Event_Initialize 时构造对象?
 
-窗口生命周期控制?Xxx::ControlAttached 目前无用
-
-Demo2 点击几下后会重新布局.
-
-不少控件拥有checked的属性
-
 还有部分控件没有实现
 
-读取资源方式修改以方便读取压缩包中的文件?
-
 bug.dmp
-
-在UPDATE中强制退出造成的影响?
 
 Timer
 
 LUI_NO_SCRIPT
 
-赋予原子控件真正的意义
 ------------------------------------------------------------------
 菜单应该像离开一样是进入一段时间就行, 不需要等待IDLE HOVER事件
 
@@ -58,31 +44,21 @@ SSBlock::~SSBlock
 
 Context Menu按键支持
 
-一些快捷键会有默认行为比如选择第一个?
-
 CUITimeCapsule*m_pLastEnd寻找比这个还要廉价的解决方法?
 
-gif等动画支持?
-
 CSS针对文件的缓存?避免多次解析?
-
-CSS支持完善?
 
 LUI_VECTOR_SIZE_USE_UINT32 让这个宏有用
 
 hash_base::find 优化
 
-使用Hash数组查找避免swicth跳转?(等待CSS属性稳定)
-
-OOM处理策略: 目前分配失败会释放旧数据可能会导致内存泄漏!
+OOM处理策略: 目前分配失败会释放旧数据
 
 资源管理器载入资源后缓存一段时间?
 
 Win10支持超过MAX_PATH路径?
 
 LongUI::GetEasyType?
-
-控件自己走去出也要计算mouse hover leave
 
 GUI事件持续触发(比如一直按住鼠标左键)?
 
@@ -93,10 +69,6 @@ disable状态取消其他的动画?
 xul根节点window弄成可选的?没有就创建一个?
 
 STYLE minsize拥有强制性?
-
-set_child_parent_nnrivc 全面检查?
-
-将存在于UIControl的所有属性交给UIControl::add_attribute处理?
 
 Init事件有一个HR的返回值?
 
@@ -123,5 +95,3 @@ CSS border-width 属性
 如果边框样式是 none，边框宽度实际上会重置为 0
 
 位域压缩属性
-
-CUINativeStyleWindows10 使用私有笔刷 - > 没有必要?

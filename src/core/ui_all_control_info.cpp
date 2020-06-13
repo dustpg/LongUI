@@ -57,63 +57,25 @@
 
 #include <control/ui_popup.h>
 #include <control/ui_popupset.h>
+#include <core/ui_ctrlmeta.h>
 
 
 // ui namespace
 namespace LongUI {
     // -------------------- TYPE DEF ------------------
     struct UIMetaTypeDef {
-        static const MetaControl UIPopup__s_meta;
-        static const MetaControl UIToolBox__s_meta;
-        static const MetaControl UIPopupSet__s_meta;
-        static const MetaControl UIVBoxLayout__s_meta;
-        static const MetaControl UIToolBarSeparator__s_meta;
-        static UIControl* create_UIPopupSet(UIControl* p) noexcept {
-            return new(std::nothrow) UIPopupSet{ p };
-        }
-        static UIControl* create_UIPopup(UIControl* p) noexcept {
-            return new(std::nothrow) UIPopup{ p  };
-        }
-        static UIControl* create_UIToolBox(UIControl* p) noexcept {
-            return new(std::nothrow) UIToolBox{ p  };
-        }
-        static UIControl* create_UIVBoxLayout(UIControl* p) noexcept {
-            return new(std::nothrow) UIVBoxLayout{ p };
-        }
-        static UIControl* create_UIToolBarSeparator(UIControl* p) noexcept {
-            return new(std::nothrow) UIToolBarSeparator{ p };
-        }
+        LUI_CONTROL_META_INFO_FAKE_A(UIPopup);
+        LUI_CONTROL_META_INFO_FAKE_A(UIToolBox);
+        LUI_CONTROL_META_INFO_FAKE_A(UIPopupSet);
+        LUI_CONTROL_META_INFO_FAKE_A(UIVBoxLayout);
+        LUI_CONTROL_META_INFO_FAKE_A(UIToolBarSeparator);
     };
-    // UIVBoxLayout
-    const MetaControl UIMetaTypeDef::UIVBoxLayout__s_meta = {
-        &UIBoxLayout::s_meta,
-        "vbox",
-        UIMetaTypeDef::create_UIVBoxLayout
-    };
-    // UIPopupSet
-    const MetaControl UIMetaTypeDef::UIPopupSet__s_meta = {
-        &UIPopupSet::s_meta,
-        "popupset",
-        UIMetaTypeDef::create_UIPopupSet
-    };
-    // UIPopup
-    const MetaControl UIMetaTypeDef::UIPopup__s_meta = {
-        &UIPopup::s_meta,
-        "popup",
-        UIMetaTypeDef::create_UIPopup
-    };
-    // UIToolBox
-    const MetaControl UIMetaTypeDef::UIToolBox__s_meta = {
-        &UIToolBox::s_meta,
-        "toolbox",
-        UIMetaTypeDef::create_UIToolBox
-    };
-    // UIToolBarSeparator
-    const MetaControl UIMetaTypeDef::UIToolBarSeparator__s_meta = {
-        &UIToolBarSeparator::s_meta,
-        "toolbarseparator",
-        UIMetaTypeDef::create_UIToolBarSeparator
-    };
+    LUI_CONTROL_META_INFO_FAKE_B(UIPopup, "popup");
+    LUI_CONTROL_META_INFO_FAKE_B(UIToolBox, "toolbox");
+    LUI_CONTROL_META_INFO_FAKE_B(UIPopupSet, "popupset");
+    LUI_CONTROL_META_INFO_FAKE_B(UIVBoxLayout, "vbox");
+    LUI_CONTROL_META_INFO_FAKE_B(UIToolBarSeparator, "toolbarseparator");
+
     /// <summary>
     /// The default control information
     /// </summary>
@@ -242,17 +204,13 @@ namespace LongUI {
     /// Adds the default control information.
     /// </summary>
     /// <param name="list">The list.</param>
-    void AddDefaultControlInfo(ControlInfoList& list) noexcept {
-        // 默认CC数量
-        constexpr uint32_t CONTROL_CLASS_SIZE = 64;
-        list.reserve(CONTROL_CLASS_SIZE);
-        if (list) list.assign(
-            std::begin(DefaultControlInfo),
-            std::end(DefaultControlInfo)
-        );
+    bool AddDefaultControlInfo(ControlInfoList& list) noexcept {
+        const auto len = sizeof(DefaultControlInfo) / sizeof(DefaultControlInfo[0]);
+        // 空间不足
+        if (list.end_of_list + len > std::end(list.info_list)) return false;
+        std::memcpy(list.end_of_list, DefaultControlInfo, sizeof(DefaultControlInfo));
+        list.end_of_list += len;
 #ifndef NDEBUG
-        // CONTROL_CLASS_SIZE要足够大
-        assert(list.size() <= CONTROL_CLASS_SIZE && "set it to bigger");
         // 测试正确性
         for (auto x : DefaultControlInfo) {
             // 跳过这个
@@ -276,5 +234,6 @@ namespace LongUI {
             }
         }
 #endif
+        return true;
     }
 }

@@ -44,6 +44,8 @@
 #include <type_traits>
 // waiter
 #include <thread/ui_waiter.h>
+// info list
+#include "../interface/ui_ctrlinfolist.h"
 
 // longui manager
 #define UIManager (LongUI::RefUIInstance())
@@ -57,9 +59,9 @@ namespace LongUI {
         // private data for manager
         template<size_t> struct private_manager;
         // 32bit
-        template<> struct private_manager<4> { enum { size = 64, align = 4 }; };
+        template<> struct private_manager<4> { enum { size = 40, align = 4 }; };
         // 64bit
-        template<> struct private_manager<8> { enum { size = 104, align = 8 }; };
+        template<> struct private_manager<8> { enum { size = 64, align = 8 }; };
     }
     // input
     class CUIInputKM;
@@ -228,6 +230,9 @@ namespace LongUI {
         bool                    m_flagRecreate = false;
         // window minsize changed flag
         bool                    m_flagWndMinSizeChanged = false;
+    private:
+        // control infos
+        ControlInfoList         m_oCtrlInfo;
     public:
         // common buffer[single ime once]
         std::aligned_storage<IME_COMMON_BUF_LENGTH, sizeof(uint32_t)>::type

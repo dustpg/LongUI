@@ -70,7 +70,6 @@ auto LongUI::CUINativeStyleWindows10::NativeStyleDuration(const GetDurationArgs 
 /// <returns></returns>
 void LongUI::CUINativeStyleWindows10::DrawNative(const NativeDrawArgs& args) noexcept {
     const auto appearance = args.appearance;
-    assert((appearance & Appearance_WeakApp) == 0);
     switch (appearance)
     {
         uint32_t index; ArrowDirection dir;
@@ -148,6 +147,7 @@ void LongUI::CUINativeStyleWindows10::DrawNative(const NativeDrawArgs& args) noe
     case LongUI::Appearance_MenuArrow:
         return this->draw_menu_arrow(args);
     case LongUI::Appearance_MenuItem:
+    case LongUI::Appearance_Menu:
         return this->draw_selbg(args);
     case LongUI::Appearance_Tab:
         return this->draw_tab(args);
@@ -347,6 +347,10 @@ void LongUI::CUINativeStyleWindows10::InitCtrl(UIControl& ctrl, AttributeAppeara
         UIControlPrivate::RefBox(ctrl).padding = { 4, 1, 2, 1 };
         // 包含文字, 不适合设置
         //ctrl.SetStyleMinSize({ 0, MENUITEM_HEIGHT });
+        break;
+    case LongUI::Appearance_Menu:
+        UIControlPrivate::RefStyle(ctrl).align = AttributeAlign::Align_Center;
+        UIControlPrivate::RefBox(ctrl).padding = { ICON_WIDTH + 4, 1, 2, 1 };
         break;
     case LongUI::Appearance_ProgressBarH:
         UIControlPrivate::RefBox(ctrl).margin = { 4, 2, 4, 1 };

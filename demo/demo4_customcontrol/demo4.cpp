@@ -30,10 +30,11 @@ const auto xul = u8R"xml(
 namespace Demo { struct Config final : LongUI::CUIDefaultConfigure {
     // register control
     void RegisterControl(LongUI::ControlInfoList& list) noexcept override {
+        static_assert(2 < MAX_CONTROL_TYPE_COUNT, "too small");
         // MyToggle
-        list.push_back(&Demo::MyToggle::s_meta);
+        list.Push(&Demo::MyToggle::s_meta);
         // MyToggleEx
-        list.push_back(&Demo::MyToggleEx::s_meta);
+        list.Push(&Demo::MyToggleEx::s_meta);
     }
 };}
 

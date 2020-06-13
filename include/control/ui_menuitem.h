@@ -63,8 +63,6 @@ namespace LongUI {
         // set text
         void SetText(const CUIString&) noexcept;
     public:
-        // ICON WIDTH
-        enum : uint32_t { ICON_WIDTH = 28 };
         // class meta
         static const  MetaControl   s_meta;
         // dtor

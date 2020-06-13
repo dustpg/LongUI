@@ -1494,8 +1494,6 @@ namespace LongUI {
     auto BKDRHash(const char* strbgn, const char* strend) noexcept->uint32_t;
     // impl
     namespace impl {
-        // create control
-        UIControl* create_control(const char*a, const char*b, UIControl*p) noexcept;
         // eval script for window
         void eval_script_for_window(U8View, CUIWindow*) noexcept;
     }
@@ -1597,7 +1595,7 @@ namespace LongUI {
             // 获取上一级控件
             const auto parent = static_cast<UIControl*>(stack_end()[-2].user_ptr);
             // 创建控件
-            const auto ctrl = impl::create_control(view.begin(), view.end(), parent);
+            const auto ctrl = UIManager.CreateControl({ view.begin(), view.end() }, parent);
             // 错误处理
             if (!ctrl/* || ctrl->IsCtorFailed()*/) {
                 //delete ctrl;

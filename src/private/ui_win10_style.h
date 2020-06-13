@@ -52,6 +52,8 @@ namespace LongUI {
         };
         // constant
         enum : uint32_t {
+            // icon width
+            ICON_WIDTH = 22,
             // menu separator height
             MENUSEPARATOR_HEIGHT = 5,
             // menu separator lead

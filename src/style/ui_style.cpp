@@ -169,7 +169,7 @@ LongUI::Style::Style() noexcept {
     accesskey = 0;
     extra_abcount = 0;
     align = Align_Stretcht;
-    appearance = AttributeAppearance::Appearance_WeakApp;
+    appearance = AttributeAppearance::Appearance_None;
     offset_tf = 0;
     overflow_x = Overflow_Visible;
     overflow_y = Overflow_Visible;

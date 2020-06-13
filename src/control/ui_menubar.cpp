@@ -67,7 +67,7 @@ LongUI::UIMenu::~UIMenu() noexcept {
 LongUI::UIMenu::UIMenu(const MetaControl& meta) noexcept : Super(meta) {
     m_bMenuBar = true;
     m_type = BehaviorType::Type_Menu;
-    m_oStyle.appearance = Appearance_WeakApp | Appearance_ToolBarButton;
+    m_oStyle.appearance = Appearance_ToolBarButton;
 }
 
 
@@ -77,28 +77,23 @@ LongUI::UIMenu::UIMenu(const MetaControl& meta) noexcept : Super(meta) {
 /// <param name="sender">The sender.</param>
 /// <param name="e">The e.</param>
 /// <returns></returns>
-auto LongUI::UIMenu::DoEvent(UIControl * sender,
-    const EventArg& e) noexcept -> EventAccept {
+auto LongUI::UIMenu::DoEvent(UIControl* sender, const EventArg& e) noexcept -> EventAccept {
     // 初始化
     switch (e.nevent)
     {
     case NoticeEvent::Event_Initialize:
         // 父节点是MenuPopup?
         if (uisafe_cast<UIMenuPopup>(m_pParent)) {
-            UIControlPrivate::SetAppearanceIfWeak(*this, Appearance_WeakApp | Appearance_MenuItem);
-            // XXX: 移动到NativeStyle
-            m_oBox.padding.left = UIMenuItem::ICON_WIDTH + 4;
+            UIControlPrivate::SetAppearance(*this, Appearance_Menu);
             // !!! 基类处理
             Super::DoEvent(sender, e);
             if (const auto pMenuArrow = new(std::nothrow) UIControl{ this }) {
-                constexpr auto app = Appearance_WeakApp | Appearance_MenuArrow;
-                UIControlPrivate::SetAppearance(*pMenuArrow, app);
+                UIControlPrivate::SetAppearance(*pMenuArrow, Appearance_MenuArrow);
             }
             this->set_label_flex(1.f);
             return Event_Accept;
         }
         // 其他情况
-        else UIControlPrivate::SetAppearanceIfWeak(*this, Appearance_WeakApp | Appearance_ToolBarButton);
         break;
     case NoticeEvent::Event_PopupBegin:
         // 弹出的是内建的菜单

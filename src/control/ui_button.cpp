@@ -94,7 +94,7 @@ LongUI::UIButton::UIButton(const MetaControl& meta) noexcept : Super(meta),
     m_oLabel.SetControl(*this);
     //m_oLabel.SetText(u"确定");
     // 设置弱外貌
-    m_oStyle.appearance = Appearance_WeakApp | Appearance_Button;
+    m_oStyle.appearance = Appearance_Button;
 }
 
 /// <summary>
@@ -249,8 +249,7 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
         if (!(m_bToolBar | m_bMenuBar)) {
             if (m_type == BehaviorType::Type_Menu) {
                 if (const auto dropdown = new(std::nothrow)UIImage{ this }) {
-                    constexpr auto app = Appearance_WeakApp | Appearance_DropDownMarker;
-                    UIControlPrivate::SetAppearance(*dropdown, app);
+                    UIControlPrivate::SetAppearance(*dropdown, Appearance_DropDownMarker);
                     UIControlPrivate::SetFlex(m_oLabel, 1);
                     m_oLabel.SetTextAlign(TAlign_Center);
                 }

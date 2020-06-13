@@ -8,6 +8,7 @@
 #include <container/pod_hash.h>
 #include <filesystem/ui_file.h>
 #include <graphics/ui_dcomp.h>
+#include <core/ui_ctrlmeta.h>
 #include <input/ui_kminput.h>
 #include <util/ui_ctordtor.h>
 #include <core/ui_manager.h>
@@ -17,6 +18,7 @@
 
 // c++
 #include <type_traits>
+#include <algorithm>
 #include <new>
 
 // windows com
@@ -50,8 +52,6 @@ namespace LongUI { struct CUIManager::Private {
     POD::Vector<TC*>        time_capsules;
     // unique text
     POD::HashMap<void*>     texts;
-    // unique control classes
-    POD::HashMap<META*>     cclasses;
 #ifdef LUI_RAWINPUT
     // km-input
     CUIInputKM              km_input;
@@ -100,7 +100,7 @@ auto LongUI::CUIInputKM::Instance() noexcept -> CUIInputKM & {
 
 namespace LongUI { 
     // add default control class
-    void AddDefaultControlInfo(ControlInfoList&) noexcept;
+    bool AddDefaultControlInfo(ControlInfoList&) noexcept;
     // delete control
     void DeleteControl(UIControl*) noexcept;
     // mark control dl?
@@ -265,7 +265,6 @@ void LongUI::CUIManager::OneFrame() noexcept {
                 << endl;
         }
     }
-
     // 计算FPS
     const auto time = DbgMgr().PushDelta(
         this_()->m_fDeltaTime,
@@ -338,6 +337,9 @@ auto LongUI::CUIManager::GetUniqueText(U8View pair) noexcept ->ULID {
 // windows api
 #include <Windows.h>
 
+//#define LUI_CREATECONTROL_WITH_STRCMP
+
+PCN_NOINLINE
 /// <summary>
 /// Creates the control.
 /// </summary>
@@ -346,10 +348,18 @@ auto LongUI::CUIManager::GetUniqueText(U8View pair) noexcept ->ULID {
 /// <returns></returns>
 auto LongUI::CUIManager::CreateControl(U8View element,
     UIControl* parent) noexcept -> UIControl* {
-    auto& list = this_()->pm().cclasses;
-    const auto itr = list.find(element.begin(), element.end());
-    if (itr != list.end()) 
-        return itr->second->create_func(parent);
+    const auto b = m_oCtrlInfo.info_list;
+    const auto e = m_oCtrlInfo.end_of_list;
+    const auto code = LongUI::BKDRHash(element.first, element.second);
+    const auto cmp = [](MetaControlCP cp, uint32_t code) noexcept { return cp->bkdr_hash < code; };
+    const auto rv = std::lower_bound(b, e, code, cmp);
+    if (rv != e && (*rv)->bkdr_hash == code) {
+#ifdef LUI_CREATECONTROL_WITH_STRCMP
+        const auto raw_name = (*rv)->element_name;
+        if (std::strncmp(raw_name, element.first, element.second - element.first)) return nullptr;
+#endif
+        return (*rv)->create_func(parent);
+    }
     return nullptr;
 }
 
@@ -395,10 +405,6 @@ namespace LongUI {
         // create debug window
         auto create_debug_window() noexcept->CUIWindow*;
 #endif
-        // create control
-        UIControl* create_control(const char*a, const char*b, UIControl*p) noexcept {
-            return UIManager.CreateControl({ a,b }, p);
-        }
         // search for last end
         void search_capsule_for_last_end(UIControl& ctrl) noexcept {
             UIManager.RefreshTimeCapsule(ctrl);
@@ -748,19 +754,47 @@ auto LongUI::CUIManager::Initialize(
 #endif
     // 添加控件
     if (hr) {
-        ControlInfoList list;
-        // 添加默认控件
-        LongUI::AddDefaultControlInfo(list);
         // 添加自定义控件
-        if (list.is_ok()) this_()->config->RegisterControl(list);
-        // 注册控件
-        if (list.is_ok()) for (auto info : list) {
-            if (!this_()->pm().cclasses.insert({ info->element_name, info }).second) {
-                hr = { Result::RE_OUTOFMEMORY };
-                break;
+        this_()->config->RegisterControl(m_oCtrlInfo);
+        // 添加默认控件
+        if (LongUI::AddDefaultControlInfo(m_oCtrlInfo)) {
+            // 排序
+            const auto cmp = [](MetaControlCP a, MetaControlCP b) noexcept {
+                return a->bkdr_hash < b->bkdr_hash;
+            };
+            std::sort(m_oCtrlInfo.info_list, m_oCtrlInfo.end_of_list, cmp);
+            // 不允许重复
+            const auto count = static_cast<int>(m_oCtrlInfo.end_of_list - m_oCtrlInfo.info_list - 1);
+            assert(count && "BUG");
+            for (int i = 0; i < count; ++i) {
+                const auto& curr = m_oCtrlInfo.info_list[i];
+                const auto& next = m_oCtrlInfo.info_list[i+1];
+                if (curr->bkdr_hash == next->bkdr_hash) {
+#ifndef NDEBUG
+                    LUIDebug(Fatal)
+                        << "[HASH COLLISION]" << curr->bkdr_hash
+                        << " ["
+                        << curr->element_name
+                        << "] ["
+                        << next->element_name
+                        << "] "
+                        << endl;
+#endif // NDEBUG
+                    hr.code = Result::RE_ABORT;
+                    break;
+                }
             }
         }
-        else hr = { Result::RE_OUTOFMEMORY };
+        // 控件类太多, 需要修改MAX_CONTROL_TYPE_COUNT
+        else {
+#ifndef NDEBUG
+            LUIDebug(Fatal) 
+                << "too many ctrl-types, "
+                << "change MAX_CONTROL_TYPE_COUNT" 
+                << endl;
+#endif // NDEBUG
+            hr.code = Result::RE_ABORT;
+        }
     }
     // 第一次重建设备资源
     if (hr) {
@@ -821,6 +855,7 @@ CUIDebug(config->GetSimpleLogFileName().c_str()),
 CUIResMgr(config, out),
 CUIWndMgr(out),
 flag(cfgflag) {
+    m_oCtrlInfo.end_of_list = m_oCtrlInfo.info_list;
 #ifndef NDEBUG
     detail::ctor_dtor<CUIManagerDebug>::create(&DbgMgr());
 #endif

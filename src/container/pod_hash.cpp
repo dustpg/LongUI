@@ -38,6 +38,7 @@ namespace LongUI { namespace detail {
     }
 }}
 
+PCN_NOINLINE
 /// <summary>
 /// BKDRs the hash.
 /// </summary>
@@ -51,6 +52,7 @@ auto LongUI::BKDRHash(const char * str) noexcept -> uint32_t {
     return hash;
 }
 
+PCN_NOINLINE
 /// <summary>
 /// BKDRs the hash.
 /// </summary>

@@ -52,12 +52,10 @@ namespace LongUI {
 LongUI::UITextBox::UITextBox(const MetaControl& meta) noexcept
     : Super(meta), max_value(std::numeric_limits<double>::infinity()),
     m_oTextField(this), m_oPlaceHolder(this) {
-    //m_oBox.margin = { 4, 2, 4, 2 };
-    //m_oBox.border = { 1, 1, 1, 1 };
     // XXX: 默认颜色
     const_cast<ColorF&>(m_oPlaceHolder.RefTextFont().text.color) = { 0.5, 0.5, 0.5, 1 };
     //const_cast<AttributeFontStyle&>(m_oPlaceHolder.RefTextFont().font.style) = Style_Italic;
-    m_oStyle.appearance = Appearance_WeakApp | Appearance_TextField;
+    m_oStyle.appearance = Appearance_TextField;
     this->make_offset_tf_direct(m_oTextField);
     UIControlPrivate::SetFlex(m_oTextField, 1.f);
     m_oTextField.RefInheritedMask()
