@@ -86,7 +86,7 @@ namespace LongUI {
         // Update Focus Rect
         void UpdateFocusRect() const noexcept;
         // trigger
-        auto TriggerEvent(GuiEvent event) noexcept->EventAccept override;
+        auto FireEvent(GuiEvent event) noexcept->EventAccept override;
 #endif
     protected:
         // add attribute

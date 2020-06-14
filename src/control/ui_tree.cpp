@@ -537,7 +537,7 @@ void LongUI::UITreeRow::open_close(bool open) noexcept {
 LongUI::UITreeRow::UITreeRow(const MetaControl& meta) noexcept : Super(meta),
     m_oTwisty(this), m_oImage(this) {
     // 暂时用ListItem?
-    //m_oStyle.appearance = Appearance_WeakApp | Appearance_ListItem;
+    //m_oStyle.appearance = Appearance_app | Appearance_ListItem;
     // 私有实现
     //UIControlPrivate::SetFocusable(image, false);
     //UIControlPrivate::SetFocusable(label, false);
@@ -1348,7 +1348,7 @@ LongUI::UITreeCell::~UITreeCell() noexcept {
 /// <param name="meta">The meta.</param>
 LongUI::UITreeCell::UITreeCell(const MetaControl& meta) noexcept : Super(meta) {
     // 暂时用ListItem?
-    //m_oStyle.appearance =  Appearance_WeakApp | Appearance_ListItem;
+    //m_oStyle.appearance =  Appearance_app | Appearance_ListItem;
 }
 
 /// <summary>

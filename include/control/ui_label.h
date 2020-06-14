@@ -61,6 +61,8 @@ namespace LongUI {
             ; }
     public:
         // get text
+        auto GetTextView() const noexcept { return m_string.view(); }
+        // get text
         auto GetText() const noexcept { return m_string.c_str(); }
         // ref text- string object
         auto&RefText() const noexcept { return m_string; }

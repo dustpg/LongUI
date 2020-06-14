@@ -35,8 +35,8 @@ namespace LongUI {
     class UIScrollBar final : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
-        // init bar - weakapp
-        void init_bar_weakapp(AttributeOrient) noexcept;
+        // init bar - app
+        void init_bar_app(AttributeOrient) noexcept;
     protected:
         // ctor
         UIScrollBar(AttributeOrient o, const MetaControl&) noexcept;

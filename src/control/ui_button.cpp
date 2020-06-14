@@ -292,7 +292,7 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
         this->StartAnimation({ State_Checked, State_Non });
         // 取消不触发command事件
         // 触发修改GUI事件
-        //this->TriggerEvent(_checkedChanged());
+        //this->FireEvent(_checkedChanged());
 #ifdef LUI_ACCESSIBLE
         // TODO: ACCESSIBLE
 #endif
@@ -337,14 +337,14 @@ void LongUI::UIButton::UpdateFocusRect() const noexcept {
 /// Trigger this
 /// </summary>
 /// <returns></returns>
-auto LongUI::UIButton::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
+auto LongUI::UIButton::FireEvent(GuiEvent event) noexcept -> EventAccept {
     // 针对焦点的处理 
     switch (event)
     {
     case LongUI::GuiEvent::Event_OnFocus:
         this->UpdateFocusRect();
     }
-    return Super::TriggerEvent(event);
+    return Super::FireEvent(event);
 }
 
 #endif
@@ -370,7 +370,7 @@ void LongUI::UIButton::Click() noexcept {
         StyleState state;
     case BehaviorType::Type_Normal:
         // 普通按钮: 触发修改GUI事件
-        this->TriggerEvent(this->_onCommand());
+        this->FireEvent(this->_onCommand());
 #ifdef LUI_ACCESSIBLE
         LongUI::Accessible(m_pAccessible, LongUI::Callback_Invoked);
 #endif
@@ -380,7 +380,7 @@ void LongUI::UIButton::Click() noexcept {
         state = (m_oStyle.state ^ State_Checked) & State_Checked;
         this->StartAnimation({ State_Checked, state });
         // 触发修改GUI事件
-        this->TriggerEvent(this->_onCommand());
+        this->FireEvent(this->_onCommand());
 #ifdef LUI_ACCESSIBLE
         // TODO: ACCESSIBLE
 #endif
@@ -389,7 +389,7 @@ void LongUI::UIButton::Click() noexcept {
         // 是RADIO类型?
         if (!this->IsChecked()) {
             this->StartAnimation({ State_Checked, State_Checked });
-            this->TriggerEvent(_onCommand());
+            this->FireEvent(_onCommand());
             LongUI::DoImplicitGroupGuiArg(*this, m_pGroup);
 #ifdef LUI_ACCESSIBLE
             // TODO: ACCESSIBLE

@@ -30,9 +30,12 @@
 #include "ui_image.h"
 #include "ui_label.h"
 
+//#define LUI_NO_MENULIST_EDITABLE
 
 // ui namespace
 namespace LongUI {
+    // text field
+    class UITextField;
     // menu popup
     class UIMenuPopup;
     // menulist/combobox
@@ -76,7 +79,7 @@ namespace LongUI {
         // get selected index
         long GetSelectedIndex() const noexcept { return m_iSelected; }
         // set selected index
-        //void SetSelectedIndex(long) noexcept;
+        auto SetSelectedIndex(long) noexcept ->EventAccept;
     public:
         // update
         void Update(UpdateReason) noexcept override;
@@ -86,12 +89,26 @@ namespace LongUI {
         //void Render() const noexcept override;
         // mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
+        // input event
+        auto DoInputEvent(InputEventArg e) noexcept->EventAccept override;
     protected:
         // add child
         void add_child(UIControl& child) noexcept override;
+#ifndef LUI_NO_MENULIST_EDITABLE
+        // add ad
+        void add_attribute(uint32_t key, U8View value) noexcept override;
+        // create textfield
+        void create_textfield() noexcept;
+        // private textfield
+        UITextField*            m_pTextField = nullptr;
+    public:
+        // trigger the event
+        auto FireEvent(GuiEvent event) noexcept->EventAccept override;
+    protected:
+#endif
 #ifdef LUI_ACCESSIBLE
         // accessible event
-        //auto accessible(const AccessibleEventArg&) noexcept->EventAccept override;
+        auto accessible(const AccessibleEventArg&) noexcept->EventAccept override;
 #endif
     protected:
         // on popup selected changed

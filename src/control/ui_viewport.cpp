@@ -238,7 +238,8 @@ void LongUI::UIViewport::HosterPopupEnd() noexcept {
     // 提示Hoster窗口准备关闭
     if (m_pHoster) m_pHoster->DoEvent(
         this, { NoticeEvent::Event_PopupEnd, 0 });
-    m_pHoster = nullptr;
+    // FIXME: 如何消本除弱引用?
+    //m_pHoster = nullptr;
 }
 
 /// <summary>

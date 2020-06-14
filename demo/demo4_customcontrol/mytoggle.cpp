@@ -129,7 +129,7 @@ namespace Demo {
             this->Invalidate();
         }, m_time, this);
         // trigger 'oncommand'
-        this->TriggerEvent(this->_onCommand());
+        this->FireEvent(this->_onCommand());
         // TODO: ACCESSIBLE
 #ifndef LUI_ACCESSIBLE
 

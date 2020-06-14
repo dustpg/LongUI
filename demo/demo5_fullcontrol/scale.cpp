@@ -21,5 +21,5 @@ void InitViewport_Scale(LongUI::UIViewport& viewport) noexcept {
         return Event_Accept;
     });
     // force trigger
-    //progress->TriggerEvent(UIScale::_onChange());
+    //progress->FireEvent(UIScale::_onChange());
 }

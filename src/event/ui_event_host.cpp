@@ -167,7 +167,7 @@ auto LongUI::CUIEventHost::add_gui_event_listener(
 /// </summary>
 /// <param name="event">The event.</param>
 /// <returns></returns>
-auto LongUI::CUIEventHost::TriggerEvent(GuiEvent event) noexcept ->EventAccept {
+auto LongUI::CUIEventHost::FireEvent(GuiEvent event) noexcept ->EventAccept {
     const auto ctrl = static_cast<UIControl*>(this);
     auto func = Event_Ignore;
     bool script_result = false;
@@ -181,7 +181,7 @@ auto LongUI::CUIEventHost::TriggerEvent(GuiEvent event) noexcept ->EventAccept {
         if (node->func.IsOK()) func = node->func(*ctrl);
     }
     // 直接管理则为超类
-    assert(ctrl->GetWindow() && "cannot trigger event not under window");
+    assert(ctrl->GetWindow() && "cannot fire event not under window");
     UIControl* const handler = ctrl->IsGuiEvent2Parent() ?
         ctrl->GetParent() : &ctrl->GetWindow()->RefViewport();
     // 广播事件

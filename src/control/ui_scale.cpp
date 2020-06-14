@@ -34,7 +34,7 @@ LongUI::UIScale::UIScale(const MetaControl& meta) noexcept : Super(meta), thumb(
     assert(this->thumb.IsFocusable() == false);
     thumb.name_dbg = "scale::thumb";
 #endif
-    this->setup_weakapp();
+    this->setup_app();
 }
 
 /// <summary>
@@ -72,18 +72,21 @@ void LongUI::UIScale::refresh_thumb_postion() noexcept {
     const auto csize = this->RefBox().GetContentSize();
     const auto ssize = this->thumb.GetSize();
     assert(m_fValue >= m_fMin && m_fValue <= m_fMax && "out of range");
-    const auto normalization = (m_fValue - m_fMin) / (m_fMax - m_fMin);
-    Point2F pos{ 0 };
-    // 水平方向
-    if (this->GetOrient() == Orient_Horizontal) {
-        const auto width = csize.width - ssize.width;
-        pos.x = width * normalization;
-    }
-    // 垂直方向
-    else {
-        const auto height = csize.height - ssize.height;
-        pos.y = height * normalization;
-        //LUIDebug(Hint) << m_fValue << endl;
+    Point2F pos = this->RefBox().GetContentPos();
+    // 相等就算了
+    if (m_fMax > m_fMin) {
+        const auto normalization = (m_fValue - m_fMin) / (m_fMax - m_fMin);
+        // 水平方向
+        if (this->GetOrient() == Orient_Horizontal) {
+            const auto width = csize.width - ssize.width;
+            pos.x += width * normalization;
+        }
+        // 垂直方向
+        else {
+            const auto height = csize.height - ssize.height;
+            pos.y += height * normalization;
+            //LUIDebug(Hint) << m_fValue << endl;
+        }
     }
     // 设置位置
     this->thumb.SetPos(pos);
@@ -128,7 +131,7 @@ void LongUI::UIScale::SetValue(float value) noexcept {
     // 修改数据
     m_fValue = newv;
     // 触发修改GUI事件
-    this->TriggerEvent(this->_onChange());
+    this->FireEvent(this->_onChange());
     this->NeedUpdate(Reason_ValueTextChanged);
 }
 
@@ -192,7 +195,7 @@ void LongUI::UIScale::SetMax(float max_value) noexcept {
 void LongUI::UIScale::add_attribute(uint32_t key, U8View value) noexcept {
     constexpr auto BKDR_ORIENT = 0xeda466cd_ui32;
     Super::add_attribute(key, value);
-    if (key == BKDR_ORIENT) this->setup_weakapp();
+    if (key == BKDR_ORIENT) this->setup_app();
 }
 
 /// <summary>
@@ -267,7 +270,7 @@ void LongUI::UIScale::mouse_click(Point2F pt) noexcept {
 /// setup weak app
 /// </summary>
 /// <returns></returns>
-void LongUI::UIScale::setup_weakapp() noexcept {
+void LongUI::UIScale::setup_app() noexcept {
     AttributeAppearance this_app, thumbapp;
     if (this->GetOrient() == Orient_Horizontal) {
         this_app = Appearance_ScaleH;

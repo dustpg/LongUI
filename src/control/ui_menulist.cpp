@@ -2,6 +2,7 @@
 #include <core/ui_window.h>
 #include <core/ui_manager.h>
 #include <core/ui_ctrlmeta.h>
+#include <input/ui_kminput.h>
 #include <debugger/ui_debug.h>
 #include <event/ui_group_event.h>
 // Menu
@@ -9,6 +10,7 @@
 #include <control/ui_menulist.h>
 #include <control/ui_menuitem.h>
 #include <control/ui_menupopup.h>
+#include <control/ui_textfield.h>
 #include <core/ui_popup_window.h>
 // 子控件
 #include <control/ui_box.h>
@@ -47,11 +49,16 @@ namespace LongUI {
     struct UIMenuList::Private {
         // 设置新的字符串
         template<typename T> static auto SetText(UIMenuList& obj, T && text) noexcept {
-            if (obj.m_oLabel.SetText(std::forward<T>(text))) {
-#ifdef LUI_ACCESSIBLE
-                LongUI::Accessible(obj.m_pAccessible, Callback_PropertyChanged);
-#endif
+#ifndef LUI_NO_MENULIST_EDITABLE
+            if (obj.m_pTextField) {
+                obj.m_pTextField->SetText(std::forward<T>(text));
             }
+            else
+#endif
+                if (!obj.m_oLabel.SetText(std::forward<T>(text))) return;
+#ifdef LUI_ACCESSIBLE
+            LongUI::Accessible(obj.m_pAccessible, Callback_PropertyChanged);
+#endif
         }
     };
 }
@@ -278,7 +285,7 @@ void LongUI::UIMenuItem::init_menuitem() noexcept {
     // 初始选择
     if (m_bSelInit)
         if (const auto obj = uisafe_cast<UIMenuPopup>(m_pParent)) {
-            obj->select(this);
+            obj->select(this, -1);
             obj->m_pPerSelected = this;
         }
     // 父节点必须是UIMenuPopup
@@ -296,9 +303,9 @@ void LongUI::UIMenuItem::init_menuitem() noexcept {
             }
             // XXX: 标准化
             constexpr float ICON_WIDTH = 22;
-            UIControlPrivate::RefBox(m_oLabel).margin.right += ICON_WIDTH;
             m_oImage.SetStyleMinSize({ ICON_WIDTH, 0.f });
         }
+        else UIControlPrivate::ForceAppearance(m_oImage, Appearance_None);
     }
 }
 
@@ -362,7 +369,7 @@ auto LongUI::UIMenuItem::DoMouseEvent(const MouseEventArg & e) noexcept -> Event
         else if (m_type == BehaviorType::Type_Radio)
             this->do_radio();
         // 事件
-        this->TriggerEvent(this->_onCommand());
+        this->FireEvent(this->_onCommand());
         m_pWindow->ClosePopupHighLevel();
     }
     return Super::DoMouseEvent(e);
@@ -380,6 +387,9 @@ auto LongUI::UIMenuItem::DoMouseEvent(const MouseEventArg & e) noexcept -> Event
 /// </summary>
 /// <returns></returns>
 auto LongUI::UIMenuList::GetText() const noexcept -> const char16_t* {
+#ifndef LUI_NO_MENULIST_EDITABLE
+    if (m_pTextField) return m_pTextField->RequestText().c_str();
+#endif
     return m_oLabel.GetText();
 }
 
@@ -387,7 +397,10 @@ auto LongUI::UIMenuList::GetText() const noexcept -> const char16_t* {
 /// Gets the text string.
 /// </summary>
 /// <returns></returns>
-auto LongUI::UIMenuList::RefText() const noexcept -> const CUIString&{
+auto LongUI::UIMenuList::RefText() const noexcept -> const CUIString& {
+#ifndef LUI_NO_MENULIST_EDITABLE
+    if (m_pTextField) return m_pTextField->RequestText();
+#endif
     return m_oLabel.RefText();
 }
 
@@ -399,6 +412,8 @@ auto LongUI::UIMenuList::RefText() const noexcept -> const CUIString&{
 LongUI::UIMenuList::UIMenuList(const MetaControl& meta) noexcept : Super(meta),
     m_oImage(this), m_oLabel(this), m_oMarker(this) {
     m_state.focusable = true;
+    // TODO tabstop
+    //m_state.tabstop = true;
     m_state.defaultable = true;
     m_state.capturable = true;
     // 阻隔鼠标事件写入false之前需要写入
@@ -410,7 +425,9 @@ LongUI::UIMenuList::UIMenuList(const MetaControl& meta) noexcept : Super(meta),
     this->make_offset_tf_direct(m_oLabel);
     // 默认是处于关闭状态
     m_oStyle.state = m_oStyle.state | State_Closed;
+    m_oStyle.align = Align_Center;
     m_state.orient = Orient_Horizontal;
+
     // 私有实现
     UIControlPrivate::SetFlex(m_oLabel, 1.f);
 #ifndef NDEBUG
@@ -458,7 +475,10 @@ auto LongUI::UIMenuList::DoMouseEvent(const MouseEventArg& e) noexcept -> EventA
     switch (e.type)
     {
     case LongUI::MouseEvent::Event_LButtonDown:
-        //m_pWindow->SetCapture(*this);
+#ifndef LUI_NO_MENULIST_EDITABLE
+        if (m_pTextField)
+            return Super::DoMouseEvent(e);
+#endif
         this->ShowPopup();
         [[fallthrough]];
     default:
@@ -485,9 +505,20 @@ void LongUI::UIMenuList::init_menulist() {
 /// <returns></returns>
 void LongUI::UIMenuList::Update(UpdateReason reason) noexcept {
     // 将文本消息传递给Label
-    if (const auto r = reason & Reason_TextFontChanged)
+    if (const auto r = reason & Reason_TextFontChanged) {
+#ifndef LUI_NO_MENULIST_EDITABLE
+        UIControl* obj = &m_oLabel;
+        if (m_pTextField) {
+            obj = m_pTextField;
+            // XXX: const_cast
+            const_cast<TextFont&>(m_pTextField->RefTextFont()) = m_oLabel.RefTextFont();
+        }
+        obj->Update(r);
+#else
         m_oLabel.Update(r);
-    return Super::Update(reason);
+#endif
+    }
+    Super::Update(reason);
 }
 
 /// <summary>
@@ -504,9 +535,13 @@ auto LongUI::UIMenuList::DoEvent(UIControl * sender,
         // 初始化
         this->init_menulist();
         return Event_Accept;
-#ifndef NDEBUG
-    case NoticeEvent::Event_RefreshBoxMinSize:
-        return Super::DoEvent(sender, e);
+#ifndef LUI_NO_MENULIST_EDITABLE
+    //case NoticeEvent::Event_RefreshBoxMinSize:
+        //if (m_pTextField) {
+        //    this->set_contect_minsize({0, 30});
+        //    return Event_Accept;
+        //}
+        //return Super::DoEvent(sender, e);
 #endif
     case NoticeEvent::Event_PopupBegin:
     case NoticeEvent::Event_PopupEnd:
@@ -523,6 +558,12 @@ auto LongUI::UIMenuList::DoEvent(UIControl * sender,
             assert(sender == m_pMenuPopup);
             this->on_selected_changed();
             return Event_Accept;
+#ifndef LUI_NO_MENULIST_EDITABLE
+        case UIImage::_onClick():
+            if (sender == &m_oMarker)
+                this->ShowPopup();
+            return Event_Accept;
+#endif
         }
         [[fallthrough]];
     default:
@@ -539,12 +580,13 @@ void LongUI::UIMenuList::on_selected_changed() noexcept {
     assert(m_pMenuPopup);
     // 修改选择数据
     m_iSelected = m_pMenuPopup->GetSelectedIndex();
+    //LUIDebug(Hint) << m_iSelected << endl;
     const auto ctrl = m_pMenuPopup->GetLastSelected();
     // 修改事件
     if (ctrl) this->SetText(ctrl->RefText());
     else this->SetText(CUIString{});
     // 触发事件
-    this->TriggerEvent(this->_onCommand());
+    this->FireEvent(this->_onCommand());
 }
 
 
@@ -591,6 +633,135 @@ void LongUI::UIMenuList::add_child(UIControl& child) noexcept {
     return Super::add_child(child);
 }
 
+#ifndef LUI_NO_MENULIST_EDITABLE
+/// <summary>
+/// add attribute for UIMenuList
+/// </summary>
+/// <param name="key"></param>
+/// <param name="value"></param>
+/// <returns></returns>
+void LongUI::UIMenuList::add_attribute(uint32_t key, U8View value) noexcept {
+    constexpr auto BKDR_EDITABLE = 0xdb7c7cd0_ui32;
+    switch (key)
+    {
+    case BKDR_EDITABLE:
+        // editable
+        if (value.ToBool()) this->create_textfield();
+        return;
+    }
+    return Super::add_attribute(key, value);
+}
+
+
+/// <summary>
+/// Triggers the event.
+/// </summary>
+/// <param name="event">The event.</param>
+/// <returns></returns>
+auto LongUI::UIMenuList::FireEvent(GuiEvent event) noexcept -> EventAccept {
+    EventAccept code = Event_Ignore;
+    if (m_pTextField) 
+        switch (event)
+        {
+        case LongUI::GuiEvent::Event_OnFocus:
+            m_pTextField->EventOnFocus();
+            code = Event_Accept;
+            break;
+        case LongUI::GuiEvent::Event_OnBlur:
+            m_pTextField->EventOnBlur();
+            code = Event_Accept;
+            break;
+        }
+    return Super::FireEvent(event) | code;
+}
+
+
+/// <summary>
+/// create private textfield
+/// </summary>
+/// <returns></returns>
+void LongUI::UIMenuList::create_textfield() noexcept {
+    if (m_pTextField) return;
+    // 不再阻隔鼠标事件
+    m_oImage.RefInheritedMask() = State_Disabled;
+    m_oLabel.RefInheritedMask() = State_Disabled;
+    m_oMarker.RefInheritedMask() = State_Disabled;
+    m_state.mouse_continue = true;
+    m_state.capturable = false;
+    const auto textfield = new(std::nothrow) UITextField{ this };
+    if (!textfield) return;
+    m_pTextField = textfield;
+    textfield->IsVaildInLayout();
+    textfield->RefInheritedMask()
+        = State_Disabled        // 继承禁止状态
+        | State_Focus           // 继承焦点状态
+        ;
+    // 增加外边距
+    //const auto& extra = UIManager.RefNativeStyle().margin_baselabel;
+    //auto& marginwrite = UIControlPrivate::RefBox(*textfield).margin;
+    //marginwrite.left += extra.left;
+    //marginwrite.top += extra.top;
+    //marginwrite.right += extra.right;
+    //marginwrite.bottom += extra.bottom;
+    // 设置基础外貌
+    m_oStyle.appearance = Appearance_TextField;
+    // 替换m_oLabel位置
+    this->SwapChildren(m_oLabel, *textfield);
+    UIControlPrivate::SetFlex(*textfield, 1.f);
+    m_oLabel.SetVisible(false);
+    // 自己已经有了, 取消TextField焦点功能
+    UIControlPrivate::SetFocusable0(*textfield);
+    // 将TextField重定向本节点
+    UIControlPrivate::SetGuiEvent2Parent(*textfield);
+    UIControlPrivate::SetGuiEvent2Parent(m_oMarker);
+}
+
+
+#endif
+
+
+
+/// <summary>
+/// input event
+/// </summary>
+/// <param name="e"></param>
+/// <returns></returns>
+auto LongUI::UIMenuList::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
+    // 上下键
+    switch (e.event)
+    {
+    case InputEvent::Event_KeyDown:
+        switch (e.character)
+        {
+        case CUIInputKM::KB_UP:
+            return this->SetSelectedIndex(m_iSelected - 1);
+        case CUIInputKM::KB_DOWN:
+            return this->SetSelectedIndex(m_iSelected + 1);
+        }
+        [[fallthrough]];
+    default:
+#ifndef LUI_NO_MENULIST_EDITABLE
+        if (m_pTextField) {
+            return m_pTextField->DoInputEvent(e);
+        }
+#endif
+    }
+    return Super::DoInputEvent(e);
+}
+
+/// <summary>
+/// set selected index
+/// </summary>
+/// <param name="index">index</param>
+/// <returns>return accept if index changed</returns>
+auto LongUI::UIMenuList::SetSelectedIndex(long index) noexcept -> EventAccept {
+    if (m_pMenuPopup) {
+        const auto code = m_pMenuPopup->SetSelectedIndex(index);
+        return static_cast<EventAccept>(code);
+    }
+    return Event_Ignore;
+}
+
 /// <summary>
 /// Shows the popup.
 /// </summary>
@@ -611,7 +782,7 @@ void LongUI::UIMenuList::ShowPopup() noexcept {
         );
     }
     // 触发修改GUI事件
-    //this->TriggerEvent(_clicked());
+    //this->FireEvent(_clicked());
 #ifdef LUI_ACCESSIBLE
     // TODO: 调用 accessible 接口
 #endif
@@ -619,6 +790,14 @@ void LongUI::UIMenuList::ShowPopup() noexcept {
 
 #ifdef LUI_ACCESSIBLE
 
+/// <summary>
+/// accessible event for UIMenuList
+/// </summary>
+/// <param name=""></param>
+/// <returns></returns>
+auto LongUI::UIMenuList::accessible(const AccessibleEventArg& arg) noexcept -> EventAccept {
+    return Super::accessible(arg);
+}
 
 #endif
 
@@ -763,7 +942,7 @@ auto LongUI::UIMenuPopup::DoEvent(
         {
         case UIMenuItem::_onCommand():
             assert(sender->GetParent() == this);
-            this->select(sender);
+            this->select(sender, -1);
             return Event_Accept;
         }
         [[fallthrough]];
@@ -785,17 +964,17 @@ void LongUI::UIMenuPopup::AddItem(CUIString&& label) noexcept {
 
 
 /// <summary>
-/// Selects the first item.
+/// Selects the item via index.
 /// </summary>
 /// <returns></returns>
-void LongUI::UIMenuPopup::SelectFirstItem() noexcept {
-    for (auto& x : (*this)) {
-        if (const auto ptr = uisafe_cast<UIMenuItem>(&x)) {
-            this->select(ptr);
+bool LongUI::UIMenuPopup::SetSelectedIndex(const int32_t index) noexcept {
+    if (index >= 0)
+        if (const auto child = this->cal_index_child<UIMenuItem>(index)) {
+            this->select(child, index);
             m_pPerSelected = m_pLastSelected;
-            return;
+            return true;
         }
-    }
+    return false;
 }
 
 /// <summary>
@@ -889,8 +1068,9 @@ void LongUI::UIMenuPopup::SetDelayClosedPopup() noexcept {
 /// Selects the specified child.
 /// </summary>
 /// <param name="child">The child.</param>
+/// <param name="index">The index.</param>
 /// <returns></returns>
-void LongUI::UIMenuPopup::select(UIControl* child) noexcept {
+void LongUI::UIMenuPopup::select(UIControl* child, int32_t index) noexcept {
     if (child == m_pLastSelected) return;
     assert(child == nullptr || child->GetParent() == this);
     // 修改状态
@@ -898,9 +1078,12 @@ void LongUI::UIMenuPopup::select(UIControl* child) noexcept {
         this->change_select(m_pLastSelected, child);
     // 修改数据
     m_pLastSelected = longui_cast<UIMenuItem*>(child);
-    m_iSelected = child ? this->calculate_child_index(*child) : -1;
+    if (index < 0)
+        m_iSelected = child ? this->cal_child_index<UIMenuItem>(*child) : -1;
+    else
+        m_iSelected = index;
     // 事件触发
-    this->TriggerEvent(this->_onCommand());
+    this->FireEvent(this->_onCommand());
     if (m_pHoster) m_pHoster->DoEvent(this, EventGuiArg{ _onCommand() });
 }
 

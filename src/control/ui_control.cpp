@@ -842,6 +842,26 @@ void LongUI::UIControl::final_ctor(UIControl* parent) noexcept {
 }
 
 /// <summary>
+/// make SpTraversal
+/// </summary>
+/// <param name="sp"></param>
+/// <returns></returns>
+auto LongUI::UIControl::make_sp_traversal() noexcept -> SpTraversal {
+    SpTraversal sp;
+    if (m_state.direction) {
+        sp.begin = this->rbegin();
+        sp.end = this->rend();
+        sp.next = offsetof(UIControl, prev);
+    }
+    else {
+        sp.begin = this->begin();
+        sp.end = this->end();
+        sp.next = offsetof(UIControl, next);
+    }
+    return sp;
+}
+
+/// <summary>
 /// Does the event.
 /// </summary>
 /// <param name="e">The e.</param>
@@ -918,32 +938,46 @@ auto LongUI::UIControl::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
     return Event_Ignore;
 }
 
-
+PCN_NOINLINE
 /// <summary>
 /// Calculates the index of the child.
 /// </summary>
 /// <param name="ctrl">The control.</param>
 /// <returns></returns>
-auto LongUI::UIControl::calculate_child_index(const UIControl& ctrl) const noexcept->uint32_t {
+auto LongUI::UIControl::cal_child_index(
+    const UIControl& ctrl, const MetaControl& meta) const noexcept->uint32_t {
     assert(ctrl.GetParent() == this);
     uint32_t index = 0;
     for (auto& x : *this) {
         if (x == ctrl) break;
-        ++index;
+        // XXX: 优化
+        if (x.SafeCastTo(meta)) ++index;
     }
     return index;
 }
 
+PCN_NOINLINE
 /// <summary>
-/// Calculates the child at.
+/// Calculates child via index. 
 /// </summary>
-/// <param name="index">The index.</param>
+/// <param name="index"></param>
+/// <param name="meta"></param>
 /// <returns></returns>
-auto LongUI::UIControl::calculate_child_at(uint32_t index) noexcept -> UIControl* {
+auto LongUI::UIControl::cal_index_child(uint32_t index, const MetaControl& meta) noexcept -> UIControl* {
     if (index >= this->GetChildrenCount()) return nullptr;
+    if (&meta != &UIControl::s_meta) {
+        for (auto& child : (*this)) {
+            if (child.SafeCastTo(meta)) {
+                if (!index) return &child;
+                --index;
+            }
+        }
+        return nullptr;
+    }
     auto child = this->begin();
     while (index) { ++child; --index; }
     return child;
+    return nullptr;
 }
 
 #if 0
@@ -1120,7 +1154,7 @@ auto LongUI::UIControl::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
                 m_pClicked->DoMouseEvent(e);
         }
         // 触发[onclick]事件
-        this->TriggerEvent(_onClick());
+        this->FireEvent(_onClick());
         return Event_Accept;
     case LongUI::MouseEvent::Event_RButtonUp:
         // 子控件优先处理事件

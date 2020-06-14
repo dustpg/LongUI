@@ -1077,6 +1077,9 @@
     <ClInclude Include="..\include\constexpr\const_log2.h">
       <Filter>header\constexpr</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\util\ui_sptraversal.h">
+      <Filter>header\util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\helper\BorderImageEffectPS.hlsl">

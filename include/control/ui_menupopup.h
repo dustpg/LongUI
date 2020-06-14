@@ -84,8 +84,10 @@ namespace LongUI {
         auto GetSelectedIndex() const noexcept { return m_iSelected; }
         // get popup positon
         auto GetPopupPosition() const noexcept { return m_posPopup; }
+        // select item via index
+        bool SetSelectedIndex(int32_t index) noexcept;
         // select first item
-        void SelectFirstItem() noexcept;
+        void SelectFirstItem() noexcept { SetSelectedIndex(0); }
         // clear select
         void ClearSelected() noexcept;
         // set delay closed popup
@@ -96,7 +98,7 @@ namespace LongUI {
         // add attribute
         void add_attribute(uint32_t key, U8View view) noexcept override;
         // select child
-        void select(UIControl* child) noexcept;
+        void select(UIControl* child, int32_t index) noexcept;
         // change select
         static void change_select(UIControl* old, UIControl* now) noexcept;
         // save selected?

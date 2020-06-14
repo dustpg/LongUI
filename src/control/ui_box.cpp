@@ -113,13 +113,20 @@ void LongUI::UIBoxLayout::relayout_v() noexcept {
     const float len_in_unit = flex_sum > 0.f ?
         std::max(get_remain_length(remaining), 0.f) / flex_sum : 0.f;
     Point2F pos = this->get_layout_position();
-    // pi.计算pack位置
+    // pi. 计算pack位置
     if (len_in_unit == 0.f) {
-        const float fa = static_cast<float>(m_oStyle.pack) * 0.5f;
+        const float fa = [this]() noexcept {
+            const auto base = static_cast<float>(m_oStyle.pack) * 0.5f;
+            return m_state.direction ? 1.f - base : base;
+        }();
         pos.y += get_remain_length(remaining) * fa;
     }
     // 4. 遍历控件
-    for (auto& child : *this) {
+    const auto sp = this->make_sp_traversal();
+    for (auto itr = sp.begin; itr != sp.end; itr = LongUI::SpNext(itr, sp.next)) {
+        auto& child = *itr;
+    //}
+    //for (auto& child : *this) {
 #ifndef NDEBUG
         //if (!std::strcmp(child.name_dbg, "scrollbar::slider")) {
         //    int bbk = 9;
@@ -152,7 +159,7 @@ PCN_NOINLINE
 /// <returns></returns>
 void LongUI::UIBoxLayout::relayout_h() noexcept {
 #ifndef NDEBUG
-    if (!std::strcmp(m_id.id, "layout")) {
+    if (!std::strcmp(m_id.id, "editable_combobox")) {
         int bbk = 9;
     }
 #endif
@@ -192,13 +199,20 @@ void LongUI::UIBoxLayout::relayout_h() noexcept {
     const float len_in_unit = flex_sum > 0.f ?
         std::max(get_remain_length(remaining), 0.f) / flex_sum : 0.f;
     Point2F pos = this->get_layout_position();
-    // pi.计算pack位置
+    // pi. 计算pack位置
     if (len_in_unit == 0.f) {
-        const float fa = static_cast<float>(m_oStyle.pack) * 0.5f;
+        const float fa = [this]() noexcept {
+            const auto base = static_cast<float>(m_oStyle.pack) * 0.5f;
+            return m_state.direction ? 1.f - base : base;
+        }();
         pos.x += get_remain_length(remaining) * fa;
     }
     // 4. 遍历控件
-    for (auto& child : *this) {
+    const auto sp = this->make_sp_traversal();
+    for (auto itr = sp.begin; itr != sp.end; itr = LongUI::SpNext(itr, sp.next)) {
+        auto& child = *itr;
+    //}
+    //for (auto& child : *this) {
         // 有效才处理
         if (child.IsVaildInLayout()) {
             // 先考虑使用最小尺寸

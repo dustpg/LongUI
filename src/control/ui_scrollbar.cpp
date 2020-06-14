@@ -51,7 +51,7 @@ LongUI::UIScrollBar::UIScrollBar(AttributeOrient o, const MetaControl& meta) noe
     const bool orient = o & 1;
     m_state.orient = orient;
     UIControlPrivate::SetOrient(m_oSlider, orient);
-    this->init_bar_weakapp(o);
+    this->init_bar_app(o);
     // 取消聚焦功能
     UIControlPrivate::SetCapturable1(m_oUpTop);
     UIControlPrivate::SetCapturable1(m_oDownTop);
@@ -117,16 +117,16 @@ void LongUI::UIScrollBar::SetIncrement(float pi) noexcept {
 }
 
 /// <summary>
-/// Initializes the bar : weakapp
+/// Initializes the bar : app
 /// </summary>
 /// <returns></returns>
-void LongUI::UIScrollBar::init_bar_weakapp(AttributeOrient o) noexcept {
+void LongUI::UIScrollBar::init_bar_app(AttributeOrient o) noexcept {
     // 根据方向确定初始化类型
     if (o == Orient_Horizontal) {
         constexpr auto aut = Appearance_ScrollBarButtonLeft;
         constexpr auto adt = Appearance_ScrollBarButtonRight;
         // XXX: 换一个?
-        constexpr auto asd = Appearance_CheckBoxContainer;
+        constexpr auto asd = Appearance_None;
         constexpr auto ast = Appearance_ScrollbarThumbH;
         constexpr auto aub = Appearance_ScrollBarButtonLeft;
         constexpr auto adb = Appearance_ScrollBarButtonRight;
@@ -145,7 +145,7 @@ void LongUI::UIScrollBar::init_bar_weakapp(AttributeOrient o) noexcept {
         constexpr auto aut = Appearance_ScrollBarButtonUp;
         constexpr auto adt = Appearance_ScrollBarButtonDown;
         // XXX: 换一个?
-        constexpr auto asd = Appearance_CheckBoxContainer;
+        constexpr auto asd = Appearance_None;
         constexpr auto ast = Appearance_ScrollbarThumbV;
         constexpr auto aub = Appearance_ScrollBarButtonUp;
         constexpr auto adb = Appearance_ScrollBarButtonDown;
@@ -180,7 +180,7 @@ auto LongUI::UIScrollBar::DoEvent(UIControl * sender,
     {
         const auto ge = static_cast<const EventGuiArg&>(e).GetEvent();
         assert(sender == &m_oSlider);
-        return this->TriggerEvent(ge);
+        return this->FireEvent(ge);
     }
     default:
         // 基类处理

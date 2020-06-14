@@ -1,17 +1,18 @@
-﻿
+﻿Drag/Drop
+
+专用控件上下左右访问
+
 构建析构控件会阻塞渲染线程
 
 对于大型控件，不可视控件没有必要更新一些东西
  
 MinSizeChange [针对文本] 测试
 
-内部uisafe_cast ->简单META-FLAG判断 CLASS-MAP 修改
+内部uisafe_cast ->简单META-FLAG判断
 
 TAB 会移动视口
 
 NODE偏移 vs 虚指针
-
-使用接口释放设备资源避免上锁?
 
 复杂控件弱引用全面消除[UIMenuList::m_pMenuPopup] 测试
 
@@ -34,15 +35,11 @@ LUI_NO_SCRIPT
 ------------------------------------------------------------------
 菜单应该像离开一样是进入一段时间就行, 不需要等待IDLE HOVER事件
 
-repeat类型是round但是不足一个的场合?
-
 groupbox minsize
 
 ResourceList
 
 SSBlock::~SSBlock
-
-Context Menu按键支持
 
 CUITimeCapsule*m_pLastEnd寻找比这个还要廉价的解决方法?
 
@@ -62,36 +59,20 @@ LongUI::GetEasyType?
 
 GUI事件持续触发(比如一直按住鼠标左键)?
 
-Tree的选择换为TreeRow而不是TreeItem?
-
-disable状态取消其他的动画?
-
-xul根节点window弄成可选的?没有就创建一个?
-
 STYLE minsize拥有强制性?
 
 Init事件有一个HR的返回值?
-
-OOM: [强制测试]申请函数使用静态变量按进度直接返回nullptr?
 
 SimpAX: (ch == ' ') | (ch == '\t'); -> (ch == ' ') || (ch == '\t');
 
 SimpAX: 字节映射表使用每一位, 节约7倍
 
-实现 fixedqueue
-
 安全检查 类printf 
 
 CUIString::fromLatin1
 
-m_state.in_dtor ?
-
 异步加载?
-
-所有#include Qt化
 
 CSS border-width 属性
 只有当边框样式不是 none 时才起作用。
 如果边框样式是 none，边框宽度实际上会重置为 0
-
-位域压缩属性

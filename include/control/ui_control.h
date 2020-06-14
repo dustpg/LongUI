@@ -53,6 +53,8 @@
 #include "../accessible/ui_accessible.h"
 // manager data
 #include "../core/ui_manager_data.h"
+// sp traversal
+#include "../util/ui_sptraversal.h"
 
 // assert
 #include <cstddef>
@@ -371,9 +373,13 @@ namespace LongUI {
         // remove child
         void remove_child(UIControl& child) noexcept;
         // calculate child index
-        auto calculate_child_index(const UIControl&) const noexcept->uint32_t;
-        // calculate child at
-        auto calculate_child_at(uint32_t index) noexcept->UIControl*;
+        auto cal_child_index(const UIControl&, const MetaControl&) const noexcept->uint32_t;
+        // calculate child via index
+        auto cal_index_child(uint32_t, const MetaControl&) noexcept->UIControl*;
+        // calculate child index
+        template<typename T> auto cal_child_index(const UIControl&) const noexcept->uint32_t;
+        // calculate child index
+        template<typename T> auto cal_index_child(uint32_t) noexcept->UIControl*;
         // do tooltip
         auto do_tooltip(Point2F pos) noexcept->EventAccept;
         // release tooltip
@@ -413,6 +419,8 @@ namespace LongUI {
         // set new window
         void set_new_window(CUIWindow*) noexcept;
     protected:
+        // make SpTraversal
+        auto make_sp_traversal() noexcept ->SpTraversal;
         // final ctor
         void final_ctor(UIControl* parent) noexcept;
         // apply world transform to renderer
@@ -571,6 +579,16 @@ namespace LongUI {
         ptr->AssertCast(GetMetaInfoPtr(static_cast<T>(nullptr)));
 #endif
         return static_cast<T>(ptr);
+    }
+    // calculate child index
+    template<typename T> auto UIControl::cal_child_index(
+        const UIControl& c) const noexcept->uint32_t {
+        return this->cal_child_index(c, GetMetaInfo<T>());
+    }
+    // calculate child via index
+    template<typename T> auto UIControl::cal_index_child(
+        uint32_t i) noexcept->UIControl* {
+        return this->cal_index_child(i, GetMetaInfo<T>());
     }
     // longui safe cast
     template<typename T, typename U> inline T* uisafe_cast(U* ptr) noexcept {

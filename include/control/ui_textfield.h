@@ -112,8 +112,8 @@ namespace LongUI {
         // ctor
         explicit UITextField(UIControl* parent = nullptr) noexcept : UITextField(UITextField::s_meta) { this->final_ctor(parent); }
     public:
-        // trigger event
-        auto TriggerEvent(GuiEvent event) noexcept->EventAccept override;
+        // fire event
+        auto FireEvent(GuiEvent event) noexcept->EventAccept override;
         // normal event
         auto DoEvent(UIControl*, const EventArg& e) noexcept->EventAccept override;
         // update this

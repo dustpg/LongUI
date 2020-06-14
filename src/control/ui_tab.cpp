@@ -266,7 +266,7 @@ void LongUI::UITabs::SetSelectedTab(UITab& tab) noexcept {
     }
     // XXX: 应该用uisafe_cast?
     if (const auto box = longui_cast<UITabBox*>(m_pParent)) {
-        box->SetSelectedIndex(this->calculate_child_index(tab));
+        box->SetSelectedIndex(this->cal_child_index<UITab>(tab));
     }
 }
 
@@ -276,7 +276,7 @@ void LongUI::UITabs::SetSelectedTab(UITab& tab) noexcept {
 /// <param name="index">The index.</param>
 /// <returns></returns>
 void LongUI::UITabs::SetSelectedIndex(uint32_t index) noexcept {
-    const auto child = this->calculate_child_at(index);
+    const auto child = this->cal_index_child<UITab>(index);
     // 应该用safe cast?
     if (const auto ptr = longui_cast<UITab*>(child)) {
         this->SetSelectedTab(*ptr);
@@ -304,7 +304,7 @@ void LongUI::UITabs::TabRemoved(UITab& tab) noexcept {
 /// <param name="child">The child.</param>
 /// <returns></returns>
 void LongUI::UITabs::add_child(UIControl& child) noexcept {
-    // 必须是tab类型的
+    // 必须是tab类型的?? 可能是
     if (const auto ptr = uisafe_cast<UITab>(&child)) {
 
     }
@@ -388,7 +388,7 @@ void LongUI::UITabBox::SetSelectedIndex(uint32_t index) noexcept {
         // 触发事件
         if (now != m_index) {
             m_index = now;
-            this->TriggerEvent(_onCommand());
+            this->FireEvent(_onCommand());
         }
     }
 }

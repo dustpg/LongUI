@@ -7,7 +7,7 @@ namespace LongUI {
 #if 0
     // typeof StyleState
     enum class StyleStateType : uint8_t {
-        Type_None = 0, // for trigger event
+        Type_None = 0, // for fire event
         Type_Selected,
         Type_Default,
         Type_Disabled,
@@ -38,7 +38,7 @@ namespace LongUI {
         void Init() noexcept;
         // change, return true if changed
         bool Change(StyleStateTypeChange) noexcept;
-        // reserved flag, index 0 : used for trigger event
+        // reserved flag, index 0 : used for fire event
         bool        none        : 1;
         // ui-selected
         bool        selected    : 1;

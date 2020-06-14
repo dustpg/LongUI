@@ -38,6 +38,8 @@ struct LongUI::UIControlPrivate {
     // ----------- INLINE ZONE ----------------
     // ref last end time capsule
     static auto&RefLastEnd(UIControl& ctrl) noexcept { return ctrl.m_pLastEnd; }
+    // set attachment - fixed
+    static void SetFixed(UIControl& ctrl) noexcept { ctrl.m_state.attachment = true; }
     // set focusable - false
     static void SetFocusable0(UIControl& ctrl) noexcept { ctrl.m_state.focusable = false; }
     // set focusable - true
@@ -51,6 +53,8 @@ struct LongUI::UIControlPrivate {
         assert(ctrl.is_inited() == false);
         ctrl.m_oStyle.appearance = a;
     }
+    // force set appearance
+    static void ForceAppearance(UIControl& ctrl, AttributeAppearance a) noexcept { ctrl.m_oStyle.appearance = a; }
     // set flex
     static void SetFlex(UIControl& ctrl, float flex) noexcept { ctrl.m_oStyle.flex = flex; }
     // set box minwidth

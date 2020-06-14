@@ -87,7 +87,7 @@ namespace LongUI {
         void Update(UpdateReason) noexcept override;
 #ifdef LUI_DRAW_FOCUS_RECT
         // trigger
-        auto TriggerEvent(GuiEvent event) noexcept->EventAccept override;
+        auto FireEvent(GuiEvent event) noexcept->EventAccept override;
         // update
         void UpdateFocusRect() const noexcept;
 #endif

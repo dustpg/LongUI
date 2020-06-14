@@ -74,8 +74,8 @@ void LongUI::UIDeck::Update(UpdateReason reason) noexcept {
 void LongUI::UIDeck::SetSelectedIndex(uint32_t index) noexcept {
     if (index >= this->GetChildrenCount()) return;
     if (m_index != index) {
-        const auto newitem = this->calculate_child_at(index);
-        const auto olditem = this->calculate_child_at(m_index);
+        const auto newitem = this->cal_index_child<UIControl>(index);
+        const auto olditem = this->cal_index_child<UIControl>(m_index);
         assert(newitem && "404");
         if (olditem) olditem->SetVisible(false);
         newitem->SetVisible(true);
@@ -89,7 +89,7 @@ void LongUI::UIDeck::SetSelectedIndex(uint32_t index) noexcept {
 /// <returns></returns>
 void LongUI::UIDeck::on_index_changed() noexcept {
     // TODO: index changed event;
-    //this->TriggerEvent(_selectedChanged());
+    //this->FireEvent(_selectedChanged());
 }
 
 // ----------------------------------------------------------------------------

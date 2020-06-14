@@ -61,7 +61,7 @@
 
 
  <groupbox>
-  <caption label="direction(unsupported yet)" />
+  <caption label="direction" />
   <hbox dir="forward">
     <button label="Here" />
     <button label="the" />
@@ -77,7 +77,7 @@
     <button label="reverse" />
   </hbox>
   <hbox>
-    <button label="Here the"        ordinal="4" />
+    <button label="Here the(unsupported yet)"        ordinal="4" />
     <button label="ordinal"         ordinal="1" />
     <button label="attribute"       ordinal="3" />
     <button label="sets the order." ordinal="2"  />

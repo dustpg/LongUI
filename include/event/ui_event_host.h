@@ -44,8 +44,8 @@ namespace LongUI {
             GuiEventListener listener{ std::move(mcall) };
             return this->add_gui_event_listener(e, std::move(listener));
         }
-        // trigger event
-        virtual auto TriggerEvent(GuiEvent event) noexcept ->EventAccept;
+        // fire event
+        virtual auto FireEvent(GuiEvent event) noexcept ->EventAccept;
         // set script
         void SetScript(GuiEvent, U8View) noexcept;
     private:

@@ -96,7 +96,7 @@ void LongUI::UICheckBox::change_indeterminate(bool ind) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UICheckBox::changed() noexcept {
-    this->TriggerEvent(this->_onCommand());
+    this->FireEvent(this->_onCommand());
     // TODO: ACCESSIBLE
 #ifndef LUI_ACCESSIBLE
 
@@ -216,7 +216,7 @@ auto LongUI::UICheckBox::DoEvent(
 /// </summary>
 /// <param name="event">The event.</param>
 /// <returns></returns>
-auto LongUI::UICheckBox::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
+auto LongUI::UICheckBox::FireEvent(GuiEvent event) noexcept -> EventAccept {
     // 由于焦点位置特殊, 针对焦点的处理 
     EventAccept code = Event_Ignore;
     switch (event)
@@ -228,7 +228,7 @@ auto LongUI::UICheckBox::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
         this->Invalidate();
         break;
     }
-    return Super::TriggerEvent(event);
+    return Super::FireEvent(event);
 }
 
 /// <summary>

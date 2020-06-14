@@ -34,7 +34,7 @@ namespace LongUI {
         // super class
         using Super = UIControl;
         // init slider
-        void setup_weakapp() noexcept;
+        void setup_app() noexcept;
         // mouse click
         void mouse_click(Point2F) noexcept;
     protected:

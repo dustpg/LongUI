@@ -91,7 +91,7 @@ void LongUI::UITextField::Update(UpdateReason reason) noexcept {
 /// </summary>
 /// <param name="event">The event.</param>
 /// <returns></returns>
-auto LongUI::UITextField::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
+auto LongUI::UITextField::FireEvent(GuiEvent event) noexcept -> EventAccept {
     EventAccept code = Event_Ignore;
     switch (event)
     {
@@ -104,7 +104,7 @@ auto LongUI::UITextField::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
         code = Event_Accept;
         break;
     }
-    return Super::TriggerEvent(event) | code;
+    return Super::FireEvent(event) | code;
 }
 
 /// <summary>
@@ -142,7 +142,7 @@ bool LongUI::UITextField::try_trigger_change_event() noexcept {
     bool code = false;
     if (this->is_change_could_trigger()) {
         this->clear_change_could_trigger();
-        code = Super::TriggerEvent(this->_onChange()) != Event_Ignore;
+        code = Super::FireEvent(this->_onChange()) != Event_Ignore;
     }
     return code;
 }
@@ -162,7 +162,8 @@ auto LongUI::UITextField::DoEvent(UIControl * sender,
     switch (e.nevent)
     {
     case NoticeEvent::Event_RefreshBoxMinSize:
-        // 不会改变
+        // 保证一行
+        this->set_contect_minsize({ m_tfBuffer.font.size, m_tfBuffer.font.size });
         return Event_Accept;
     case NoticeEvent::Event_DoAccessAction:
         // 默认行为(聚焦)

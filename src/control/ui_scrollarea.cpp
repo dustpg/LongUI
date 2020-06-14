@@ -180,6 +180,7 @@ void LongUI::UIScrollArea::Update(UpdateReason reason) noexcept {
 }
 #endif
 
+PCN_NOINLINE
 /// <summary>
 /// Sums the children flex.
 /// </summary>

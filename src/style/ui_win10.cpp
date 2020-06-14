@@ -314,7 +314,6 @@ void LongUI::CUINativeStyleWindows10::InitCtrl(UIControl& ctrl, AttributeAppeara
         UIControlPrivate::RefBox(ctrl).padding = { 4, 2, 4, 2 };
         break;
     case LongUI::Appearance_MenuList:
-        UIControlPrivate::RefStyle(ctrl).align = Align_Center;
         UIControlPrivate::RefBox(ctrl).margin = { 5, 5, 5, 5 };
         UIControlPrivate::RefBox(ctrl).padding.right = 5;
         break;
@@ -344,7 +343,7 @@ void LongUI::CUINativeStyleWindows10::InitCtrl(UIControl& ctrl, AttributeAppeara
     case LongUI::Appearance_MenuItem:
         UIControlPrivate::RefStyle(ctrl).align = AttributeAlign::Align_Stretcht;
         //UIControlPrivate::RefBox(ctrl).margin = { 4, 2, 4, 2 };
-        UIControlPrivate::RefBox(ctrl).padding = { 4, 1, 2, 1 };
+        UIControlPrivate::RefBox(ctrl).padding = { 4, 1, ICON_WIDTH+2, 1 };
         // 包含文字, 不适合设置
         //ctrl.SetStyleMinSize({ 0, MENUITEM_HEIGHT });
         break;

@@ -454,6 +454,7 @@
     <ClInclude Include="..\include\util\ui_endian.h" />
     <ClInclude Include="..\include\util\ui_function.h" />
     <ClInclude Include="..\include\util\ui_ostype.h" />
+    <ClInclude Include="..\include\util\ui_sptraversal.h" />
     <ClInclude Include="..\include\util\ui_time.h" />
     <ClInclude Include="..\include\util\ui_time_meter.h" />
     <ClInclude Include="..\include\util\ui_unicode.h" />

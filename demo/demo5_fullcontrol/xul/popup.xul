@@ -118,8 +118,8 @@ function set_text(text)
     </groupbox>
 
     <groupbox flex="1">
-    <caption label="editable(unsupported yet)" />
-    <menulist label="Gray" editable="true">
+    <caption label="editable" />
+    <menulist label="Gray" editable="true" id="editable_combobox">
      <menupopup>
       <menuitem label="Gray" selected="true"  />
       <menuitem label="Black"  />

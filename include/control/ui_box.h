@@ -51,9 +51,9 @@ namespace LongUI {
     protected:
         // lui std ctor
         UIBoxLayout(const MetaControl& ) noexcept;
-    private:
         // need relayout
         auto is_need_relayout() const noexcept { return m_state.reason & Reason_BasicRelayout; }
+    private:
         // move splitter
         void move_splitter(UISplitter& splitter, Point2F offset) noexcept;
     protected:

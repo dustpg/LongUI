@@ -104,8 +104,8 @@ namespace LongUI {
             Type_Password,
         };
     public:
-        // trigger event
-        auto TriggerEvent(GuiEvent event) noexcept->EventAccept override;
+        // fire event
+        auto FireEvent(GuiEvent event) noexcept->EventAccept override;
         // normal event
         auto DoEvent(UIControl*, const EventArg& e) noexcept->EventAccept override;
         // update this

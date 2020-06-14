@@ -379,14 +379,14 @@ void LongUI::UITextField::private_update() noexcept {
         if (values & RichED::Changed_Text) {
             pimpl()->text_changed = true;
             pimpl()->need_request = true;
-            Super::TriggerEvent(this->_onInput());
+            Super::FireEvent(this->_onInput());
         }
         // 估计大小修改
         if (values & (RichED::Changed_EstimatedWidth | RichED::Changed_EstimatedHeight)) {
             // TODO: 为了避免因为滚动条多次刷新, 缩小要小于字体大小才算
-            const auto esize = pimpl()->document().GetEstimatedSize();
-            this->set_contect_minsize({ esize.width, esize.height });
-            m_pParent->NeedUpdate(Reason_ChildLayoutChanged);
+            //const auto esize = pimpl()->document().GetEstimatedSize();
+            //this->set_contect_minsize({ esize.width, esize.height });
+            //m_pParent->NeedUpdate(Reason_ChildLayoutChanged);
         }
     }
 }

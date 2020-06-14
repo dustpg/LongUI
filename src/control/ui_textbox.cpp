@@ -146,7 +146,7 @@ void LongUI::UITextBox::relayout_textbox() noexcept {
 /// </summary>
 /// <param name="event">The event.</param>
 /// <returns></returns>
-auto LongUI::UITextBox::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
+auto LongUI::UITextBox::FireEvent(GuiEvent event) noexcept -> EventAccept {
     EventAccept code = Event_Ignore;
     switch (event)
     {
@@ -159,7 +159,7 @@ auto LongUI::UITextBox::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
         code = Event_Accept;
         break;
     }
-    return Super::TriggerEvent(event) | code;
+    return Super::FireEvent(event) | code;
 }
 
 
@@ -261,7 +261,7 @@ auto LongUI::UITextBox::event_from_textfield(GuiEvent eid) noexcept -> EventAcce
         this->SetValueAsDouble(0, true);
         break;
     }
-    return this->TriggerEvent(eid);
+    return this->FireEvent(eid);
 }
 
 

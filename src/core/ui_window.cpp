@@ -1011,7 +1011,7 @@ bool LongUI::CUIWindow::SetFocus(UIControl& ctrl) noexcept {
     focused = &ctrl;
     ctrl.StartAnimation({ State_Focus, State_Focus });
     // Focus 事件
-    ctrl.TriggerEvent(UIControl::_onFocus());
+    ctrl.FireEvent(UIControl::_onFocus());
     return true;
 }
 
@@ -1154,7 +1154,7 @@ void LongUI::CUIWindow::KillFocus(UIControl& ctrl) noexcept {
         //m_private->saved_focused = nullptr;
         ctrl.StartAnimation({ State_Focus, State_Non });
         // Blur 事件
-        ctrl.TriggerEvent(UIControl::_onBlur());
+        ctrl.FireEvent(UIControl::_onBlur());
     }
 }
 
