@@ -33,6 +33,8 @@ LongUI::UIViewport::UIViewport(CUIWindow* parent,
     const MetaControl& meta) noexcept : Super(meta),
     m_nSubview({ static_cast<UIControl*>(&m_nSubview), static_cast<UIControl*>(&m_nSubview) }),
     m_window(parent, config) {
+    // 垂直布局
+    m_state.orient = Orient_Vertical;
     // window 节点是自己的
     m_pWindow = &m_window;
     this->final_ctor(nullptr);
@@ -51,6 +53,8 @@ LongUI::UIViewport::UIViewport(
     : Super(meta), m_pHoster(&pseudo_parent),
     m_nSubview({ static_cast<UIControl*>(&m_nSubview), static_cast<UIControl*>(&m_nSubview) }),
     m_window(pseudo_parent.GetWindow(), config) {
+    // 垂直布局
+    m_state.orient = Orient_Vertical;
     // window 节点是自己的
     m_pWindow = &m_window;
 }

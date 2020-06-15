@@ -38,7 +38,6 @@ LongUI::UIRadio::UIRadio(const MetaControl& meta) noexcept : Super(meta),
     m_state.tabstop = true;
     m_state.focusable = true;
     m_state.capturable = true;
-    m_state.orient = Orient_Horizontal;
     // 阻隔鼠标事件写入false之前需要写入
     m_oImage.RefInheritedMask() = State_MouseCutInher;
     m_oLabel.RefInheritedMask() = State_MouseCutInher;

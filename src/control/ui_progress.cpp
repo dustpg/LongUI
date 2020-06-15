@@ -31,7 +31,6 @@ LongUI::UIProgress::UIProgress(const MetaControl& meta) noexcept : Super(meta),
     m_oRemainder.RefInheritedMask() = State_MouseCutInher;
     // 阻隔鼠标事件
     m_state.mouse_continue = false;
-    m_state.orient = Orient_Horizontal;
 #ifdef LUI_ACCESSIBLE
     // 没有逻辑子控件
     m_pAccCtrl = nullptr;

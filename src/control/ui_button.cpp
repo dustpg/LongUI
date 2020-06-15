@@ -82,8 +82,6 @@ LongUI::UIButton::UIButton(const MetaControl& meta) noexcept : Super(meta),
     // 没有逻辑子控件
     m_pAccCtrl = nullptr;
 #endif
-    // 水平布局
-    m_state.orient = Orient_Horizontal;
 #ifndef NDEBUG
     m_oImage.name_dbg = "button::image";
     m_oLabel.name_dbg = "button::label";

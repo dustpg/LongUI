@@ -43,8 +43,6 @@ namespace LongUI {
         // private impl
         struct Private;
     public:
-        // min button width
-        //enum { MIN_BUTTON_WIDTH = 175 };
         // class meta
         static const  MetaControl   s_meta;
         // dtor
@@ -57,10 +55,6 @@ namespace LongUI {
     public:
         // on commnad event
         static constexpr auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }
-        // clicked event
-        //static inline constexpr auto _clicked() noexcept { return GuiEvent::Event_Click; }
-        // checked change event
-        //static inline constexpr auto _checkedChanged() noexcept { return GuiEvent::Event_Change; }
     public:
         // click this
         void Click() noexcept;

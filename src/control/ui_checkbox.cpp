@@ -109,7 +109,6 @@ void LongUI::UICheckBox::changed() noexcept {
 /// <param name="meta">The meta.</param>
 LongUI::UICheckBox::UICheckBox(const MetaControl& meta) noexcept : Super(meta),
     m_oImage(this), m_oLabel(this) {
-    m_state.orient = Orient_Horizontal;
     m_state.tabstop = true;
     m_state.focusable = true;
     m_state.capturable = true;

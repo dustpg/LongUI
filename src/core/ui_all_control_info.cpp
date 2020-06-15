@@ -67,13 +67,13 @@ namespace LongUI {
         LUI_CONTROL_META_INFO_FAKE_A(UIPopup);
         LUI_CONTROL_META_INFO_FAKE_A(UIToolBox);
         LUI_CONTROL_META_INFO_FAKE_A(UIPopupSet);
-        LUI_CONTROL_META_INFO_FAKE_A(UIVBoxLayout);
+        LUI_CONTROL_META_INFO_FAKE_A(UIHBoxLayout);
         LUI_CONTROL_META_INFO_FAKE_A(UIToolBarSeparator);
     };
     LUI_CONTROL_META_INFO_FAKE_B(UIPopup, "popup");
     LUI_CONTROL_META_INFO_FAKE_B(UIToolBox, "toolbox");
     LUI_CONTROL_META_INFO_FAKE_B(UIPopupSet, "popupset");
-    LUI_CONTROL_META_INFO_FAKE_B(UIVBoxLayout, "vbox");
+    LUI_CONTROL_META_INFO_FAKE_B(UIHBoxLayout, "hbox");
     LUI_CONTROL_META_INFO_FAKE_B(UIToolBarSeparator, "toolbarseparator");
 
     /// <summary>
@@ -87,8 +87,8 @@ namespace LongUI {
         &UIRichListItem::s_meta,
         // Rich List Box - 富列表容器
         &UIRichListBox::s_meta,
-        // H Box Layout - 水平箱型布局
-        &UIHBoxLayout::s_meta,
+        // V Box Layout - 水平箱型布局
+        &UIVBoxLayout::s_meta,
         // Radio Group - 单选框组
         &UIRadioGroup::s_meta,
         // List Header - 列表头项
@@ -191,8 +191,8 @@ namespace LongUI {
         &UIMetaTypeDef::UIPopup__s_meta,
         &UIMetaTypeDef::UIToolBox__s_meta,
         &UIMetaTypeDef::UIPopupSet__s_meta,
-        // V Box Layout - 垂直箱型布局
-        &UIMetaTypeDef::UIVBoxLayout__s_meta,
+        // H Box Layout - 垂直箱型布局
+        &UIMetaTypeDef::UIHBoxLayout__s_meta,
         &UIMetaTypeDef::UIToolBarSeparator__s_meta,
 
 #ifndef NDEBUG
@@ -224,7 +224,7 @@ namespace LongUI {
             // 跳过这个
             if (x == &UIMetaTypeDef::UIPopupSet__s_meta) continue;
             // 跳过这个
-            if (x == &UIMetaTypeDef::UIVBoxLayout__s_meta) continue;
+            if (x == &UIMetaTypeDef::UIHBoxLayout__s_meta) continue;
             // 跳过这个
             if (x == &UIMetaTypeDef::UIToolBarSeparator__s_meta) continue;
             // 测试这个

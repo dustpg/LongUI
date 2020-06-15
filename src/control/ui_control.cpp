@@ -782,6 +782,7 @@ void LongUI::UIControl::ControlMakingBegin() noexcept {
     UIManager.RefLaterLocker().Lock();
 #else
     UIManager.DataLock();
+    UIManager.RenderLock();
 #endif
 }
 
@@ -794,6 +795,7 @@ void LongUI::UIControl::ControlMakingEnd() noexcept {
 #ifdef LUI_USING_CTOR_LOCKER
     UIManager.RefLaterLocker().Unlock();
 #else
+    UIManager.RenderUnlock();
     UIManager.DataUnlock();
 #endif
 }
@@ -965,15 +967,23 @@ PCN_NOINLINE
 /// <returns></returns>
 auto LongUI::UIControl::cal_index_child(uint32_t index, const MetaControl& meta) noexcept -> UIControl* {
     if (index >= this->GetChildrenCount()) return nullptr;
-    if (&meta != &UIControl::s_meta) {
-        for (auto& child : (*this)) {
-            if (child.SafeCastTo(meta)) {
-                if (!index) return &child;
-                --index;
-            }
+    for (auto& child : (*this)) {
+        if (child.SafeCastTo(meta)) {
+            if (!index) return &child;
+            --index;
         }
-        return nullptr;
     }
+    return nullptr;
+}
+
+template<> PCN_NOINLINE
+/// <summary>
+/// Calculates child via index. 
+/// </summary>
+/// <param name="index"></param>
+/// <returns></returns>
+ auto LongUI::UIControl::cal_index_child<LongUI::UIControl>(uint32_t index) noexcept->UIControl* {
+    if (index >= this->GetChildrenCount()) return nullptr;
     auto child = this->begin();
     while (index) { ++child; --index; }
     return child;

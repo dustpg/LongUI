@@ -106,7 +106,6 @@ auto LongUI::UIRichListBox::DoEvent(
 /// </summary>
 /// <param name="meta">The meta.</param>
 LongUI::UIRichListItem::UIRichListItem(const MetaControl& meta) noexcept : Super(meta) {
-    m_state.orient = Orient_Horizontal;
     m_oStyle.align = Align_Stretcht;
 }
 

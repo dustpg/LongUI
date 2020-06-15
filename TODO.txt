@@ -1,5 +1,11 @@
 ﻿Drag/Drop
 
+ACCESSIBLE
+
+富文本支持
+
+<progressmeter> 对接操作系统状态
+
 专用控件上下左右访问
 
 构建析构控件会阻塞渲染线程
@@ -14,7 +20,9 @@ TAB 会移动视口
 
 NODE偏移 vs 虚指针
 
-复杂控件弱引用全面消除[UIMenuList::m_pMenuPopup] 测试
+复杂控件弱引用全面消除
+ - [UIMenuList::m_pMenuPopup] 测试
+ - m_pHoster
 
 pod_hash OOM 处理 测试
 
@@ -51,7 +59,7 @@ hash_base::find 优化
 
 OOM处理策略: 目前分配失败会释放旧数据
 
-资源管理器载入资源后缓存一段时间?
+资源管理器释放资源后缓存一段时间?
 
 Win10支持超过MAX_PATH路径?
 

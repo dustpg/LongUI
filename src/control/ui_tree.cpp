@@ -1247,7 +1247,7 @@ LongUI::UITreeCols::~UITreeCols() noexcept {
 /// </remarks>
 /// <param name="meta">The meta.</param>
 LongUI::UITreeCols::UITreeCols(const MetaControl& meta) noexcept : Super(meta) {
-    m_state.orient = Orient_Horizontal;
+
 }
 
 /// <summary>

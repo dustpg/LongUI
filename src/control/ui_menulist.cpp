@@ -73,7 +73,6 @@ LongUI::UIMenuItem::UIMenuItem(const MetaControl& meta) noexcept : Super(meta),
     m_oImage(this), m_oLabel(this) {
     m_state.focusable = true;
     m_state.capturable = true;
-    m_state.orient = Orient_Horizontal;
     // 阻隔鼠标事件写入false之前需要写入
     m_oImage.RefInheritedMask() = State_MouseCutInher;
     m_oLabel.RefInheritedMask() = State_MouseCutInher;
@@ -426,7 +425,6 @@ LongUI::UIMenuList::UIMenuList(const MetaControl& meta) noexcept : Super(meta),
     // 默认是处于关闭状态
     m_oStyle.state = m_oStyle.state | State_Closed;
     m_oStyle.align = Align_Center;
-    m_state.orient = Orient_Horizontal;
 
     // 私有实现
     UIControlPrivate::SetFlex(m_oLabel, 1.f);

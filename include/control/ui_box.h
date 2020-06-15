@@ -77,26 +77,26 @@ namespace LongUI {
         // get orient
         auto GetOrient() const noexcept { return static_cast<AttributeOrient>(m_state.orient); }
     };
-    // v-box layout
-    using UIVBoxLayout = UIBoxLayout;
     // h-box layout
-    class UIHBoxLayout final : public UIBoxLayout {
+    using UIHBoxLayout = UIBoxLayout;
+    // v-box layout
+    class UIVBoxLayout final : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // ctor
-        explicit UIHBoxLayout(UIControl* parent = nullptr) noexcept : UIHBoxLayout(UIHBoxLayout::s_meta) { this->final_ctor(parent); }
+        explicit UIVBoxLayout(UIControl* parent = nullptr) noexcept : UIVBoxLayout(UIVBoxLayout::s_meta) { this->final_ctor(parent); }
         // dtor
-        ~UIHBoxLayout() noexcept;
+        ~UIVBoxLayout() noexcept;
     protected:
         // ctor
-        UIHBoxLayout(const MetaControl& ) noexcept;
+        UIVBoxLayout(const MetaControl& ) noexcept;
     public:
     };
     // get meta info for UIBoxLayout
     LUI_DECLARE_METAINFO(UIBoxLayout);
-    // get meta info for UIHBoxLayout
-    LUI_DECLARE_METAINFO(UIHBoxLayout);
+    // get meta info for UIVBoxLayout
+    LUI_DECLARE_METAINFO(UIVBoxLayout);
 }

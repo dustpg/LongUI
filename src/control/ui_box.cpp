@@ -14,8 +14,8 @@
 
 // ui namespace
 namespace LongUI {
-    // UIHBoxLayout类 元信息
-    LUI_CONTROL_META_INFO(UIHBoxLayout, "hbox");
+    // UIVBoxLayout类 元信息
+    LUI_CONTROL_META_INFO(UIVBoxLayout, "vbox");
     // UIBoxLayout类 元信息
     LUI_CONTROL_META_INFO(UIBoxLayout, "box");
 }
@@ -53,16 +53,16 @@ namespace LongUI { namespace impl {
 /// </summary>
 /// <param name="meta">The meta.</param>
 LongUI::UIBoxLayout::UIBoxLayout(const MetaControl& meta) noexcept : Super(meta) {
-    m_state.orient = Orient_Vertical;
+    m_state.orient = Orient_Horizontal;
 }
 
 /// <summary>
-/// Initializes a new instance of the <see cref="UIHBoxLayout" /> class.
+/// Initializes a new instance of the <see cref="UIVBoxLayout" /> class.
 /// </summary>
 /// <param name="meta">The meta.</param>
 /// <returns></returns>
-LongUI::UIHBoxLayout::UIHBoxLayout(const MetaControl& meta) noexcept : Super(meta) {
-    m_state.orient = Orient_Horizontal;
+LongUI::UIVBoxLayout::UIVBoxLayout(const MetaControl& meta) noexcept : Super(meta) {
+    m_state.orient = Orient_Vertical;
 }
 
 
@@ -409,10 +409,10 @@ void LongUI::UIBoxLayout::SetOrient(AttributeOrient o) noexcept {
 
 
 /// <summary>
-/// Finalizes an instance of the <see cref="UIHBoxLayout"/> class.
+/// Finalizes an instance of the <see cref="UIVBoxLayout"/> class.
 /// </summary>
 /// <returns></returns>
-LongUI::UIHBoxLayout::~UIHBoxLayout() noexcept {
+LongUI::UIVBoxLayout::~UIVBoxLayout() noexcept {
 
 }
 

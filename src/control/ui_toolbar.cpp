@@ -33,8 +33,6 @@ LongUI::UIToolBar::~UIToolBar() noexcept {
 /// </summary>
 /// <param name="meta">The meta.</param>
 LongUI::UIToolBar::UIToolBar(const MetaControl& meta) noexcept :Super(meta) {
-    // 水平布局
-    m_state.orient = Orient_Horizontal;
     // 居中对齐
     m_oStyle.align = Align_Center;
 }

@@ -590,6 +590,8 @@ namespace LongUI {
         uint32_t i) noexcept->UIControl* {
         return this->cal_index_child(i, GetMetaInfo<T>());
     }
+    // calculate child via index [UIControl SP]
+    template<> auto UIControl::cal_index_child<UIControl>(uint32_t i) noexcept->UIControl*;
     // longui safe cast
     template<typename T, typename U> inline T* uisafe_cast(U* ptr) noexcept {
         return static_cast<T*>(ptr->SafeCastTo(GetMetaInfo<T>())); }

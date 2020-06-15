@@ -531,8 +531,6 @@ LongUI::UIListItem::UIListItem(const MetaControl& meta) noexcept : Super(meta),
     // 阻隔鼠标事件
     m_state.mouse_continue = false;
     this->make_offset_tf_direct(m_oLabel);
-    // 水平布局
-    m_state.orient = Orient_Horizontal;
     // 列表项目
     m_oStyle.appearance = Appearance_ListItem;
 #ifndef NDEBUG
@@ -789,8 +787,6 @@ namespace LongUI {
 /// </summary>
 /// <param name="meta">The meta.</param>
 LongUI::UIListCols::UIListCols(const MetaControl& meta) noexcept : Super(meta) {
-    // 水平布局
-    m_state.orient = Orient_Horizontal;
 }
 
 /// <summary>
@@ -906,10 +902,6 @@ namespace LongUI {
 /// </summary>
 /// <param name="meta">The meta.</param>
 LongUI::UIListHead::UIListHead(const MetaControl& meta) noexcept : Super(meta) {
-    // 水平布局
-    m_state.orient = Orient_Horizontal;
-    // 构造锁
-    //impl::ctor_unlock();
 }
 
 
@@ -985,8 +977,6 @@ namespace LongUI {
 LongUI::UIListHeader::UIListHeader(const MetaControl& meta) noexcept : Super(meta),
     m_oImage(this), m_oLabel(this), m_oSortDir(this) {
     //m_state.focusable = true;
-    // 水平布局
-    m_state.orient = Orient_Horizontal;
     // 属于HEADER CELL
     m_oStyle.appearance = Appearance_TreeHeaderCell;
 #ifndef NDEBUG

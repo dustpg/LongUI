@@ -1551,8 +1551,14 @@ namespace LongUI {
             const auto href = CAXStream::FindEquation(attr.instructions, "href");
             if (href.end() != href.begin()) {
                 // 默认 chrome://global/skin
+#if 0
+                const auto base = "chrome://global/skin"_pair;
                 if (href == "chrome://global/skin"_pair) {
-
+#else
+                const auto chrome = "chrome"_pair;
+                if (!std::strncmp(href.a, chrome.a, chrome.b - chrome.a)) {
+                    // TODO: chrome 处理
+#endif
                 }
                 else {
                     // 使用窗口载入CSS

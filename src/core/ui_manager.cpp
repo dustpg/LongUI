@@ -763,6 +763,7 @@ auto LongUI::CUIManager::Initialize(
                 return a->bkdr_hash < b->bkdr_hash;
             };
             std::sort(m_oCtrlInfo.info_list, m_oCtrlInfo.end_of_list, cmp);
+#ifndef NDEBUG
             // 不允许重复
             const auto count = static_cast<int>(m_oCtrlInfo.end_of_list - m_oCtrlInfo.info_list - 1);
             assert(count && "BUG");
@@ -770,7 +771,6 @@ auto LongUI::CUIManager::Initialize(
                 const auto& curr = m_oCtrlInfo.info_list[i];
                 const auto& next = m_oCtrlInfo.info_list[i+1];
                 if (curr->bkdr_hash == next->bkdr_hash) {
-#ifndef NDEBUG
                     LUIDebug(Fatal)
                         << "[HASH COLLISION]" << curr->bkdr_hash
                         << " ["
@@ -779,11 +779,11 @@ auto LongUI::CUIManager::Initialize(
                         << next->element_name
                         << "] "
                         << endl;
-#endif // NDEBUG
                     hr.code = Result::RE_ABORT;
                     break;
                 }
             }
+#endif // NDEBUG
         }
         // 控件类太多, 需要修改MAX_CONTROL_TYPE_COUNT
         else {
