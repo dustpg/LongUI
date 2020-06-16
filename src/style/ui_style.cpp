@@ -174,7 +174,7 @@ LongUI::Style::Style() noexcept {
     overflow_x = Overflow_Visible;
     overflow_y = Overflow_Visible;
     tfunction = 0;
-    flex = 0.0f;
+    flex = 0;
     minsize = { INVALID_MINSIZE, INVALID_MINSIZE };
     maxsize = { DEFAULT_CONTROL_MAX_SIZE, DEFAULT_CONTROL_MAX_SIZE };
 }

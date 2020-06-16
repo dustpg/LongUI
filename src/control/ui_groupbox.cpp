@@ -28,7 +28,7 @@ LongUI::UIGroupBox::UIGroupBox(const MetaControl& meta) noexcept : Super(meta),
     // 默认为分组框样式
     m_oStyle.appearance = Appearance_GroupBox;
     // 私有实现
-    UIControlPrivate::SetFlex(m_oBodyLayout, 1.f);
+    UIControlPrivate::SetFlex(m_oBodyLayout, 1);
 #ifdef LUI_ACCESSIBLE
     // 逻辑子控件是body
     m_pAccCtrl = &m_oBodyLayout;
@@ -124,7 +124,7 @@ auto LongUI::UIGroupBox::accessible(const AccessibleEventArg& args) noexcept -> 
         using get1_t = const AccessibleGetCtrlTypeArg;
         using get2_t = const AccessibleGetAccNameArg;
     case AccessibleEvent::Event_GetPatterns:
-        // + 继承基类行为模型
+        // + 继承超类行为模型
         Super::accessible(args);
         return Event_Accept;
     case AccessibleEvent::Event_All_GetControlType:

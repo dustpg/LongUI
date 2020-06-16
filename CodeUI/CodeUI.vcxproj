@@ -182,6 +182,7 @@
     <ClCompile Include="..\src\control\ui_caption.cpp" />
     <ClCompile Include="..\src\control\ui_checkbox.cpp" />
     <ClCompile Include="..\src\control\ui_control.cpp" />
+    <ClCompile Include="..\src\control\ui_grid.cpp" />
     <ClCompile Include="..\src\control\ui_groupbox.cpp" />
     <ClCompile Include="..\src\control\ui_image.cpp" />
     <ClCompile Include="..\src\control\ui_label.cpp" />
@@ -304,8 +305,11 @@
     <ClInclude Include="..\include\control\ui_button.h" />
     <ClInclude Include="..\include\control\ui_caption.h" />
     <ClInclude Include="..\include\control\ui_checkbox.h" />
+    <ClInclude Include="..\include\control\ui_column.h" />
+    <ClInclude Include="..\include\control\ui_columns.h" />
     <ClInclude Include="..\include\control\ui_control.h" />
     <ClInclude Include="..\include\control\ui_deck.h" />
+    <ClInclude Include="..\include\control\ui_grid.h" />
     <ClInclude Include="..\include\control\ui_groupbox.h" />
     <ClInclude Include="..\include\control\ui_image.h" />
     <ClInclude Include="..\include\control\ui_label.h" />
@@ -328,6 +332,8 @@
     <ClInclude Include="..\include\control\ui_radiogroup.h" />
     <ClInclude Include="..\include\control\ui_richlistbox.h" />
     <ClInclude Include="..\include\control\ui_richlistitem.h" />
+    <ClInclude Include="..\include\control\ui_row.h" />
+    <ClInclude Include="..\include\control\ui_rows.h" />
     <ClInclude Include="..\include\control\ui_scale.h" />
     <ClInclude Include="..\include\control\ui_scrollarea.h" />
     <ClInclude Include="..\include\control\ui_scrollbar.h" />

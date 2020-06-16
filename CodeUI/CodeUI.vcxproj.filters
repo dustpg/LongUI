@@ -482,6 +482,9 @@
     <ClCompile Include="..\src\control\ui_spinbuttons.cpp">
       <Filter>source\control</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\control\ui_grid.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\src\naivis\z_string.natvis">
@@ -1079,6 +1082,21 @@
     </ClInclude>
     <ClInclude Include="..\include\util\ui_sptraversal.h">
       <Filter>header\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_grid.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_columns.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_column.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_rows.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_row.h">
+      <Filter>header\control</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

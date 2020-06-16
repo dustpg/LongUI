@@ -70,6 +70,8 @@ LongUI::UIRadio::UIRadio(const MetaControl& meta) noexcept : Super(meta),
 LongUI::UIRadio::~UIRadio() noexcept {
     // 存在提前释放子控件, 需要标记"在析构中"
     m_state.destructing = true;
+    // 移除UIRadioGroup弱引用
+    if (m_pRadioGroup) m_pRadioGroup->RemoveRadio(*this);
 }
 
 /// <summary>
@@ -87,9 +89,18 @@ void LongUI::UIRadio::Update(UpdateReason reason) noexcept {
         m_bNewImage = false;
     }
     // 父节点修改了?
-    if (reason & Reason_ParentChanged) {
-        // uisafe_cast 空指针安全
-        m_pRadioGroup = uisafe_cast<UIRadioGroup>(m_pParent);
+    if (reason & (Reason_ParentChanged | Reason_WindowChanged)) {
+        // XXX: 父节点的父节点修改——潜在的野指针m_pRadioGroup
+        m_pRadioGroup = nullptr;
+        auto node = m_pParent;
+        while (node) {
+            if (const auto group = uisafe_cast<UIRadioGroup>(node)) {
+                m_pRadioGroup = group;
+                break;
+            }
+            node = node->GetParent();
+        }
+        //m_pRadioGroup = uisafe_cast<UIRadioGroup>(m_pParent);
     }
 #ifdef LUI_DRAW_FOCUS_RECT
     // 渲染焦点框 XXX: IsFocus()
@@ -363,6 +374,18 @@ void LongUI::UIRadioGroup::Update(UpdateReason reason) noexcept {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIRadioGroup::UIRadioGroup(const MetaControl& meta) noexcept : Super(meta) {
+    m_state.orient = Orient_Vertical;
+}
+
+
+/// <summary>
+/// remove radio weak ref
+/// 移除单选框弱引用
+/// </summary>
+/// <param name="radio"></param>
+/// <returns></returns>
+void LongUI::UIRadioGroup::RemoveRadio(UIRadio & radio) noexcept {
+    if (&radio == m_pChecked) m_pChecked = nullptr; 
 }
 
 /// <summary>

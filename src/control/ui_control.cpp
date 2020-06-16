@@ -501,7 +501,7 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
         break;
 #endif
     case BKDR_ID:
-        // id         : 窗口唯一id
+        // id         : 全局唯一id
         m_id = UIManager.GetUniqueText(value);
         // 尝试添加命名控件
         m_pWindow->AddNamedControl(*this);

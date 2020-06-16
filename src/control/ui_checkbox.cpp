@@ -174,7 +174,7 @@ void LongUI::UICheckBox::add_attribute(uint32_t key, U8View value) noexcept {
         this->SetImageSource(value);
         break;
     default:
-        // 其他情况, 交给基类处理
+        // 其他情况, 交给超类处理
         return Super::add_attribute(key, value);
     }
 }
@@ -200,7 +200,7 @@ auto LongUI::UICheckBox::DoEvent(
         UIControlPrivate::RefStyleState(m_oImage) = m_oStyle.state;
         [[fallthrough]];
     default:
-        // 基类处理
+        // 超类处理
         return Super::DoEvent(sender, arg);
     }
 }

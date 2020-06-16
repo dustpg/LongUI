@@ -24,63 +24,55 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// ui header
-#include "ui_box.h"
-#include "ui_label.h"
-#include "../style/ui_text.h"
-#include "../core/ui_string.h"
-#include "../text/ui_text_layout.h"
-#include "../core/ui_const_sstring.h"
-#include "../util/ui_named_control.h"
+#include "ui_control.h"
 
-//#define LUI_UICAPTION_AS_UILABEL
+//#define LUI_NO_UIGRID
+
+#ifndef LUI_NO_UIGRID
 
 // ui namespace
 namespace LongUI {
-    // UIGroupBox
-    class UIGroupBox;
-#ifdef LUI_UICAPTION_AS_UILABEL
-    // caption
-    class UICaption : public UILabel {
+    // rows
+    class UIRows;
+    // columns
+    class UIColumns;
+    // grid control
+    class UIGrid : public UIControl {
         // super class
-        using Super = UILabel;
-#else
-    // caption
-    class UICaption : public UIBoxLayout {
-        // super class
-        using Super = UIBoxLayout;
-#endif
+        using Super = UIControl;
     protected:
         // ctor
-        UICaption(const MetaControl&) noexcept;
+        UIGrid(const MetaControl&) noexcept;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
-        ~UICaption() noexcept;
+        ~UIGrid() noexcept override;
         // ctor
-        explicit UICaption(UIControl* parent = nullptr) noexcept : UICaption(UICaption::s_meta) { this->final_ctor(parent); }
-        // link
-        void Link(UIGroupBox& box) noexcept { m_pGroupBox = &box; }
-#ifndef LUI_UICAPTION_AS_UILABEL
-        // ref defualt label text
-        auto&RefText() const noexcept { return m_oLabel.RefText(); }
+        explicit UIGrid(UIControl* parent = nullptr) noexcept : UIGrid(UIGrid::s_meta) { this->final_ctor(parent); }
     public:
         // do normal event
         auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         // update
-        void Update(UpdateReason) noexcept override;
+        void Update(UpdateReason reason) noexcept override;
     protected:
-        // defualt label
-        UILabel                 m_oLabel;
-#endif
-    protected:
-        // add attribute
-        void add_attribute(uint32_t key, U8View value) noexcept override;
-    protected:
-        // group box
-        UIGroupBox*             m_pGroupBox = nullptr;
+        // add child
+        void add_child(UIControl&) noexcept override;
+        // relayout this
+        void relayout_this() noexcept;
+        // refresh minsize
+        auto refresh_minsize(float buf[]) noexcept ->uint32_t;
+    private:
+        // rows
+        UIRows*                 m_pRows = nullptr;
+        // columns
+        UIColumns*              m_pColumns = nullptr;
+        // first
+        UIControl*              m_pFirst = nullptr;
+        // second
+        UIControl*              m_pSecond = nullptr;
     };
-    // get meta info for UICaption
-    LUI_DECLARE_METAINFO(UICaption);
+    // get meta info for UIGrid
+    LUI_DECLARE_METAINFO(UIGrid);
 }
+#endif

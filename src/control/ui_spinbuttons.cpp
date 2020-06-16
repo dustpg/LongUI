@@ -39,8 +39,8 @@ LongUI::UISpinButtons::UISpinButtons(const MetaControl& meta) noexcept :
     m_oIncreaseButton.name_dbg = "spinbuttons::increase";
 #endif
     // 能够被拉伸
-    UIControlPrivate::SetFlex(m_oDecreaseButton, 1.f);
-    UIControlPrivate::SetFlex(m_oIncreaseButton, 1.f);
+    UIControlPrivate::SetFlex(m_oDecreaseButton, 1);
+    UIControlPrivate::SetFlex(m_oIncreaseButton, 1);
     // 能够被鼠标捕获
     UIControlPrivate::SetCapturable1(m_oDecreaseButton);
     UIControlPrivate::SetCapturable1(m_oIncreaseButton);

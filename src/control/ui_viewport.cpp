@@ -187,6 +187,7 @@ void LongUI::UIViewport::JustResetZoom(float x, float y) noexcept {
 void LongUI::UIViewport::add_attribute(uint32_t key, U8View value) noexcept {
     constexpr auto BKDR_LUI_CLEARCOLOR  = 0x662bde74_ui32;
     constexpr auto BKDR_TITLE           = 0x02670904_ui32;
+    constexpr auto BKDR_ID              = 0x0000361f_ui32;
     // 分类处理
     switch (key)
     {
@@ -200,14 +201,25 @@ void LongUI::UIViewport::add_attribute(uint32_t key, U8View value) noexcept {
         // title            : 窗口标题
         m_window.SetTitleName(CUIString::FromUtf8(value));
         break;
+    case BKDR_ID:
+        // id               : 全局唯一id
+        m_id = UIManager.GetUniqueText(value);
+        break;
     //case BKDR_SIZEMODE: 0x98a4632c_ui32
     //    // sizemode         : maximized/normal
     //    break;
     default:
+#ifndef NDEBUG
         // XXX: Viewport::add_attribute部分操作对象属于窗口, 允许在初始化后调用
-        if (this->is_inited()) return;
+        if (this->is_inited()) {
+            m_state.inited = false;
+            Super::add_attribute(key, value);
+            m_state.inited = true;
+            return;
+        }
+#endif
         // 其他的交给超类处理
-        return Super::add_attribute(key, value);
+        Super::add_attribute(key, value);
     }
 }
 

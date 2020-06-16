@@ -57,7 +57,7 @@ LongUI::UITextBox::UITextBox(const MetaControl& meta) noexcept
     //const_cast<AttributeFontStyle&>(m_oPlaceHolder.RefTextFont().font.style) = Style_Italic;
     m_oStyle.appearance = Appearance_TextField;
     this->make_offset_tf_direct(m_oTextField);
-    UIControlPrivate::SetFlex(m_oTextField, 1.f);
+    UIControlPrivate::SetFlex(m_oTextField, 1);
     m_oTextField.RefInheritedMask()
         = State_Disabled        // 继承禁止状态
         | State_Focus           // 继承焦点状态
@@ -211,7 +211,7 @@ auto LongUI::UITextBox::DoEvent(UIControl * sender, const EventArg & e) noexcept
         this->SetValueAsDouble(0, true);
         //[[fallthrough]];
     }
-    // 基类处理
+    // 超类处理
     return Super::DoEvent(sender, e);
 }
 
@@ -510,7 +510,7 @@ auto LongUI::UITextBox::accessible(const AccessibleEventArg& args) noexcept -> E
         using get1_t = AccessibleGetCtrlTypeArg;
         using get2_t = AccessibleGetAccNameArg;
     case AccessibleEvent::Event_GetPatterns:
-        // + 继承基类行为模型
+        // + 继承超类行为模型
         Super::accessible(args);
         static_cast<const get0_t&>(args).patterns |=
             // + 读写值的行为模型

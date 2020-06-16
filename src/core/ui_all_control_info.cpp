@@ -55,6 +55,12 @@
 #include <control/ui_treecell.h>
 #include <control/ui_treechildren.h>
 
+#include <control/ui_grid.h>
+#include <control/ui_column.h>
+#include <control/ui_columns.h>
+#include <control/ui_row.h>
+#include <control/ui_rows.h>
+
 #include <control/ui_popup.h>
 #include <control/ui_popupset.h>
 #include <core/ui_ctrlmeta.h>
@@ -186,6 +192,20 @@ namespace LongUI {
         &UITreeCell::s_meta,
         // Tree Children - 树子节点
         &UITreeChildren::s_meta,
+
+
+#ifndef LUI_NO_UIGRID
+        // UIRow     - 表格行
+        &UIRow::s_meta,
+        // UIRows    - 表格行容器
+        &UIRows::s_meta,
+        // UIGrid    - 表格
+        &UIGrid::s_meta,
+        // UIColumn  - 表格列
+        &UIColumn::s_meta,
+        // UIColumns - 表格列容器
+        &UIColumns::s_meta,
+#endif
 
         // ---------------- TYPEDEF -------------------------
         &UIMetaTypeDef::UIPopup__s_meta,

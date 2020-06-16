@@ -296,7 +296,7 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
 #endif
         return Event_Accept;
     }
-    // 基类处理
+    // 超类处理
     return Super::DoEvent(sender, e);
 }
 
@@ -475,7 +475,7 @@ void LongUI::UIButton::add_attribute(uint32_t key, U8View value) noexcept {
         m_pGroup = UIManager.GetUniqueText(value).id;
         break;
     default:
-        // 其他情况, 交给基类处理
+        // 其他情况, 交给超类处理
         return Super::add_attribute(key, value);
     }
 }
@@ -512,7 +512,7 @@ auto LongUI::UIButton::accessible(const AccessibleEventArg& args) noexcept -> Ev
         using get1_t = AccessibleGetCtrlTypeArg;
         using get2_t = AccessibleGetAccNameArg;
     case AccessibleEvent::Event_GetPatterns:
-        // + 继承基类行为模型
+        // + 继承超类行为模型
         Super::accessible(args);
         static_cast<const get0_t&>(args).patterns |=
             // + 可调用的行为模型

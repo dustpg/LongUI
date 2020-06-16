@@ -42,7 +42,7 @@ LongUI::UIScrollBar::UIScrollBar(AttributeOrient o, const MetaControl& meta) noe
     //UIControlPrivate::SetGuiEvent2Parent(up_bottom);
     //UIControlPrivate::SetGuiEvent2Parent(down_bottom);
 
-    UIControlPrivate::SetFlex(m_oSlider, 1.f);
+    UIControlPrivate::SetFlex(m_oSlider, 1);
 
     m_oDownTop.SetVisible(false);
     m_oUpBottom.SetVisible(false);
@@ -183,7 +183,7 @@ auto LongUI::UIScrollBar::DoEvent(UIControl * sender,
         return this->FireEvent(ge);
     }
     default:
-        // 基类处理
+        // 超类处理
         return Super::DoEvent(sender, e);
     }
 }
@@ -230,7 +230,7 @@ auto LongUI::UIScrollBar::accessible(const AccessibleEventArg& args) noexcept ->
         using get1_t = AccessibleGetCtrlTypeArg;
         using get2_t = AccessibleGetAccNameArg;
     case AccessibleEvent::Event_GetPatterns:
-        // + 继承基类行为模型
+        // + 继承超类行为模型
         Super::accessible(args);
         // + 范围值的行为模型
         static_cast<const get0_t&>(args).patterns |= Pattern_Range;

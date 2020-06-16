@@ -88,8 +88,6 @@ namespace LongUI {
         void add_private_child() noexcept;
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
-        // init with behavior
-        void init_behavior() noexcept;
 #ifdef LUI_ACCESSIBLE
     protected:
         // accessible event

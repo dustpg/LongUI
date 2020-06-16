@@ -4,6 +4,7 @@
 #include <core/ui_color_list.h>
 #include <control/ui_groupbox.h>
 #include <constexpr/const_bkdr.h>
+#include <core/ui_unsafe.h>
 
 #include "../private/ui_private_control.h"
 
@@ -18,7 +19,17 @@ namespace LongUI {
 /// Initializes a new instance of the <see cref="UICaption" /> class.
 /// </summary>
 /// <param name="meta">The meta.</param>
-LongUI::UICaption::UICaption(const MetaControl& meta) noexcept : Super(meta) {
+LongUI::UICaption::UICaption(const MetaControl& meta) noexcept 
+#ifndef LUI_UICAPTION_AS_UILABEL
+    : Super(meta), m_oLabel(this) {
+    this->make_offset_tf_direct(m_oLabel);
+#ifdef LUI_ACCESSIBLE
+    // 结束逻辑控件
+    m_pAccCtrl = &m_oLabel;
+#endif
+#else 
+    : Super(meta) {
+#endif
     m_oStyle.appearance = Appearance_Caption;
 }
 
@@ -44,12 +55,58 @@ void LongUI::UICaption::add_attribute(uint32_t key, U8View value) noexcept {
     switch (key)
     {
     case "label"_bkdr:
-        // 传递给父节点
+#ifdef LUI_UICAPTION_AS_UILABEL
+        // 传递给 label
         key = BKDR_VALUE;
         [[fallthrough]];
+#else
+        // 传递给 超类
+        Unsafe::AddAttrUninited(m_oLabel, BKDR_VALUE, value);
+        return;
+#endif
+        
     default:
-        // 其他情况, 交给基类处理
+        // 其他情况, 交给超类处理
         return Super::add_attribute(key, value);
     }
 }
 
+#ifndef LUI_UICAPTION_AS_UILABEL
+
+/// <summary>
+/// do event
+/// </summary>
+/// <param name="sender"></param>
+/// <param name="e"></param>
+/// <returns></returns>
+auto LongUI::UICaption::DoEvent(UIControl* sender, const EventArg & e) noexcept -> EventAccept {
+    switch (e.nevent)
+    {
+    case NoticeEvent::Event_Initialize:
+        // 添加了复杂控件
+        if (this->GetChildrenCount() > 1) {
+            m_oLabel.SetVisible(false);
+#ifdef LUI_ACCESSIBLE
+            // 再度拥有逻辑控件
+            m_pAccCtrl = this;
+#endif
+        }
+    }
+    // 超类处理
+    return Super::DoEvent(sender, e);
+}
+
+
+/// <summary>
+/// Updates this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::UICaption::Update(UpdateReason reason) noexcept {
+    // 将文本消息传递给Label
+    if (const auto r = reason & Reason_TextFontChanged) {
+        m_oLabel.Update(r);
+    }
+    Super::Update(reason);
+}
+
+#endif

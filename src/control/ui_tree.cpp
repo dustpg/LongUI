@@ -1049,7 +1049,7 @@ auto LongUI::UITreeItem::accessible(const AccessibleEventArg& args) noexcept -> 
         using get1_t = AccessibleGetCtrlTypeArg;
         using get2_t = AccessibleGetAccNameArg;
         //case AccessibleEvent::Event_GetPatterns:
-        //    // + 继承基类行为模型
+        //    // + 继承超类行为模型
         //    Super::accessible(args);
         //    static_cast<const get0_t&>(args).patterns |=
         //        // + 可调用的行为模型

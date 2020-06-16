@@ -106,7 +106,7 @@ auto LongUI::UIScrollArea::DoEvent(
             return Event_Accept;
         }
     }
-    // 基类处理消息
+    // 超类处理消息
     return Super::DoEvent(sender, arg);
 }
 

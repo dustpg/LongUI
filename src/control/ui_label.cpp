@@ -157,7 +157,7 @@ auto LongUI::UILabel::DoEvent(UIControl* sender, const EventArg& e) noexcept -> 
         m_control.FindControl(m_pWindow);
         [[fallthrough]];
     default:
-        // 基类处理
+        // 超类处理
         return Super::DoEvent(sender, e);
     }
 }
@@ -324,7 +324,7 @@ void LongUI::UILabel::add_attribute(uint32_t key, U8View value) noexcept {
         m_href = value;
         break;
     default:
-        // 其他情况, 交给基类处理
+        // 其他情况, 交给超类处理
         return Super::add_attribute(key, value);
     }
 }
@@ -343,7 +343,7 @@ auto LongUI::UILabel::accessible(const AccessibleEventArg& args) noexcept -> Eve
         using get1_t = AccessibleGetCtrlTypeArg;
         using get2_t = AccessibleGetAccNameArg;
     //case AccessibleEvent::Event_GetPatterns:
-    //    // + 继承基类行为模型
+    //    // + 继承超类行为模型
     //    Super::accessible(args);
     //    static_cast<const get0_t&>(args).patterns |=
     //        // + 可调用的行为模型

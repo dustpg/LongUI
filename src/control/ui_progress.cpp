@@ -69,7 +69,7 @@ auto LongUI::UIProgress::DoEvent(UIControl * sender,
         //this->init_bar();
         this->adjust_flex();
     }
-    // 基类处理
+    // 超类处理
     return Super::DoEvent(sender, e);
 }
 
@@ -199,8 +199,8 @@ void LongUI::UIProgress::adjust_flex() noexcept {
     m_value = detail::clamp(m_value, 0.f, m_max);
     // 不确定情况
     if (m_oStyle.state & State_Indeterminate) {
-        UIControlPrivate::SetFlex(m_oBar, 1.f);
-        UIControlPrivate::SetFlex(m_oRemainder, 0.f);
+        UIControlPrivate::SetFlex(m_oBar, 1);
+        UIControlPrivate::SetFlex(m_oRemainder, 0);
     }
     else {
         UIControlPrivate::SetFlex(m_oBar, m_value);
@@ -249,7 +249,7 @@ auto LongUI::UIProgress::accessible(const AccessibleEventArg& args) noexcept -> 
         using get1_t = AccessibleGetCtrlTypeArg;
         using get2_t = AccessibleGetAccNameArg;
     case AccessibleEvent::Event_GetPatterns:
-        // + 继承基类行为模型
+        // + 继承超类行为模型
         Super::accessible(args);
         // + 范围值的行为模型
         static_cast<const get0_t&>(args).patterns |= Pattern_Range;

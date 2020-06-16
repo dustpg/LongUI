@@ -185,7 +185,7 @@ auto LongUI::UITextField::DoEvent(UIControl * sender,
 #endif
         [[fallthrough]];
     default:
-        // 基类处理
+        // 超类处理
         return Super::DoEvent(sender, e);
     }
 }

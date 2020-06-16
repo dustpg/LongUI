@@ -83,12 +83,12 @@ auto LongUI::UIMenu::DoEvent(UIControl* sender, const EventArg& e) noexcept -> E
         // 父节点是MenuPopup?
         if (uisafe_cast<UIMenuPopup>(m_pParent)) {
             UIControlPrivate::SetAppearance(*this, Appearance_Menu);
-            // !!! 基类处理
+            // !!! 超类处理
             Super::DoEvent(sender, e);
             if (const auto pMenuArrow = new(std::nothrow) UIControl{ this }) {
                 UIControlPrivate::SetAppearance(*pMenuArrow, Appearance_MenuArrow);
             }
-            this->set_label_flex(1.f);
+            this->set_label_flex(1);
             return Event_Accept;
         }
         // 其他情况
@@ -114,7 +114,7 @@ auto LongUI::UIMenu::DoEvent(UIControl* sender, const EventArg& e) noexcept -> E
         }
         break;
     }
-    // 基类处理
+    // 超类处理
     return Super::DoEvent(sender, e);
 }
 
@@ -218,7 +218,7 @@ void LongUI::UIMenu::add_attribute(uint32_t key, U8View value) noexcept {
         // 无视TYPE
         break;
     default:
-        // 其他情况, 交给基类处理
+        // 其他情况, 交给超类处理
         return Super::add_attribute(key, value);
     }
 }

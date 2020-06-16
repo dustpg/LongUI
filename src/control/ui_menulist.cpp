@@ -264,7 +264,7 @@ void LongUI::UIMenuItem::add_acceltext(U8View text) noexcept {
 #ifndef NDEBUG
     label->SetDebugName("menuitem::acceltext");
 #endif // !NDEBUG
-    UIControlPrivate::SetFlex(m_oLabel, 1.f);
+    UIControlPrivate::SetFlex(m_oLabel, 1);
     label->SetText(CUIString::FromLatin1(text));
 }
 
@@ -427,7 +427,7 @@ LongUI::UIMenuList::UIMenuList(const MetaControl& meta) noexcept : Super(meta),
     m_oStyle.align = Align_Center;
 
     // 私有实现
-    UIControlPrivate::SetFlex(m_oLabel, 1.f);
+    UIControlPrivate::SetFlex(m_oLabel, 1);
 #ifndef NDEBUG
     m_oImage.name_dbg = "menulist::image";
     m_oLabel.name_dbg = "menulist::label";
@@ -565,7 +565,7 @@ auto LongUI::UIMenuList::DoEvent(UIControl * sender,
         }
         [[fallthrough]];
     default:
-        // 基类处理
+        // 超类处理
         return Super::DoEvent(sender, e);
     }
 }
@@ -705,7 +705,7 @@ void LongUI::UIMenuList::create_textfield() noexcept {
     m_oStyle.appearance = Appearance_TextField;
     // 替换m_oLabel位置
     this->SwapChildren(m_oLabel, *textfield);
-    UIControlPrivate::SetFlex(*textfield, 1.f);
+    UIControlPrivate::SetFlex(*textfield, 1);
     m_oLabel.SetVisible(false);
     // 自己已经有了, 取消TextField焦点功能
     UIControlPrivate::SetFocusable0(*textfield);

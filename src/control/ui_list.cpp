@@ -717,25 +717,13 @@ auto LongUI::UIListItem::DoEvent(UIControl * sender,
             m_oLabel.SetAsDefaultMinsize();
             this->add_private_child();
         }
-        this->init_behavior();
+        UIControlPrivate::RefStyleState(m_oImage) = m_oStyle.state;
         break;
     }
-    // 基类处理
+    // 超类处理
     return Super::DoEvent(sender, e);
 }
 
-/// <summary>
-/// init with behavior
-/// </summary>
-/// <returns></returns>
-void LongUI::UIListItem::init_behavior() noexcept {
-    // UIListItem支持checkedbox
-    if (m_type == BehaviorType::Type_Checkbox) {
-        const auto app = Appearance_CheckBox;
-        UIControlPrivate::SetAppearance(m_oImage, app);
-        UIControlPrivate::RefStyleState(m_oImage) = m_oStyle.state;
-    }
-}
 
 
 /// <summary>
@@ -761,13 +749,16 @@ void LongUI::UIListItem::add_attribute(uint32_t key, U8View value) noexcept {
         //      : normal
         //      : checkbox
         m_type = LongUI::ParseBehaviorType(value);
+        // UIListItem支持checkedbox
+        if (m_type == BehaviorType::Type_Checkbox) 
+            UIControlPrivate::SetAppearance(m_oImage, Appearance_CheckBox);
         break;
     case BKDR_SELECTED:
         // 初始化状态
         m_bSelInit = value.ToBool();
         break;
     default:
-        // 其他情况, 交给基类处理
+        // 其他情况, 交给超类处理
         return Super::add_attribute(key, value);
     }
 }
@@ -1025,7 +1016,7 @@ void LongUI::UIListHeader::add_attribute(uint32_t key, U8View value) noexcept {
         Unsafe::AddAttrUninited(m_oLabel, BKDR_VALUE, value);
         break;
     default:
-        // 其他情况, 交给基类处理
+        // 其他情况, 交给超类处理
         return Super::add_attribute(key, value);
     }
 }

@@ -181,7 +181,7 @@ void LongUI::UIScale::SetMax(float max_value) noexcept {
 //    if (e.nevent == NoticeEvent::Event_Initialize) {
 //        this->init_slider();
 //    }
-//    // 基类处理
+//    // 超类处理
 //    return Super::DoEvent(sender, e);
 //}
 
@@ -225,7 +225,7 @@ auto LongUI::UIScale::DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept
     };
 
 
-    // 基类处理基本消息
+    // 超类处理基本消息
     switch (e.type)
     {
     case MouseEvent::Event_MouseMove:
@@ -238,7 +238,7 @@ auto LongUI::UIScale::DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept
         this->mouse_click(pt_this);
         break;
     }
-    // 基类处理剩余消息
+    // 超类处理剩余消息
     return Super::DoMouseEvent(e);
 }
 
@@ -303,7 +303,7 @@ auto LongUI::UIScale::accessible(const AccessibleEventArg& args) noexcept -> Eve
         using get1_t = AccessibleGetCtrlTypeArg;
         using get2_t = AccessibleGetAccNameArg;
     case AccessibleEvent::Event_GetPatterns:
-        // + 继承基类行为模型
+        // + 继承超类行为模型
         Super::accessible(args);
         // + 范围值的行为模型
         static_cast<const get0_t&>(args).patterns |= Pattern_Range;

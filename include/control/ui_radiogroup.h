@@ -42,6 +42,8 @@ namespace LongUI {
         // select: item selected
         //static constexpr auto _onSelect() noexcept { return GuiEvent::Event_OnSelect; }
     public:
+        // remove radio weak ref
+        void RemoveRadio(UIRadio& radio) noexcept;
         // get checked radio
         auto GetChecked() const noexcept { return m_pChecked; }
         // set checked radio

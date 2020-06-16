@@ -292,6 +292,50 @@ void LongUI::UIBoxLayout::relayout_this() noexcept {
 }
 
 
+// ui::impl
+namespace LongUI { namespace impl {
+    PCN_NOINLINE
+    /// <summary>
+    /// sum children minsize - H
+    /// </summary>
+    /// <param name="ctrl"></param>
+    /// <returns></returns>
+    auto sum_children_minsize_h(UIControl& ctrl) noexcept -> Size2F {
+        Size2F minsize = {};
+        // 遍历控件
+        for (auto& child : ctrl) {
+            // 可见即可
+            if (child.IsVaildInLayout()) {
+                const auto ms = child.GetMinSize();
+                // 水平布局
+                minsize.width += ms.width;
+                minsize.height = std::max(minsize.height, ms.height);
+            }
+        }
+        return minsize;
+    }
+    PCN_NOINLINE
+    /// <summary>
+    /// sum children minsize - V
+    /// </summary>
+    /// <param name="ctrl"></param>
+    /// <returns></returns>
+    auto sum_children_minsize_v(UIControl& ctrl) noexcept -> Size2F {
+        Size2F minsize = {};
+        // 遍历控件
+        for (auto& child : ctrl) {
+            // 可见即可
+            if (child.IsVaildInLayout()) {
+                const auto ms = child.GetMinSize();
+                // 垂直布局
+                minsize.height += ms.height;
+                minsize.width = std::max(minsize.width, ms.width);
+            }
+        }
+        return minsize;
+    }
+}}
+
 /// <summary>
 /// Refreshes the minimum.
 /// </summary>
@@ -302,33 +346,13 @@ void LongUI::UIBoxLayout::refresh_min() noexcept {
         int bbk = 9;
     }
 #endif
-    const bool ishor = m_state.orient == Orient_Horizontal;
-    Size2F minsize = {};
-    // 遍历控件
-    for (auto& child : *this) {
-#ifndef NDEBUG
-        if (!std::strcmp(child.name_dbg, "scrollbar::slider")) {
-            int bbk = 9;
-        }
-#endif
-        // 可见即可
-        if (child.IsVaildInLayout()) {
-            const auto ms = child.GetMinSize();
-            // 水平布局
-            if (ishor) {
-                minsize.width += ms.width;
-                minsize.height = std::max(minsize.height, ms.height);
-            }
-            // 垂直布局
-            else {
-                minsize.height += ms.height;
-                minsize.width = std::max(minsize.width, ms.width);
-            }
-        }
-    }
+    Size2F minsize ;
+    if (m_state.orient == Orient_Horizontal)
+        minsize = impl::sum_children_minsize_h(*this);
+    else 
+        minsize = impl::sum_children_minsize_v(*this);
     // 更新值
-    m_minScrollSize = minsize;
-    this->set_contect_minsize(minsize);
+    this->set_contect_minsize(m_minScrollSize = minsize);
 }
 
 /// <summary>

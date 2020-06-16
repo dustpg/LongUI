@@ -116,7 +116,7 @@ void LongUI::UITab::add_attribute(uint32_t key, U8View value) noexcept {
         Unsafe::AddAttrUninited(m_oLabel, BKDR_VALUE, value);
         break;
     default:
-        // 其他情况, 交给基类处理
+        // 其他情况, 交给超类处理
         return Super::add_attribute(key, value);
     }
 }
@@ -179,7 +179,7 @@ auto LongUI::UITab::accessible(const AccessibleEventArg& args) noexcept -> Event
         using get1_t = AccessibleGetCtrlTypeArg;
         using get2_t = AccessibleGetAccNameArg;
         case AccessibleEvent::Event_GetPatterns:
-            // + 继承基类行为模型
+            // + 继承超类行为模型
             Super::accessible(args);
             static_cast<const get0_t&>(args).patterns |=
                 // + 可调用的行为模型
@@ -325,7 +325,7 @@ auto LongUI::UITabs::accessible(const AccessibleEventArg& args) noexcept -> Even
         using get1_t = AccessibleGetCtrlTypeArg;
         using get2_t = AccessibleGetAccNameArg;
     //case AccessibleEvent::Event_GetPatterns:
-    //    // + 继承基类行为模型
+    //    // + 继承超类行为模型
     //    Super::accessible(args);
     //    static_cast<const get0_t&>(args).patterns |=
     //        // + 可调用的行为模型
