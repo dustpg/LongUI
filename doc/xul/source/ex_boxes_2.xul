@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<window id="example-window" title="Example 3.1.2"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<vbox>
+  <hbox>
+    <label control="login" value="Login:"/>
+    <textbox id="login"/>
+  </hbox>
+  <hbox>
+    <label control="pass" value="Password:"/>
+    <textbox id="pass"/>
+  </hbox>
+  <button id="ok" label="OK"/>
+  <button id="cancel" label="Cancel"/>
+</vbox>
+
+
+</window>
+

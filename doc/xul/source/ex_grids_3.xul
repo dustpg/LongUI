@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<window id="example-window" title="Example 4.4.3"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<grid>
+  <rows>
+    <row/>
+    <row/>
+    <row/>
+  </rows>
+
+  <columns>
+    <column>
+      <label control="first" value="First Name:"/>
+      <label control="middle" value="Middle Name:"/>
+      <label control="last" value="Last Name:"/>
+    </column>
+    <column>
+      <textbox id="first"/>
+      <textbox id="middle"/>
+      <textbox id="last"/>
+    </column>
+  </columns>
+
+</grid>
+
+
+</window>
+

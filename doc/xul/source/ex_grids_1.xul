@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<window id="example-window" title="Example 4.4.1"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<grid flex="1">
+  <columns>
+    <column flex="2"/>
+    <column flex="1"/>
+  </columns>
+
+  <rows>
+    <row>
+      <button label="Rabbit"/>
+      <button label="Elephant"/>
+    </row>
+    <row>
+      <button label="Koala"/>
+      <button label="Gorilla"/>
+    </row>
+  </rows>
+</grid>
+
+
+</window>
+
