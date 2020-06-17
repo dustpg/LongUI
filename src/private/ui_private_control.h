@@ -36,6 +36,8 @@ struct LongUI::UIControlPrivate {
     // do mouse leave event
     static auto DoMouseLeave(UIControl& ctrl, const Point2F& pos) noexcept->EventAccept;
     // ----------- INLINE ZONE ----------------
+    // set_contect_minsize
+    static void SetConMinsize(UIControl& ctrl, Size2F s) noexcept { ctrl.set_contect_minsize(s); }
     // ref last end time capsule
     static auto&RefLastEnd(UIControl& ctrl) noexcept { return ctrl.m_pLastEnd; }
     // set attachment - fixed

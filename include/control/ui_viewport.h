@@ -39,6 +39,8 @@ namespace LongUI {
     public:
         // class meta
         static const  MetaControl   s_meta;
+        // update
+        void Update(UpdateReason) noexcept override;
         // do event
         auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         // [NEW] on window closed

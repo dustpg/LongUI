@@ -29,6 +29,7 @@
 //#define LUI_NO_UIGRID
 
 #ifndef LUI_NO_UIGRID
+#include <utility>
 
 // ui namespace
 namespace LongUI {
@@ -60,8 +61,10 @@ namespace LongUI {
         void add_child(UIControl&) noexcept override;
         // relayout this
         void relayout_this() noexcept;
-        // refresh minsize
-        auto refresh_minsize(float buf[]) noexcept ->uint32_t;
+        // check minsize
+        auto check_minsize(float buf[]) noexcept ->std::pair<uint32_t, float>;
+        // is col mode
+        inline bool is_col_mode() const noexcept;
     private:
         // rows
         UIRows*                 m_pRows = nullptr;

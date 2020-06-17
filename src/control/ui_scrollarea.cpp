@@ -185,7 +185,7 @@ PCN_NOINLINE
 /// Sums the children flex.
 /// </summary>
 /// <returns></returns>
-auto LongUI::UIScrollArea::sum_children_flex() const noexcept -> float {
+auto LongUI::UIControl::SumChildrenFlex() const noexcept -> float {
     float sum = 0.f;
     for (auto& child : *this) if (child.IsVaildInLayout())
         sum += child.RefStyle().flex;

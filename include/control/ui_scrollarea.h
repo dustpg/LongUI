@@ -68,8 +68,6 @@ namespace LongUI {
         // get horizontal ScrollBar | const overload
         auto GetHorizontalScrollBar() const noexcept -> const UIScrollBar*{ return m_pSBHorizontal; }
     protected:
-        // get child flex sum
-        auto sum_children_flex() const noexcept -> float;
         // synchronize the scroll bar
         void sync_scroll_bar(Point2F& offset) noexcept;
         // layout the scroll bar

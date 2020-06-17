@@ -27,6 +27,7 @@
 #include "ui_control.h"
 
 #ifndef LUI_NO_UIGRID
+#include "ui_box.h"
 
 // ui namespace
 namespace LongUI {

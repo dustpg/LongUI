@@ -343,9 +343,10 @@ auto LongUI::UIControl::init() noexcept -> Result {
         hr = this->Recreate(false);
         UIManager.RenderUnlock();
         // 初始化大小
-        if (m_oBox.size.width == static_cast<float>(INVALID_CONTROL_SIZE)) {
-            this->Resize({ DEFAULT_CONTROL_WIDTH, DEFAULT_CONTROL_HEIGHT });
-        }
+        if (!this->IsTopLevel())
+            if (m_oBox.size.width == static_cast<float>(INVALID_CONTROL_SIZE)) {
+                this->Resize({ DEFAULT_CONTROL_WIDTH, DEFAULT_CONTROL_HEIGHT });
+            }
     }
 #ifndef LUI_DISABLE_STYLE_SUPPORT
     // 重新连接样式表

@@ -104,7 +104,7 @@ void LongUI::UIBoxLayout::relayout_v() noexcept {
     // 0. 计算预备数据
     const float align_factor = impl::get_align_factor(m_oStyle.align);
     // 1. 遍历子控件, 将有效可变权重加起来
-    const float flex_sum = this->sum_children_flex();
+    const float flex_sum = this->SumChildrenFlex();
     // 2. 加入SB布局
     const auto remaining = this->layout_scroll_bar();
     // 需要重新布局
@@ -158,6 +158,7 @@ PCN_NOINLINE
 /// </summary>
 /// <returns></returns>
 void LongUI::UIBoxLayout::relayout_h() noexcept {
+
 #ifndef NDEBUG
     if (!std::strcmp(m_id.id, "editable_combobox")) {
         int bbk = 9;
@@ -190,17 +191,17 @@ void LongUI::UIBoxLayout::relayout_h() noexcept {
     // 0. 计算预备数据
     const float align_factor = impl::get_align_factor(m_oStyle.align);
     // 1. 遍历子控件, 将有效可变权重加起来
-    const float flex_sum = this->sum_children_flex();
+    const float flex_sum = this->SumChildrenFlex();
     // 2. 加入SB布局
     const auto remaining = this->layout_scroll_bar();
     // 需要重新布局的话就没有必要继续算了
     if (this->is_need_relayout()) return;
     // 3. 计算每权重长度
-    const float len_in_unit = flex_sum > 0.f ?
-        std::max(get_remain_length(remaining), 0.f) / flex_sum : 0.f;
+    const float len_in_unit = flex_sum > 0 ?
+        std::max(get_remain_length(remaining), 0.f) / flex_sum : 0;
     Point2F pos = this->get_layout_position();
     // pi. 计算pack位置
-    if (len_in_unit == 0.f) {
+    if (len_in_unit == 0) {
         const float fa = [this]() noexcept {
             const auto base = static_cast<float>(m_oStyle.pack) * 0.5f;
             return m_state.direction ? 1.f - base : base;
@@ -237,14 +238,6 @@ void LongUI::UIBoxLayout::relayout_h() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIBoxLayout::Update(UpdateReason reason) noexcept {
-    // TODO: 修改
-    constexpr UpdateReason relayout_reason
-        = Reason_ParentChanged
-        | Reason_ChildIndexChanged
-        | Reason_SizeChanged
-        | Reason_BoxChanged
-        | Reason_ChildLayoutChanged
-        ;
     /*
         偏向于小的大小进行布局
 
@@ -278,17 +271,14 @@ void LongUI::UIBoxLayout::relayout_this() noexcept {
           |___E(1)          样大小, 其余设为0
 
     */
-    const auto s = this->GetSize();
-    if (s.width * s.height <= 0.f) return;
     // 存在子控件才计算
-    if (this->GetChildrenCount()) {
-        // 更新布局
-        const auto ishor = m_state.orient == Orient_Horizontal;
-        ishor ? this->relayout_h() : this->relayout_v();
-        // 更新子控件
-        //for (auto& child : *this) child.NeedUpdate(Reason_NonChanged);
-
-    }
+    if (!this->GetChildrenCount()) return;
+    // 面积不够
+    const auto& minsize = m_oBox.minsize;
+    const auto& consize = m_oBox.size;
+    if (consize.width < minsize.width || consize.height < minsize.height) return;
+    // 更新布局
+    m_state.orient == Orient_Horizontal ? this->relayout_h() : this->relayout_v();
 }
 
 

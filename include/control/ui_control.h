@@ -545,6 +545,9 @@ namespace LongUI {
         auto begin()const noexcept->CIterator { return{ static_cast<const UIControl*>(m_oHead.next) }; }
         // rend iterator
         auto rend()const noexcept->CRIterator { return{ static_cast<const UIControl*>(&m_oHead) }; }
+    public:
+        // get child flex sum
+        auto SumChildrenFlex() const noexcept -> float;
     protected:
         // mark world changed
         void mark_world_changed() noexcept;

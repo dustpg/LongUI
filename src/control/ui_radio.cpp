@@ -90,7 +90,7 @@ void LongUI::UIRadio::Update(UpdateReason reason) noexcept {
     }
     // 父节点修改了?
     if (reason & (Reason_ParentChanged | Reason_WindowChanged)) {
-        // XXX: 父节点的父节点修改——潜在的野指针m_pRadioGroup
+        // XXX: 父节点的父节点修改的话——潜在的野指针m_pRadioGroup
         m_pRadioGroup = nullptr;
         auto node = m_pParent;
         while (node) {
