@@ -24,6 +24,7 @@
     <ClCompile Include="demo5_init.cpp" />
     <ClCompile Include="radio.cpp" />
     <ClCompile Include="scale.cpp" />
+    <ClCompile Include="stack.cpp" />
     <ClCompile Include="textbox.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -19,6 +19,7 @@ function setDeck(index)
 <vbox flex="1" style="overflow: auto">
 
 <hbox>
+
 <groupbox > 
 <caption label="stack" />
   <stack >
@@ -39,7 +40,7 @@ function setDeck(index)
      <button image="images/yellow-star.png"  left="60px" top="60"
              style="height: 30px; width:25px; background-color: #663333;"/>
   </deck>
-    <radiogroup flex="1" orient="horizontal" >
+    <radiogroup flex="1" orient="horizontal" id="radiogroup">
       <radio label="0" oncommand="setDeck('0');" /> 
       <radio label="1" oncommand="setDeck('1');" /> 
       <radio label="2" oncommand="setDeck('2');" /> 

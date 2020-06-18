@@ -9,6 +9,7 @@ void InitViewport_TextBox(LongUI::UIViewport&) noexcept;
 void InitViewport_TextBox2(LongUI::UIViewport&) noexcept;
 void InitViewport_Radio(LongUI::UIViewport&) noexcept;
 void InitViewport_Scale(LongUI::UIViewport&) noexcept;
+void InitViewport_Stack(LongUI::UIViewport&) noexcept;
 struct init_func_t { void (*func)(LongUI::UIViewport&) noexcept; };
 
 /// <summary>
@@ -136,7 +137,7 @@ void InitViewportCallback(LongUI::UIViewport& v) noexcept {
     // STACK
     btn_stack->AddGuiEventListener(
         UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
-        create_viewport(u8"xul/stack.xul"_sv, {});
+        create_viewport(u8"xul/stack.xul"_sv, { InitViewport_Stack });
         return Event_Accept;
     });
     // MENU BAR
