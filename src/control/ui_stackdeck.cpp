@@ -67,6 +67,25 @@ void LongUI::UIDeck::Update(UpdateReason reason) noexcept {
 }
 
 /// <summary>
+/// add attribute to UIDeck
+/// </summary>
+/// <param name="key"></param>
+/// <param name="value"></param>
+/// <returns></returns>
+void LongUI::UIDeck::add_attribute(uint32_t key, U8View value) noexcept {
+    constexpr auto SELINDEX             = 0x0a92fd4b_ui32;
+    switch (key)
+    {
+    case SELINDEX:
+        // selectedIndex  初始值
+        m_index = value.ToInt32();
+        return;
+    }
+    // 超类处理
+    Super::add_attribute(key, value);
+}
+
+/// <summary>
 /// Sets the index of the selected.
 /// </summary>
 /// <param name="index">The index.</param>
@@ -119,8 +138,8 @@ LongUI::UIStack::UIStack(const MetaControl& meta) noexcept : Super(meta) {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIStack::Update(UpdateReason reason) noexcept {
-    // 要求重新布局
-    if (reason & Reason_BasicRelayout) {
+    // XXX: 要求重新布局
+    if (reason & (Reason_BasicRelayout & ~Reason_ChildLayoutChanged)) {
         // 重新布局
         this->relayout_stack();
     }
@@ -134,10 +153,8 @@ void LongUI::UIStack::Update(UpdateReason reason) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIStack::relayout_stack() noexcept {
-    for (auto& child : (*this)) {
-        const auto size = child.GetMinSize();
-        this->resize_child(child, size);
-    }
+    for (auto& child : (*this)) 
+        this->resize_child(child, child.GetMinSize());
 }
 
 

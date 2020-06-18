@@ -274,9 +274,11 @@ void LongUI::UIBoxLayout::relayout_this() noexcept {
     // 存在子控件才计算
     if (!this->GetChildrenCount()) return;
     // 面积不够
-    const auto& minsize = m_oBox.minsize;
-    const auto& consize = m_oBox.size;
-    if (consize.width < minsize.width || consize.height < minsize.height) return;
+    /*if (m_oStyle.minsize.width < 0 && m_oStyle.minsize.height < 0)*/ {
+        const auto& minsize = m_oBox.minsize;
+        const auto& consize = m_oBox.size;
+        if (consize.width < minsize.width || consize.height < minsize.height) return;
+    }
     // 更新布局
     m_state.orient == Orient_Horizontal ? this->relayout_h() : this->relayout_v();
 }

@@ -1606,6 +1606,10 @@ void LongUI::UIControl::clear_parent() noexcept {
         m_pParent->remove_child(*this);
         this->NeedUpdate(Reason_ParentChanged);
         m_pParent = nullptr;
+        m_pWindow = nullptr;
+        m_state.level = 0;
+        for (auto& child : (*this))
+            UIControl::sync_data(child, *this);
     }
 }
 

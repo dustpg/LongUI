@@ -1695,6 +1695,7 @@ bool LongUI::CUIControlControl::MakeXul(UIControl& ctrl, const char* xul) noexce
     // 先去掉所有子控件
     while (ctrl.GetChildrenCount()) {
         auto& control = *ctrl.begin();
+        control.SetParent(nullptr);
         control.DeleteLater();
     }
     // 错误代码 

@@ -380,18 +380,21 @@ auto LongUI::CUIAccessible::GetPropertyValue(PROPERTYID propertyId,
 /// <returns></returns>
 auto LongUI::CUIAccessible::get_BoundingRectangle(
     UiaRect* pRetVal) noexcept -> HRESULT {
+    if (!pRetVal) return E_INVALIDARG;
     CUIDataAutoLocker locker;
-
-    const auto size = m_control.GetSize();
-    RectF rect = { 0, 0, size.width, size.height };
-    m_control.MapToWindow(rect);
-    const auto wnd = m_control.GetWindow();
-    assert(wnd && "bad window");
-    wnd->MapToScreen(rect);
-    pRetVal->left = rect.left;
-    pRetVal->top = rect.top;
-    pRetVal->width = rect.right - rect.left;
-    pRetVal->height = rect.bottom - rect.top;
+    if (m_control.IsVisibleEx()) {
+        const auto size = m_control.GetSize();
+        RectF rect = { 0, 0, size.width, size.height };
+        m_control.MapToWindow(rect);
+        const auto wnd = m_control.GetWindow();
+        assert(wnd && "bad window");
+        wnd->MapToScreen(rect);
+        pRetVal->left = rect.left;
+        pRetVal->top = rect.top;
+        pRetVal->width = rect.right - rect.left;
+        pRetVal->height = rect.bottom - rect.top;
+    }
+    else *pRetVal = {};
     return S_OK;
 }
 
@@ -1292,6 +1295,7 @@ auto LongUI::CUIAccessibleWnd::Release() noexcept -> ULONG {
 /// <returns></returns>
 auto UNICALL LongUI::CUIAccessibleWnd::get_BoundingRectangle(
     UiaRect * pRetVal) noexcept -> HRESULT {
+    if (!pRetVal) return E_INVALIDARG;
     RECT rect; ::GetWindowRect(m_window.GetHwnd(), &rect);
     pRetVal->top = static_cast<double>(rect.top);
     pRetVal->left = static_cast<double>(rect.left);

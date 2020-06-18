@@ -29,6 +29,8 @@ LongUI::UISpinButtons::~UISpinButtons() noexcept {
 /// <param name="meta">The meta.</param>
 LongUI::UISpinButtons::UISpinButtons(const MetaControl& meta) noexcept : 
     Super(meta), m_oDecreaseButton(this), m_oIncreaseButton(this) {
+    // 垂直布局
+    m_state.orient = Orient_Vertical;
 #ifdef LUI_ACCESSIBLE
     // 子控件为本控件的组成部分
     m_pAccCtrl = nullptr;

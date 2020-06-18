@@ -123,7 +123,7 @@ void LongUI::UIControlPrivate::UpdateWorldTop(UIControl& ctrl, Size2L size) noex
 /// <returns></returns>
 void LongUI::UIControlPrivate::UpdateWorldForce(UIControl & ctrl) noexcept {
     // XXX: 不可视
-    if (!ctrl.IsVisible()) return;
+    //if (!ctrl.IsVisible()) return;
     // XXX: 优化
     ctrl.m_state.world_changed = false;
     Matrix3X2F matrix;

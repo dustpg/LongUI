@@ -59,6 +59,8 @@ namespace LongUI {
         // some state changed
         void Update(UpdateReason reason) noexcept override;
     protected:
+        // add attir
+        void add_attribute(uint32_t, U8View) noexcept override;
         // on index changed
         void on_index_changed() noexcept;
         // selected index

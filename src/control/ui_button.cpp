@@ -240,7 +240,7 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
         // 没子控件
         if (!this->GetChildrenCount()) {
             // TODO: 没有文本时候的处理
-            m_oLabel.SetAsDefaultMinsize();
+            //m_oLabel.SetAsDefaultMinsize();
             this->add_private_child();
         }
         // 为普通按钮增加dropdown标记
@@ -254,14 +254,16 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
             }
         }
         break;
-    //case NoticeEvent::Event_RefreshBoxMinSize:
-    //    this->refresh_min();
-    //    // XXX: 宽度过小?
-    //    if (m_minScrollSize.width < float(MIN_BUTTON_WIDTH)) {
-    //        m_minScrollSize.width = float(MIN_BUTTON_WIDTH);
-    //        this->set_contect_minsize(m_minScrollSize);
-    //    }
-    //    return Event_Accept;
+#ifndef NDEBUG
+    case NoticeEvent::Event_RefreshBoxMinSize:
+        this->refresh_min();
+        // XXX: 宽度过小?
+        //if (m_minScrollSize.width < float(MIN_BUTTON_WIDTH)) {
+        //    m_minScrollSize.width = float(MIN_BUTTON_WIDTH);
+        //    this->set_contect_minsize(m_minScrollSize);
+        //}
+        return Event_Accept;
+#endif
     case NoticeEvent::Event_DoAccessAction:
         // 访问行为
         this->SetAsDefaultAndFocus();
