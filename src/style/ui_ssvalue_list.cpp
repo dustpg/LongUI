@@ -1,6 +1,7 @@
 ﻿// lui
 #include <luiconf.h>
 #include <core/ui_string_view.h>
+#include <text/ui_ctl_arg.h>
 // css
 #include <xul/SimpAC.h>
 
@@ -759,13 +760,18 @@ namespace LongUI {
             // 存在单位
             if (unit.begin() != unit.end()) {
                 // 百分比
-                if (*unit.begin() == '%')
-                    return detail::mark_percent_from100(single);
+                switch (*unit.begin())
+                {
+                case '%': return detail::mark_percent_from100(single);
+                case 'e': return single * UIManager.RefDefaultFont().size;
+                default:
 #ifndef NDEBUG
-                else if (std::strncmp(unit.begin(), "px", 2)) {
                     assert(!"UNSUPPORTED UNIT");
-                }
+                // XXX: pt px 统一
+                case 'p':
 #endif
+                    break;
+                }
             }
             return single;
         }
@@ -850,7 +856,6 @@ namespace LongUI {
 }
 
 
-#include <text/ui_ctl_arg.h>
 
 /// <summary>
 /// Initializes the default state.

@@ -31,6 +31,7 @@ auto LongUI::CUINativeStyleWindows10::NativeStyleDuration(const GetDurationArgs 
     // 分类
     switch (args.appearance)
     {
+    case LongUI::Appearance_Tabs:
     case LongUI::Appearance_ScaleV:
     case LongUI::Appearance_ScaleH:
     case LongUI::Appearance_ListBox:
@@ -54,6 +55,7 @@ auto LongUI::CUINativeStyleWindows10::NativeStyleDuration(const GetDurationArgs 
     case LongUI::Appearance_Resizer:
         return 0;
     case LongUI::Appearance_Tab:
+        if (args.change.state_mask == State_Active) return 0;
         return BASIC_ANIMATION_DURATION * 2;
     default:
         return BASIC_ANIMATION_DURATION;
@@ -132,8 +134,12 @@ void LongUI::CUINativeStyleWindows10::DrawNative(const NativeDrawArgs& args) noe
         return this->draw_progress_chunk(args, index & 1);
     case LongUI::Appearance_ListBox:
     case LongUI::Appearance_GroupBox:
-    case LongUI::Appearance_TabPanels:
+    //case LongUI::Appearance_TabPanels:
         return this->draw_group_box(args);
+    case LongUI::Appearance_TabPanels:
+        return this->draw_tabpanels(args);
+    case LongUI::Appearance_Tabs:
+        return this->draw_tabs(args);
     case LongUI::Appearance_Caption:
         return this->draw_caption(args.border);
     case LongUI::Appearance_ListItem:
@@ -354,12 +360,12 @@ void LongUI::CUINativeStyleWindows10::InitCtrl(UIControl& ctrl, AttributeAppeara
     case LongUI::Appearance_ProgressBarH:
         UIControlPrivate::RefBox(ctrl).margin = { 4, 2, 4, 1 };
         UIControlPrivate::RefBox(ctrl).border = { 1, 1, 1, 1 };
-        ctrl.SetStyleMinSize({ 0, SLIDER_THUMB_HH });
+        ctrl.SetStyleMinSize({ PROGRESS_MINWIDTH, SLIDER_THUMB_HH });
         break;
     case LongUI::Appearance_ProgressBarV:
         UIControlPrivate::RefBox(ctrl).margin = { 4, 2, 4, 1 };
         UIControlPrivate::RefBox(ctrl).border = { 1, 1, 1, 1 };
-        ctrl.SetStyleMinSize({ SLIDER_THUMB_HH, 0 });
+        ctrl.SetStyleMinSize({ SLIDER_THUMB_HH, PROGRESS_MINWIDTH });
         break;
     case LongUI::Appearance_StatusBarPanel:
         UIControlPrivate::RefBox(ctrl).padding = { 10, 0, 10, 0 };
@@ -372,7 +378,9 @@ void LongUI::CUINativeStyleWindows10::InitCtrl(UIControl& ctrl, AttributeAppeara
         UIControlPrivate::RefBox(ctrl).padding = { 0, 1, 0, 1 };
         break;
     case LongUI::Appearance_TabPanels:
+        UIControlPrivate::RefBox(ctrl).margin = { 1, 1, 1, 1 };
         UIControlPrivate::RefBox(ctrl).border = { 1, 1, 1, 1 };
+        UIControlPrivate::RefBox(ctrl).padding = { 8, 8, 8, 8 };
         break;
     case LongUI::Appearance_TextField:
         UIControlPrivate::RefBox(ctrl).margin = { 4, 2, 4, 2 };
@@ -1052,6 +1060,56 @@ void LongUI::CUINativeStyleWindows10::draw_group_box(const NativeDrawArgs & args
 }
 
 /// <summary>
+/// Draws the tabs
+/// </summary>
+/// <param name="args">The arguments.</param>
+/// <returns></returns>
+void LongUI::CUINativeStyleWindows10::draw_tabs(const NativeDrawArgs & args) noexcept {
+    // 预备
+    const auto color = ColorF::FromRGBA_CT<0xdcdcdcff_rgba>();
+    auto& renderer = UIManager.Ref2DRenderer();
+    auto& brush = UIManager.RefCCBrush(color);
+    auto rect = args.border;
+    constexpr float width = 1.f;
+    rect.top += width * 0.5f;
+    rect.left += width * 0.5f;
+    rect.right -= width * 0.5f;
+    rect.bottom -= width * 0.5f;
+    // 渲染
+    //renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+    if (false) renderer.DrawLine({ rect.left, rect.top }, { rect.right, rect.top }, &brush, width);
+    if (false) renderer.DrawLine({ rect.right, rect.top }, { rect.right, rect.bottom }, &brush, width);
+    if (true) renderer.DrawLine({ rect.left, rect.bottom }, { rect.right, rect.bottom }, &brush, width);
+    if (false) renderer.DrawLine({ rect.left, rect.top }, { rect.left, rect.bottom }, &brush, width);
+    //renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+}
+
+/// <summary>
+/// Draws the tab panels
+/// </summary>
+/// <param name="args">The arguments.</param>
+/// <returns></returns>
+void LongUI::CUINativeStyleWindows10::draw_tabpanels(const NativeDrawArgs & args) noexcept {
+    // 预备
+    const auto color = ColorF::FromRGBA_CT<0xdcdcdcff_rgba>();
+    auto& renderer = UIManager.Ref2DRenderer();
+    auto& brush = UIManager.RefCCBrush(color);
+    auto rect = args.border;
+    constexpr float width = 1.f;
+    rect.top += width * 0.5f;
+    rect.left += width * 0.5f;
+    rect.right -= width * 0.5f;
+    rect.bottom -= width * 0.5f;
+    // 渲染
+    //renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+    if (false) renderer.DrawLine({ rect.left, rect.top }, { rect.right, rect.top }, &brush, width);
+    if (true) renderer.DrawLine({ rect.right, rect.top }, { rect.right, rect.bottom }, &brush, width);
+    if (true) renderer.DrawLine({ rect.left, rect.bottom }, { rect.right, rect.bottom }, &brush, width);
+    if (true) renderer.DrawLine({ rect.left, rect.top }, { rect.left, rect.bottom }, &brush, width);
+    //renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+}
+
+/// <summary>
 /// Draws the caption.
 /// </summary>
 /// <param name="rect">The rect.</param>
@@ -1473,7 +1531,7 @@ void LongUI::CUINativeStyleWindows10::draw_tab(
     auto& bursh1 = UIManager.RefCCBrush(bgcolor);
     renderer.FillRectangle(auto_cast(rect), &bursh1);
     // 底层直线
-    if (detail::is_same<State_Selected>(args.from, args.to)) {
+    if (!detail::is_same<State_Selected>(args.from, args.to)) {
         const auto fv = 1.f - args.progress;
         auto& bursh2 = UIManager.RefCCBrush(
             args.from & State_Selected ? ColorF{ 1,1,1,1 } : bdcolor

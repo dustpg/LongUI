@@ -2,6 +2,7 @@
 
 #include "ui_style.h"
 #include "ui_attribute.h"
+#include "ui_style_state.h"
 #include "../core/ui_color.h"
 //#include "../core/ui_object.h"
 #include "../core/ui_basic_type.h"
@@ -23,6 +24,8 @@ namespace LongUI {
     };
     // get duration args
     struct GetDurationArgs {
+        // change
+        StyleStateChange    change;
         // type
         AttributeAppearance appearance;
     };

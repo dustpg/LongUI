@@ -214,10 +214,11 @@ namespace LongUI {
         Appearance_ListItem,                // [listitem]
         Appearance_MenuItem,                // [menuitem]
         Appearance_Menu,                    // [menu]
-        Appearance_Tab,                     // [tab]
         Appearance_TabPanels,               // [tabpanels]
+        Appearance_Tabs,                    // [tabs]
         Appearance_TextField,               // [textfield]
         Appearance_TreeRowModeCell,         // [treerow] on cell mode
+        Appearance_Tab,                     // [tab]
     };
     /// <summary>
     /// select type

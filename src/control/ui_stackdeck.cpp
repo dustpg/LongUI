@@ -93,6 +93,7 @@ void LongUI::UIDeck::add_attribute(uint32_t key, U8View value) noexcept {
 void LongUI::UIDeck::SetSelectedIndex(uint32_t index) noexcept {
     if (index >= this->GetChildrenCount()) return;
     if (m_index != index) {
+        this->Invalidate();
         const auto newitem = this->cal_index_child<UIControl>(index);
         const auto olditem = this->cal_index_child<UIControl>(m_index);
         assert(newitem && "404");

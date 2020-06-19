@@ -82,6 +82,8 @@ namespace LongUI {
             SLIDER_THUMB_HH = 18,
             // SLIDER TRACK hor-half-height
             SLIDER_TRACK_HHH = 2,
+            // ProgressBar min width
+            PROGRESS_MINWIDTH = 128,
         };
         // ctor
         CUINativeStyleWindows10(Result& hr) noexcept;
@@ -141,6 +143,8 @@ namespace LongUI {
         static void draw_progress_chunk(const NativeDrawArgs& args, bool vertical) noexcept;
         // draw group box
         static void draw_group_box(const NativeDrawArgs& args) noexcept;
+        // draw tabpanels
+        static void draw_tabpanels(const NativeDrawArgs& args) noexcept;
         // draw list item
         static void draw_list_item(const NativeDrawArgs& args) noexcept;
         // draw tree header cell
@@ -163,8 +167,8 @@ namespace LongUI {
         static void draw_selbg(const NativeDrawArgs& args) noexcept;
         // draw tab
         static void draw_tab(const NativeDrawArgs& args) noexcept;
-        // draw tab panels
-        //static void draw_tab_panels(const NativeDrawArgs& args) noexcept;
+        // draw tabs
+        static void draw_tabs(const NativeDrawArgs& args) noexcept;
         // draw menu separator
         static void draw_menu_separator(const RectF&) noexcept;
         // draw status bar

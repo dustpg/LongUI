@@ -225,6 +225,9 @@ LongUI::UITabs::~UITabs() noexcept {
 /// <param name="meta">The meta.</param>
 LongUI::UITabs::UITabs(const MetaControl& meta) noexcept : Super(meta) {
     // TODO: 可以垂直布局
+
+    // Tabs类型
+    m_oStyle.appearance = Appearance_Tabs;
 }
 
 /// <summary>
@@ -272,7 +275,6 @@ void LongUI::UITabs::SetSelectedTab(UITab& tab) noexcept {
 /// <returns></returns>
 void LongUI::UITabs::SetSelectedIndex(uint32_t index) noexcept {
     const auto child = this->cal_index_child<UITab>(index);
-    // 应该用safe cast?
     if (const auto ptr = longui_cast<UITab*>(child)) {
         this->SetSelectedTab(*ptr);
     }
@@ -365,6 +367,8 @@ LongUI::UITabBox::~UITabBox() noexcept {
 /// </summary>
 /// <param name="meta">The meta.</param>
 LongUI::UITabBox::UITabBox(const MetaControl& meta) noexcept : Super(meta) {
+    //m_oBox.margin = { 1, 1, 1, 1 };
+    m_state.orient = Orient_Vertical;
 }
 
 /// <summary>
@@ -394,10 +398,10 @@ void LongUI::UITabBox::SetSelectedIndex(uint32_t index) noexcept {
 /// <returns></returns>
 void LongUI::UITabBox::Update(UpdateReason reason) noexcept {
     // XXX: 要求重新布局
-    if (reason & Reason_BasicRelayout) {
-        // 重新布局
-        this->relayout();
-    }
+    //if (reason & Reason_BasicRelayout) {
+    //    // 重新布局
+    //    this->relayout();
+    //}
     // 其他的交给超类处理
     Super::Update(reason);
 }
@@ -412,6 +416,9 @@ auto LongUI::UITabBox::DoEvent(UIControl* sender,
     const EventArg& e) noexcept->EventAccept {
     switch (e.nevent)
     {
+    //case NoticeEvent::Event_RefreshBoxMinSize:
+    //    this->refresh_minsize();
+    //    return Event_Accept;
     case NoticeEvent::Event_Initialize:
         this->init_tabbox();
         [[fallthrough]];
@@ -429,7 +436,7 @@ void LongUI::UITabBox::add_child(UIControl& child) noexcept {
     // 添加的是tabs ?
     if (const auto ptr = uisafe_cast<UITabs>(&child)) {
         // XXX: 设置为fixed 提高它的渲染优先级
-        this->set_child_fixed_attachment(*ptr);
+        //this->set_child_fixed_attachment(*ptr);
         m_pTabs = ptr;
     }
     // 添加的是tabpanels ?
@@ -455,11 +462,36 @@ void LongUI::UITabBox::init_tabbox() noexcept {
 }
 
 
+#if 0
+/// <summary>
+/// refresh minsize for UITabBox
+/// </summary>
+/// <returns></returns>
+void LongUI::UITabBox::refresh_minsize() noexcept {
+    Size2F minsize1 = {};
+    Size2F minsize2 = {};
+    if (m_pTabs) minsize1 = m_pTabs->GetMinSize();
+    if (m_pTabPanels) minsize2 = m_pTabPanels->GetMinSize();
+    // 垂直
+    if (m_state.orient) {
+        minsize1.width = std::max(minsize1.width, minsize2.width);
+        minsize1.height += minsize2.height;
+    }
+    // 水平
+    else {
+        minsize1.width += minsize2.width;
+        minsize1.height = std::max(minsize1.height, minsize2.height);
+    }
+    this->set_contect_minsize(minsize1);
+}
+
+
 /// <summary>
 /// Relayouts this instance.
 /// </summary>
 /// <returns></returns>
 void LongUI::UITabBox::relayout() noexcept {
+    // TODO: 不同方向
     // XXX: 获取左上角位置
     const auto lt = this->RefBox().GetContentPos();
     const auto xofffset = lt.x;
@@ -482,6 +514,7 @@ void LongUI::UITabBox::relayout() noexcept {
         this->resize_child(*m_pTabPanels, { ctsize.width, ctsize.height + topb });
     }
 }
+#endif
 
 // ----------------------------------------------------------------------------
 // --------------------          TabPanel           ---------------------------
@@ -525,4 +558,30 @@ LongUI::UITabPanels::~UITabPanels() noexcept {
 LongUI::UITabPanels::UITabPanels(const MetaControl& meta) noexcept : Super(meta) {
     // TabPanels类型
     m_oStyle.appearance = Appearance_TabPanels;
+}
+
+/// <summary>
+/// update UITabPanels
+/// </summary>
+/// <param name="reason"></param>
+/// <returns></returns>
+void LongUI::UITabPanels::Update(UpdateReason reason) noexcept {
+    // XXX: UIDeck 应该一样?
+    if (reason & Reason_BasicRelayout) {
+        const auto pos = m_oBox.GetContentPos();
+        for (auto& child : (*this)) {
+            child.SetPos(pos);
+            this->resize_child(child, child.GetMinSize());
+        }
+    }
+    // 有变数
+    if (reason & Reason_ChildIndexChanged) {
+        uint32_t index = 0;
+        for (auto& child : (*this)) {
+            child.SetVisible(index == m_index);
+            ++index;
+        }
+    }
+    // 截断超类更新 直接调用UIControl
+    return UIControl::Update(reason);
 }

@@ -963,7 +963,7 @@ void LongUI::CUIControlControl::StartBasicAnimation(UIControl& ctrl, StyleStateC
     const auto native_type = ctrl.m_oStyle.appearance;
     assert(native_type != AttributeAppearance::Appearance_None);
     // 获取动画时间
-    const auto dur = naive_style.GetDuration({ native_type });
+    const auto dur = naive_style.GetDuration({ type, native_type });
     // 没有动画
     if (!dur) { ctrl.change_state(type); return; }
     // TODO: 整理代码, 比如先保证vector有效性

@@ -132,7 +132,7 @@ namespace LongUI {
 // control meta info 
 #define LUI_CONTROL_META_INFO_FAKE_B(T, ele) \
     enum : uint32_t { LUI_BKDR_##T = ele##_bkdr };\
-    const MetaControl UIMetaTypeDef::##T##__s_meta = {\
+    const MetaControl UIMetaTypeDef::T##__s_meta = {\
         UIMetaTypeDef::create_##T,\
         &T::Super::s_meta,\
         ele,\

@@ -273,10 +273,14 @@ void LongUI::UIBoxLayout::relayout_this() noexcept {
     */
     // 存在子控件才计算
     if (!this->GetChildrenCount()) return;
+    // XXX: 最大尺寸了
+    const auto& consize = m_oBox.size;
+    if (m_oStyle.maxsize.width == consize.width) {
+
+    }
     // 面积不够
-    /*if (m_oStyle.minsize.width < 0 && m_oStyle.minsize.height < 0)*/ {
+    else {
         const auto& minsize = m_oBox.minsize;
-        const auto& consize = m_oBox.size;
         if (consize.width < minsize.width || consize.height < minsize.height) return;
     }
     // 更新布局

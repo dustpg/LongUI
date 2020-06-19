@@ -25,6 +25,7 @@
 */
 
 #include "ui_control.h"
+#include "ui_box.h"
 //#include "../util/ui_double_click.h"
 
 // ui namespace
@@ -34,9 +35,9 @@ namespace LongUI {
     // tabpanels 
     class UITabPanels;
     // tabbox container
-    class UITabBox : public UIControl {
+    class UITabBox : public UIBoxLayout {
         // super class
-        using Super = UIControl;
+        using Super = UIBoxLayout;
     public:
         // command: selected changed
         static constexpr auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }
@@ -70,9 +71,11 @@ namespace LongUI {
         // add child
         void add_child(UIControl& child) noexcept override;
         // relayout
-        void relayout() noexcept ;
+        //void relayout() noexcept ;
         // init tabbox
         void init_tabbox() noexcept;
+        // refresh minsize
+        //void refresh_minsize() noexcept;
     protected:
         // tabs
         UITabs*                 m_pTabs = nullptr;

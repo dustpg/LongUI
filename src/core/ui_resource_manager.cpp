@@ -987,7 +987,12 @@ void LongUI::CUIResMgr::TSReleaseCOM(I::COM* object) noexcept {
     // 先尝试上锁
     if (UIManager.TryRenderLock()) {
         // 成功上锁
-        goto release_and_unlock;
+    release_and_unlock:
+        // 其他扫尾工作
+        const auto com = reinterpret_cast<IUnknown*>(object);
+        com->Release();
+        UIManager.RenderUnlock();
+        return;
     }
     // 尝试加入延迟释放队列
     const auto later_begin = rm().later0;
@@ -1005,10 +1010,7 @@ void LongUI::CUIResMgr::TSReleaseCOM(I::COM* object) noexcept {
     // 太多了也就没有延迟释放的理由, 直接释放
     else {
         UIManager.RenderLock();
-    release_and_unlock:
-        const auto com = reinterpret_cast<IUnknown*>(object);
-        com->Release();
-        UIManager.RenderUnlock();
+        goto release_and_unlock;
     }
 }
 
