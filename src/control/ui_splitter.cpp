@@ -57,7 +57,6 @@ LongUI::UISplitter::UISplitter(const MetaControl& meta) noexcept
     m_state.orient = Orient_Horizontal;
     // 允许焦点?
     m_state.capturable = true;
-    m_state.focusable = true;
     // XXX: 硬编码
     m_oBox.padding = { 2, 2, 2, 2 };
 }
@@ -122,42 +121,3 @@ auto LongUI::UISplitter::DoMouseEvent(const MouseEventArg & e) noexcept -> Event
     return Super::DoMouseEvent(e);
 }
 
-
-
-#if 0
-/// <summary>
-/// Does the event.
-/// </summary>
-/// <param name="sender">The sender.</param>
-/// <param name="e">The e.</param>
-/// <returns></returns>
-auto LongUI::UISplitter::DoEvent(UIControl* sender, 
-    const EventArg& e) noexcept -> EventAccept {
-    return Super::DoEvent(sender, e);
-}
-
-/// <summary>
-/// Renders this instance.
-/// </summary>
-/// <returns></returns>
-void LongUI::UISplitter::Render() const noexcept {
-    return Super::Render();
-}
-
-/// <summary>
-/// update this instance.
-/// </summary>
-/// <returns></returns>
-void LongUI::UISplitter::Update() noexcept {
-    return Super::Update();
-}
-
-/// <summary>
-/// Recreates this instance.
-/// </summary>
-/// <returns></returns>
-auto LongUI::UISplitter::Recreate() noexcept -> Result {
-    return Super::Recreate();
-}
-
-#endif

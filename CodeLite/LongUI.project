@@ -119,6 +119,8 @@
       <File Name="../src/core/ui_all_control_info.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="control">
+      <File Name="../src/control/ui_spinbuttons.cpp"/>
+      <File Name="../src/control/ui_grid.cpp"/>
       <File Name="../src/control/ui_textfield.cpp"/>
       <VirtualDirectory Name="gapi">
         <File Name="../src/control/gapi/ui_textfield_g.cpp"/>
