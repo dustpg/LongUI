@@ -7,7 +7,6 @@
 #include <core/ui_popup_window.h>
 #include <core/ui_string.h>
 #include <style/ui_native_style.h>
-#include <event/ui_initialize_event.h>
 #include <input/ui_kminput.h>
 //#include <style/ui_attribute.h>
 
@@ -315,7 +314,7 @@ void LongUI::UIControl::SpecifyMaxSize(Size2F size) noexcept {
 /// Afters the created.
 /// </summary>
 /// <returns></returns>
-auto LongUI::UIControl::init() noexcept -> Result {
+void LongUI::UIControl::init() noexcept {
     assert(this && "bad action");
     assert(m_state.inited == false && "this control has been inited");
 #ifndef NDEBUG
@@ -329,38 +328,31 @@ auto LongUI::UIControl::init() noexcept -> Result {
     //}
 #endif // !NDEBUG
     // 初始化对象
-    EventInitializeArg arg; 
-    this->DoEvent(this, arg);
-    Result hr = arg.GetResult();
-    // 初始化其他
-    if (hr) {
-        // 检查特殊外貌
-        //assert(m_oStyle.appearance != Appearance_ViaParent);
-        // 依赖类型初始化控件
-        UIManager.RefNativeStyle().InitStyle(*this, m_oStyle.appearance);
-        // 重建对象资源
-        UIManager.RenderLock();
-        hr = this->Recreate(false);
-        UIManager.RenderUnlock();
-        // 初始化大小
-        if (!this->IsTopLevel())
-            if (m_oBox.size.width == static_cast<float>(INVALID_CONTROL_SIZE)) {
-                this->Resize({ DEFAULT_CONTROL_WIDTH, DEFAULT_CONTROL_HEIGHT });
-            }
-    }
+    this->initialize();
+    // 检查特殊外貌
+    //assert(m_oStyle.appearance != Appearance_ViaParent);
+    // 依赖类型初始化控件
+    UIManager.RefNativeStyle().InitStyle(*this, m_oStyle.appearance);
 #ifndef LUI_DISABLE_STYLE_SUPPORT
     // 重新连接样式表
     this->link_style_sheet();
 #endif
+    // 重建对象资源
+    UIManager.RenderLock();
+    const auto hr = this->Recreate(false);
+    UIManager.RenderUnlock();
+    // 初始化大小
+    if (m_oBox.size.width == static_cast<float>(INVALID_CONTROL_SIZE)) {
+        this->Resize({ DEFAULT_CONTROL_WIDTH, DEFAULT_CONTROL_HEIGHT });
+    }
     // 设置初始化状态
     this->setup_init_state();
     // 初始化完毕
     m_state.inited = true;
     // 链接窗口
     m_pWindow->ControlAttached(*this);
-    // TODO: 应该截断错误
-    assert(hr);
-    return hr;
+    // 截断错误
+    if (!hr) UIManager.OnErrorInfoLost(hr, Occasion_ControlInitialize);
 }
 
 /// <summary>
@@ -1636,7 +1628,12 @@ void LongUI::UIControl::mark_window_minsize_changed() noexcept {
     UIManager.MarkWindowMinsizeChanged(m_pWindow);
 }
 
-
+/// <summary>
+/// initialize this
+/// </summary>
+/// <returns></returns>
+void LongUI::UIControl::initialize() noexcept {
+}
 
 /// <summary>
 /// Adds the child.

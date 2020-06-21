@@ -58,7 +58,7 @@ namespace LongUI {
         explicit UITabBox(UIControl* parent = nullptr) noexcept : UITabBox(UITabBox::s_meta) { this->final_ctor(parent); }
     public:
         // do normal event
-        auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
+        //auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         // do mouse event
         //auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
         // update
@@ -68,6 +68,8 @@ namespace LongUI {
         // recreate/init device(gpu) resource
         //auto Recreate() noexcept->Result override;
     protected:
+        // initialize
+        void initialize() noexcept override;
         // add child
         void add_child(UIControl& child) noexcept override;
         // relayout

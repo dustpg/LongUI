@@ -39,8 +39,6 @@ namespace LongUI {
         using Super = UIBoxLayout;
         // private impl
         struct Private;
-        // init menuitem
-        void init_menuitem() noexcept;
     protected:
         // ctor
         UIMenuItem(const MetaControl& ) noexcept;
@@ -77,6 +75,8 @@ namespace LongUI {
         // update
         void Update(UpdateReason) noexcept override;
     protected:
+        // initialize
+        void initialize() noexcept override;
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
         // re-layout

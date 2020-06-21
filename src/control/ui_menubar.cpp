@@ -68,6 +68,25 @@ LongUI::UIMenu::UIMenu(const MetaControl& meta) noexcept : Super(meta) {
     m_oStyle.appearance = Appearance_ToolBarButton;
 }
 
+/// <summary>
+/// initialize UIMenu
+/// </summary>
+/// <returns></returns>
+void LongUI::UIMenu::initialize() noexcept {
+    // 父节点是MenuPopup?
+    if (uisafe_cast<UIMenuPopup>(m_pParent)) {
+        UIControlPrivate::SetAppearance(*this, Appearance_Menu);
+        // !!! 初始化超类
+        Super::initialize();
+        if (const auto pMenuArrow = new(std::nothrow) UIControl{ this }) {
+            UIControlPrivate::SetAppearance(*pMenuArrow, Appearance_MenuArrow);
+        }
+        this->set_label_flex(1);
+        return;
+    }
+    // 初始化超类
+    Super::initialize();
+}
 
 /// <summary>
 /// Does the event.
@@ -79,20 +98,6 @@ auto LongUI::UIMenu::DoEvent(UIControl* sender, const EventArg& e) noexcept -> E
     // 初始化
     switch (e.nevent)
     {
-    case NoticeEvent::Event_Initialize:
-        // 父节点是MenuPopup?
-        if (uisafe_cast<UIMenuPopup>(m_pParent)) {
-            UIControlPrivate::SetAppearance(*this, Appearance_Menu);
-            // !!! 超类处理
-            Super::DoEvent(sender, e);
-            if (const auto pMenuArrow = new(std::nothrow) UIControl{ this }) {
-                UIControlPrivate::SetAppearance(*pMenuArrow, Appearance_MenuArrow);
-            }
-            this->set_label_flex(1);
-            return Event_Accept;
-        }
-        // 其他情况
-        break;
     case NoticeEvent::Event_PopupBegin:
         // 弹出的是内建的菜单
         if (sender == m_pMenuPopup) {

@@ -39,6 +39,8 @@ namespace LongUI {
         // render
         void Render() const noexcept override;
     protected:
+        // initialize
+        void initialize() noexcept override;
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
 #ifdef LUI_ACCESSIBLE

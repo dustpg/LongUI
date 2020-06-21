@@ -412,20 +412,20 @@ void LongUI::UITabBox::Update(UpdateReason reason) noexcept {
 /// <param name="sender">The sender.</param>
 /// <param name="e">The e.</param>
 /// <returns></returns>
-auto LongUI::UITabBox::DoEvent(UIControl* sender, 
-    const EventArg& e) noexcept->EventAccept {
-    switch (e.nevent)
-    {
-    //case NoticeEvent::Event_RefreshBoxMinSize:
-    //    this->refresh_minsize();
-    //    return Event_Accept;
-    case NoticeEvent::Event_Initialize:
-        this->init_tabbox();
-        [[fallthrough]];
-    default:
-        return Super::DoEvent(sender, e);
-    }
-}
+//auto LongUI::UITabBox::DoEvent(UIControl* sender, 
+//    const EventArg& e) noexcept->EventAccept {
+//    switch (e.nevent)
+//    {
+//    //case NoticeEvent::Event_RefreshBoxMinSize:
+//    //    this->refresh_minsize();
+//    //    return Event_Accept;
+//    case NoticeEvent::Event_Initialize:
+//        this->init_tabbox();
+//        [[fallthrough]];
+//    default:
+//        return Super::DoEvent(sender, e);
+//    }
+//}
 
 /// <summary>
 /// Adds the child.
@@ -457,8 +457,11 @@ void LongUI::UITabBox::add_child(UIControl& child) noexcept {
 /// Initializes the tabbox.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITabBox::init_tabbox() noexcept {
+void LongUI::UITabBox::initialize() noexcept {
+    // XXX: 默认选择第一个
     if (m_pTabs) m_pTabs->SetSelectedIndex(0);
+    // 初始化超类
+    Super::initialize();
 }
 
 

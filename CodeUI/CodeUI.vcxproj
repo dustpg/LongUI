@@ -394,7 +394,6 @@
     <ClInclude Include="..\include\event\ui_group_event.h" />
     <ClInclude Include="..\include\event\ui_gui_event.h" />
     <ClInclude Include="..\include\event\ui_indirecttf_event.h" />
-    <ClInclude Include="..\include\event\ui_initialize_event.h" />
     <ClInclude Include="..\include\event\ui_input_event.h" />
     <ClInclude Include="..\include\event\ui_notice_event.h" />
     <ClInclude Include="..\include\event\ui_drag_event.h" />

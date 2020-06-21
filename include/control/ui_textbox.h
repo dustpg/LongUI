@@ -117,6 +117,8 @@ namespace LongUI {
         // input event
         auto DoInputEvent(InputEventArg e) noexcept->EventAccept override;
     protected:
+        // initialize
+        void initialize() noexcept override;
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
 #ifdef LUI_ACCESSIBLE

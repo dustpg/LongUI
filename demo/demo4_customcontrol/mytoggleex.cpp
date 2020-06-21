@@ -29,22 +29,18 @@ namespace Demo {
         this->SetStyleMinSize({ MyToggleMM , MyToggleMH });
     }
     /// <summary>
-    /// Does the event.
+    /// initialize MyToggleEx
     /// </summary>
-    /// <param name="sender">The sender.</param>
-    /// <param name="e">The e.</param>
     /// <returns></returns>
-    auto MyToggleEx::DoEvent(UIControl* sender, const EventArg& e) noexcept -> EventAccept {
-        switch (e.nevent)
-        {
-        case NoticeEvent::Event_Initialize:
-            // called on init
-            m_value = this->IsChecked() ? 1.f : 0.f;
-            // force set alpha to 1.0
-            m_base.a = 1.f;
-            break;
-        }
-        return Super::DoEvent(sender, e);
+    void MyToggleEx::initialize() noexcept {
+        // called on init
+
+        // init m_value
+        m_value = this->IsChecked() ? 1.f : 0.f;
+        // force set alpha to 1.0
+        m_base.a = 1.f;
+        // initialize super class
+        Super::initialize();
     }
     /// <summary>
     /// Does the mouse event.

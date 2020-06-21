@@ -54,6 +54,7 @@ namespace LongUI { namespace impl {
 /// <param name="meta">The meta.</param>
 LongUI::UIBoxLayout::UIBoxLayout(const MetaControl& meta) noexcept : Super(meta) {
     m_state.orient = Orient_Horizontal;
+    m_oBox.size = { 0 };
 }
 
 /// <summary>
@@ -273,16 +274,9 @@ void LongUI::UIBoxLayout::relayout_this() noexcept {
     */
     // 存在子控件才计算
     if (!this->GetChildrenCount()) return;
-    // XXX: 最大尺寸了
-    const auto& consize = m_oBox.size;
-    if (m_oStyle.maxsize.width == consize.width) {
-
-    }
     // 面积不够
-    else {
-        const auto& minsize = m_oBox.minsize;
-        if (consize.width < minsize.width || consize.height < minsize.height) return;
-    }
+    const auto& consize = m_oBox.size;
+    if (consize.width <= 0 || consize.height <= 0)  return;
     // 更新布局
     m_state.orient == Orient_Horizontal ? this->relayout_h() : this->relayout_v();
 }
@@ -348,7 +342,10 @@ void LongUI::UIBoxLayout::refresh_min() noexcept {
     else 
         minsize = impl::sum_children_minsize_v(*this);
     // 更新值
-    this->set_contect_minsize(m_minScrollSize = minsize);
+    m_minScrollSize = minsize;
+    //if (!(m_oStyle.overflow_x & 1)) minsize.width = 0;
+    //if (!(m_oStyle.overflow_y & 1)) minsize.height = 0;
+    this->set_contect_minsize(minsize);
 }
 
 /// <summary>

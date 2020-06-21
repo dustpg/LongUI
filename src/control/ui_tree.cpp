@@ -155,6 +155,17 @@ void LongUI::UITree::add_attribute(uint32_t key, U8View value) noexcept {
 }
 
 /// <summary>
+/// initialize UITree
+/// </summary>
+/// <returns></returns>
+//void LongUI::UITree::initialize() noexcept {
+//    // 根节点必须为打开状态
+//    m_bOpened = true;
+//    // 初始化超类
+//    Super::initialize();
+//}
+
+/// <summary>
 /// Does the event.
 /// </summary>
 /// <param name="sender">The sender.</param>
@@ -180,11 +191,6 @@ auto LongUI::UITree::DoEvent(UIControl* sender,
         this->set_contect_minsize({ 0, height });
     }
         return Event_Accept;
-    case NoticeEvent::Event_Initialize:
-        // 初始化
-        // 根节点必须为打开状态
-        m_bOpened = true;
-        [[fallthrough]];
     default:
         // 其他事件
         return Super::DoEvent(sender, e);
@@ -505,6 +511,7 @@ void LongUI::UITreeRow::InitOpen_Parent(bool open) noexcept {
 }
 
 
+
 /// <summary>
 /// Closes the node.
 /// </summary>
@@ -590,10 +597,19 @@ auto LongUI::UITreeRow::DoEvent(UIControl* sender, const EventArg& e) noexcept->
     case NoticeEvent::Event_RefreshBoxMinSize:
         this->refresh_minsize();
         return Event_Accept;
-#if 1
-    case NoticeEvent::Event_Initialize:
+    default:
+        // 其他事件
+        return Super::DoEvent(sender, e);
+    }
+}
+
+/// <summary>
+/// initialize UITreeRow
+/// </summary>
+/// <returns></returns>
+void LongUI::UITreeRow::initialize() noexcept {
 #ifndef NDEBUG
-        if (m_pParent)
+    if (m_pParent)
 #endif
         if (const auto parent = longui_cast<UITreeItem*>(m_pParent)) {
             if (const auto tree = parent->GetTreeNode()) {
@@ -603,12 +619,7 @@ auto LongUI::UITreeRow::DoEvent(UIControl* sender, const EventArg& e) noexcept->
                     UIControlPrivate::SetAppearance(*this, Appearance_ListItem);
             }
         }
-        [[fallthrough]];
-#endif
-    default:
-        // 其他事件
-        return Super::DoEvent(sender, e);
-    }
+    return Super::initialize();
 }
 
 
@@ -958,15 +969,24 @@ auto LongUI::UITreeItem::DoEvent(UIControl* sender,
     case NoticeEvent::Event_RefreshBoxMinSize:
         this->refresh_minsize(m_pRow);
         return Event_Accept;
-    case NoticeEvent::Event_Initialize:
-        // 将open信息传递给ROW
-        if (m_pRow) m_pRow->InitOpen_Parent(m_bOpened);
-        if (m_pChildren) m_pChildren->SetVisible(m_bOpened);
-        [[fallthrough]];
     default:
         // 其他事件
         return Super::DoEvent(sender, e);
     }
+}
+
+/// <summary>
+/// initialize UITreeItem
+/// </summary>
+/// <returns></returns>
+void LongUI::UITreeItem::initialize() noexcept {
+    // !!! 根节点必须为打开状态
+    if (m_pTree == this) m_bOpened = true;
+    // 将open信息传递给ROW
+    if (m_pRow) m_pRow->InitOpen_Parent(m_bOpened);
+    if (m_pChildren) m_pChildren->SetVisible(m_bOpened);
+    // 初始计化超类
+    Super::initialize();
 }
 
 PCN_NOINLINE
@@ -1382,19 +1402,15 @@ void LongUI::UITreeCell::add_attribute(uint32_t key, U8View value) noexcept {
 //    return Super::add_child(child);
 //}
 
+
 /// <summary>
-/// do the event
+/// initialize UITreeCell
 /// </summary>
-/// <param name="sender">the sender</param>
-/// <param name="e">the event</param>
 /// <returns></returns>
-auto LongUI::UITreeCell::DoEvent(UIControl* sender, const EventArg& e) noexcept -> EventAccept {
-    switch (e.nevent)
-    {
-    case NoticeEvent::Event_Initialize:
-        // TODO: 重写
+void LongUI::UITreeCell::initialize() noexcept{
+    // TODO: 重写
 #ifndef NDEBUG
-        if (m_pParent)
+    if (m_pParent)
 #endif // !NDEBUG
         if (const auto ptr = longui_cast<UITreeRow*>(m_pParent)) {
             const auto item = longui_cast<UITreeItem*>(ptr->GetParent());
@@ -1402,8 +1418,6 @@ auto LongUI::UITreeCell::DoEvent(UIControl* sender, const EventArg& e) noexcept 
                 if (tree->IsSelCell())
                     UIControlPrivate::SetAppearance(*this, Appearance_ListItem);
         }
-        [[fallthrough]];
-    default:
-        return Super::DoEvent(sender, e);
-    }
+    // 初始化超类
+    Super::initialize();
 }

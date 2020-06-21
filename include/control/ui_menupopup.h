@@ -95,6 +95,8 @@ namespace LongUI {
         // mark no delay closed popup
         void MarkNoDelayClosedPopup() noexcept;
     protected:
+        // initialize
+        void initialize() noexcept override;
         // add attribute
         void add_attribute(uint32_t key, U8View view) noexcept override;
         // select child

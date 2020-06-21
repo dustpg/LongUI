@@ -694,6 +694,22 @@ void LongUI::UIListItem::Update(UpdateReason reason) noexcept {
     Super::Update(reason);
 }
 
+/// <summary>
+/// initialize UIListItem
+/// </summary>
+/// <returns></returns>
+void LongUI::UIListItem::initialize() noexcept {
+    // 没子控件
+    if (!this->GetChildrenCount()) {
+        // TODO: 没有文本时候的处理
+        m_oLabel.SetAsDefaultMinsize();
+        this->add_private_child();
+    }
+    // 同步状态
+    UIControlPrivate::RefStyleState(m_oImage) = m_oStyle.state;
+    // 初始化超类
+    return Super::initialize();
+}
 
 /// <summary>
 /// Does the event.
@@ -710,15 +726,6 @@ auto LongUI::UIListItem::DoEvent(UIControl * sender,
         if (const auto list = m_pListBox)
             list->SetLineSize(this->RefBox().minsize);
         return Event_Accept;
-    case NoticeEvent::Event_Initialize:
-        // 没子控件
-        if (!this->GetChildrenCount()) {
-            // TODO: 没有文本时候的处理
-            m_oLabel.SetAsDefaultMinsize();
-            this->add_private_child();
-        }
-        UIControlPrivate::RefStyleState(m_oImage) = m_oStyle.state;
-        break;
     }
     // 超类处理
     return Super::DoEvent(sender, e);

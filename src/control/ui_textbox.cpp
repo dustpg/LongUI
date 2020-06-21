@@ -205,14 +205,21 @@ auto LongUI::UITextBox::DoEvent(UIControl * sender, const EventArg & e) noexcept
         case GuiEvent::Event_OnIncrease:
             return this->SetValueAsDouble(this->increment, true);
         }
-    case NoticeEvent::Event_Initialize:
-        // 初始化
-        //this->update_minsize();
-        this->SetValueAsDouble(0, true);
-        //[[fallthrough]];
     }
     // 超类处理
     return Super::DoEvent(sender, e);
+}
+
+/// <summary>
+/// initialize UITextBox
+/// </summary>
+/// <returns></returns>
+void LongUI::UITextBox::initialize() noexcept {
+    // 初始化
+    //this->update_minsize();
+    this->SetValueAsDouble(0, true);
+    // 初始化 超类
+    Super::initialize();
 }
 
 

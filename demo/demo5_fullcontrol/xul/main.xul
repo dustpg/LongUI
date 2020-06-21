@@ -7,40 +7,37 @@
     <checkbox label="modal window" id="modal"/>
     <button label="disabled button" disabled="true"/>
   </hbox>
-  <hbox>
-    <vbox flex="1">
-      <button label="box layout" id="layout"/>
-      <button label="text box" id="textbox"/>
-      <button label="scrolling" id="scrolling" disabled="true"/>
-      <button label="popup" id="popup"/>
-      <button label="text box 2" id="textbox2"/>
-    </vbox>
-    <vbox flex="1">
-      <button label="checkbox" id="checkbox"/>
-      <button label="radio" id="radio"/>
-      <button label="menubar" id="menubar"/>
-      <button label="stack" id="stack"/>
-    </vbox>
-    <vbox flex="1">
-      <button label="scale" id="scale"/>
-      <button label="tab" id="tab"/>
-      <button label="button" id="button"/>
-      <button label="image" id="image"/>
-    </vbox>
-  </hbox>
-  <!-- <hbox style="display: block">
-    <button label="box layout" id="layout"/>
-    <button label="text box" id="textbox"/>
-    <button label="scrolling" id="scrolling" disabled="true"/>
-    <button label="popup" id="popup"/>
-    <button label="text box 2" id="textbox2"/>
-    <button label="checkbox" id="checkbox"/>
-    <button label="radio" id="radio"/>
-    <button label="menubar" id="menubar"/>
-    <button label="stack" id="stack"/>
-    <button label="scale" id="scale"/>
-    <button label="tab" id="tab"/>
-    <button label="button" id="button"/>
-    <button label="image" id="image"/>
-  </hbox> -->
+  <grid>
+    <columns>
+      <column flex="1" />
+      <column flex="1" />
+      <column flex="1" />
+    </columns>
+    <rows>
+      <row>
+        <button label="box layout" id="layout"/>
+        <button label="text box" id="textbox"/>
+        <button label="scrolling" id="scrolling" disabled="true"/>
+      </row>
+      <row>
+        <button label="text box 2" id="textbox2"/>
+        <button label="popup" id="popup"/>
+        <button label="scale" id="scale"/>
+      </row>
+      <row>
+        <button label="tab" id="tab"/>
+        <button label="button" id="button"/>
+        <button label="image" id="image"/>
+      </row>
+      <row>
+        <button label="checkbox" id="checkbox"/>
+        <button label="radio" id="radio"/>
+        <button label="menubar" id="menubar"/>
+      </row>
+      <row>
+        <button label="stack" id="stack"/>
+        <button label="splitter" id="splitter"/>
+      </row>
+    </rows>
+  </grid>
 </window>

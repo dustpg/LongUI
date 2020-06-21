@@ -36,7 +36,7 @@ namespace Demo {
         void Toggle() noexcept { SetChecked(!IsChecked()); }
     public:
         // do normal event
-        auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
+        //auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         // do mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
         // update
@@ -46,6 +46,8 @@ namespace Demo {
         // recreate/init device(gpu) resource
         auto Recreate(bool release_only) noexcept->Result override;
     protected:
+        // initialize
+        void initialize() noexcept override;
         // add attribute
         void add_attribute(uint32_t attr, U8View view) noexcept override;
     private:

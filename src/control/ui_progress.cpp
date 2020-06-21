@@ -54,7 +54,16 @@ LongUI::UIProgress::~UIProgress() noexcept {
     m_state.destructing = true;
 }
 
-
+/// <summary>
+/// 
+/// </summary>
+/// <returns></returns>
+void LongUI::UIProgress::initialize() noexcept {
+    //this->init_bar();
+    this->adjust_flex();
+    // 初始化超类
+    Super::initialize();
+}
 
 /// <summary>
 /// Does the event.
@@ -62,16 +71,11 @@ LongUI::UIProgress::~UIProgress() noexcept {
 /// <param name="sender">The sender.</param>
 /// <param name="e">The e.</param>
 /// <returns></returns>
-auto LongUI::UIProgress::DoEvent(UIControl * sender,
-    const EventArg & e) noexcept -> EventAccept {
-    // 初始化
-    if (e.nevent == NoticeEvent::Event_Initialize) {
-        //this->init_bar();
-        this->adjust_flex();
-    }
-    // 超类处理
-    return Super::DoEvent(sender, e);
-}
+//auto LongUI::UIProgress::DoEvent(UIControl * sender,
+//    const EventArg & e) noexcept -> EventAccept {
+//    // 超类处理
+//    return Super::DoEvent(sender, e);
+//}
 
 
 /// <summary>

@@ -114,6 +114,23 @@ void LongUI::UIRadio::Update(UpdateReason reason) noexcept {
     Super::Update(reason);
 }
 
+/// <summary>
+/// initialize UIRadio
+/// </summary>
+/// <returns></returns>
+void LongUI::UIRadio::initialize() noexcept {
+    // 同步checked-disable状态
+    auto& target = UIControlPrivate::RefStyleState(m_oImage);
+    target = target | (m_oStyle.state & (State_Checked | State_Disabled));
+    // 在attr中设置了checked状态?
+    if (m_oStyle.state & State_Checked) {
+        if (const auto group = uisafe_cast<UIRadioGroup>(m_pParent)) {
+            group->SetChecked(*this);
+        }
+    }
+    // 初始化超类
+    Super::initialize();
+}
 
 /// <summary>
 /// Does the event.
@@ -126,9 +143,6 @@ auto LongUI::UIRadio::DoEvent(
     // 初始化
     switch (arg.nevent)
     {
-    case NoticeEvent::Event_Initialize:
-        this->init_radio();
-        break;
     case NoticeEvent::Event_DoAccessAction:
         // 默认行动
         this->SetAsDefaultAndFocus();
@@ -137,24 +151,6 @@ auto LongUI::UIRadio::DoEvent(
     }
     return Super::DoEvent(sender, arg);
 }
-
-/// <summary>
-/// Initializes the radio.
-/// </summary>
-/// <returns></returns>
-void LongUI::UIRadio::init_radio() noexcept {
-    // 同步checked-disable状态
-    auto& target = UIControlPrivate::RefStyleState(m_oImage);
-    target = target | (m_oStyle.state & (State_Checked | State_Disabled));
-    // 在attr中设置了checked状态?
-    if (m_oStyle.state & State_Checked) {
-        if (const auto group = uisafe_cast<UIRadioGroup>(m_pParent)) {
-            group->SetChecked(*this);
-        }
-    }
-}
-
-
 
 
 #ifdef LUI_DRAW_FOCUS_RECT

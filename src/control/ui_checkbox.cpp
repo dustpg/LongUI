@@ -175,7 +175,9 @@ void LongUI::UICheckBox::add_attribute(uint32_t key, U8View value) noexcept {
         break;
     default:
         // 其他情况, 交给超类处理
-        return Super::add_attribute(key, value);
+        Super::add_attribute(key, value);
+        // XXX: 同步初始化状态
+        UIControlPrivate::RefStyleState(m_oImage) = m_oStyle.state;
     }
 }
 
@@ -195,10 +197,6 @@ auto LongUI::UICheckBox::DoEvent(
         this->SetAsDefaultAndFocus();
         this->Toggle();
         return Event_Accept;
-    case NoticeEvent::Event_Initialize:
-        // XXX: 初始化状态
-        UIControlPrivate::RefStyleState(m_oImage) = m_oStyle.state;
-        [[fallthrough]];
     default:
         // 超类处理
         return Super::DoEvent(sender, arg);

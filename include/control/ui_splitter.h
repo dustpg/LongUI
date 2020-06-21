@@ -51,7 +51,7 @@ namespace LongUI {
         auto GetOrient() const noexcept { return static_cast<AttributeOrient>(m_state.orient); }
     public:
         // do normal event
-        auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
+        //auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         // do mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
         //// update, postpone change some data
@@ -61,6 +61,8 @@ namespace LongUI {
         //// recreate/init device(gpu) resource
         //auto Recreate() noexcept->Result override;
     protected:
+        // initialize
+        void initialize() noexcept override;
         // change cursor
         void change_cursor() noexcept;
         // hovered curor

@@ -47,10 +47,12 @@ namespace LongUI {
         explicit UIProgress(UIControl* parent = nullptr) noexcept : UIProgress(UIProgress::s_meta) { this->final_ctor(parent); }
     public:
         // do normal event
-        auto DoEvent(UIControl*, const EventArg&) noexcept->EventAccept override;
+        //auto DoEvent(UIControl*, const EventArg&) noexcept->EventAccept override;
         // update
         void Update(UpdateReason) noexcept override;
     protected:
+        // initialize
+        void initialize() noexcept override;
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
 #ifdef LUI_ACCESSIBLE

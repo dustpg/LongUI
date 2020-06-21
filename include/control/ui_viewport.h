@@ -40,9 +40,9 @@ namespace LongUI {
         // class meta
         static const  MetaControl   s_meta;
         // update
-        void Update(UpdateReason) noexcept override;
+        //void Update(UpdateReason) noexcept override;
         // do event
-        auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
+        //auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         // [NEW] on window closed
         virtual void WindowClosed() noexcept;
         // [NEW] on subview popup
@@ -50,6 +50,8 @@ namespace LongUI {
         // [NEW] on subview popup closed
         virtual void SubViewportPopupEnd(UIViewport&, PopupType) noexcept;
     protected:
+        // initialize
+        void initialize() noexcept override;
         // add attribute
         void add_attribute(uint32_t key, U8View view) noexcept override;
         // ctor for control

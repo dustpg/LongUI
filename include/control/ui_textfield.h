@@ -172,10 +172,12 @@ namespace LongUI {
         // recreate normal context
         void recreate_nom_context(CEDTextCell& cell) noexcept;
     protected:
-        // need update
-        void need_update() noexcept;
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
+        // initialize
+        void initialize() noexcept override;
+        // need update
+        void need_update() noexcept;
         // try trigger change event
         bool try_trigger_change_event() noexcept;
         // mark change event could be triggered

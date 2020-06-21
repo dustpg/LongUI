@@ -73,29 +73,23 @@ void LongUI::UICaption::add_attribute(uint32_t key, U8View value) noexcept {
 
 #ifndef LUI_UICAPTION_AS_UILABEL
 
+
 /// <summary>
-/// do event
+/// initialize UICaption
 /// </summary>
-/// <param name="sender"></param>
-/// <param name="e"></param>
 /// <returns></returns>
-auto LongUI::UICaption::DoEvent(UIControl* sender, const EventArg & e) noexcept -> EventAccept {
-    switch (e.nevent)
-    {
-    case NoticeEvent::Event_Initialize:
-        // 添加了复杂控件
-        if (this->GetChildrenCount() > 1) {
-            m_oLabel.SetVisible(false);
+void LongUI::UICaption::UICaption::initialize() noexcept {
+    // 添加了复杂控件
+    if (this->GetChildrenCount() > 1) {
+        m_oLabel.SetVisible(false);
 #ifdef LUI_ACCESSIBLE
-            // 再度拥有逻辑控件
-            m_pAccCtrl = this;
+        // 再度拥有逻辑控件
+        m_pAccCtrl = this;
 #endif
-        }
     }
     // 超类处理
-    return Super::DoEvent(sender, e);
+    return Super::initialize();
 }
-
 
 /// <summary>
 /// Updates this instance.

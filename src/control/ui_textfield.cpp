@@ -147,7 +147,27 @@ bool LongUI::UITextField::try_trigger_change_event() noexcept {
     return code;
 }
 
-
+/// <summary>
+/// initialize UITextField
+/// </summary>
+/// <returns></returns>
+void LongUI::UITextField::initialize() noexcept {
+    // 初始化
+    this->init_private();
+    this->clear_change_could_trigger();
+    // 默认插入符号颜色是背景色的反色
+#ifndef LUI_DISABLE_STYLE_SUPPORT
+    if (const auto obj = UIControlPrivate::GetBgRenderer(*this)) {
+        m_colorCaret = obj->color;
+        m_colorCaret.a = 1.f;
+        m_colorCaret.r = 1.f - m_colorCaret.r;
+        m_colorCaret.g = 1.f - m_colorCaret.g;
+        m_colorCaret.b = 1.f - m_colorCaret.b;
+    }
+#endif
+    // 初始化超类
+    Super::initialize();
+}
 
 
 /// <summary>
@@ -169,21 +189,6 @@ auto LongUI::UITextField::DoEvent(UIControl * sender,
         // 默认行为(聚焦)
         this->SetAsDefaultAndFocus();
         return Event_Accept;
-    case NoticeEvent::Event_Initialize:
-        // 初始化
-        this->init_private();
-        this->clear_change_could_trigger();
-        // 默认插入符号颜色是背景色的反色
-#ifndef LUI_DISABLE_STYLE_SUPPORT
-        if (const auto obj = UIControlPrivate::GetBgRenderer(*this)) {
-            m_colorCaret = obj->color;
-            m_colorCaret.a = 1.f;
-            m_colorCaret.r = 1.f - m_colorCaret.r;
-            m_colorCaret.g = 1.f - m_colorCaret.g;
-            m_colorCaret.b = 1.f - m_colorCaret.b;
-        }
-#endif
-        [[fallthrough]];
     default:
         // 超类处理
         return Super::DoEvent(sender, e);

@@ -225,6 +225,30 @@ void LongUI::DoImplicitGroupGuiArg(UIControl& ctrl, const char* group) noexcept 
 }
 
 /// <summary>
+/// initialize UIButton
+/// </summary>
+/// <returns></returns>
+void LongUI::UIButton::initialize() noexcept {
+    // 没子控件
+    if (!this->GetChildrenCount()) {
+        // TODO: 没有文本时候的处理
+        //m_oLabel.SetAsDefaultMinsize();
+        this->add_private_child();
+    }
+    // 为普通按钮增加dropdown标记
+    if (!(m_bToolBar | m_bMenuBar)) {
+        if (m_type == BehaviorType::Type_Menu) {
+            if (const auto dropdown = new(std::nothrow)UIImage{ this }) {
+                UIControlPrivate::SetAppearance(*dropdown, Appearance_DropDownMarker);
+                UIControlPrivate::SetFlex(m_oLabel, 1);
+                m_oLabel.SetTextAlign(TAlign_Center);
+            }
+        }
+    }
+    return Super::initialize();
+}
+
+/// <summary>
 /// Does the event.
 /// </summary>
 /// <param name="sender">The sender.</param>
@@ -236,24 +260,6 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
     // 初始化
     switch (e.nevent)
     {
-    case NoticeEvent::Event_Initialize:
-        // 没子控件
-        if (!this->GetChildrenCount()) {
-            // TODO: 没有文本时候的处理
-            //m_oLabel.SetAsDefaultMinsize();
-            this->add_private_child();
-        }
-        // 为普通按钮增加dropdown标记
-        if (!(m_bToolBar | m_bMenuBar)) {
-            if (m_type == BehaviorType::Type_Menu) {
-                if (const auto dropdown = new(std::nothrow)UIImage{ this }) {
-                    UIControlPrivate::SetAppearance(*dropdown, Appearance_DropDownMarker);
-                    UIControlPrivate::SetFlex(m_oLabel, 1);
-                    m_oLabel.SetTextAlign(TAlign_Center);
-                }
-            }
-        }
-        break;
 #ifndef NDEBUG
     case NoticeEvent::Event_RefreshBoxMinSize:
         this->refresh_min();

@@ -95,6 +95,8 @@ namespace LongUI {
         // recreate/init device(gpu) resource
         //auto Recreate() noexcept->Result override;
     protected:
+        // initialize
+        void initialize() noexcept override;
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
         // add child

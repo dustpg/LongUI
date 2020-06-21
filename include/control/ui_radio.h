@@ -42,8 +42,6 @@ namespace LongUI {
         using Super = UIBoxLayout;
         // private impl
         struct Private;
-        // init radio
-        void init_radio() noexcept;
     public:
         // on commnad event
         static constexpr auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }
@@ -89,6 +87,8 @@ namespace LongUI {
         auto FireEvent(GuiEvent event) noexcept->EventAccept override;
 #endif
     protected:
+        // initialize
+        void initialize() noexcept override;
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
         // private image

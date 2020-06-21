@@ -58,6 +58,25 @@ LongUI::UIGrid::UIGrid(const MetaControl& meta) noexcept : Super(meta) {
 }
 
 /// <summary>
+/// initialize UIGrid
+/// </summary>
+/// <returns></returns>
+void LongUI::UIGrid::initialize() noexcept {
+    // 初始化
+    if (m_pRows && m_pColumns) {
+        if (static_cast<UIControl*>(this->begin()) == m_pRows) {
+            m_pFirst = m_pRows; m_pSecond = m_pColumns;
+        }
+        else {
+            m_pSecond = m_pRows; m_pFirst = m_pColumns;
+        }
+        // 直接隐藏第一个
+        m_pFirst->SetVisible(false);
+    }
+    return Super::initialize();
+}
+
+/// <summary>
 /// Does the event.
 /// </summary>
 /// <param name="sender">The sender.</param>
@@ -80,18 +99,6 @@ auto LongUI::UIGrid::DoEvent(UIControl* sender,
         }
         this->set_contect_minsize(minsize);
         return Event_Accept;
-    case NoticeEvent::Event_Initialize:
-        // 初始化
-        if (m_pRows && m_pColumns) {
-            if (static_cast<UIControl*>(this->begin()) == m_pRows) {
-                m_pFirst = m_pRows; m_pSecond = m_pColumns;
-            }
-            else {
-                m_pSecond = m_pRows; m_pFirst = m_pColumns;
-            }
-            // 直接隐藏第一个
-            m_pFirst->SetVisible(false);
-        }
     }
     return Super::DoEvent(sender, e);
 }

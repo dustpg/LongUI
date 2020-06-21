@@ -765,9 +765,6 @@
     <ClInclude Include="..\include\container\const_string_list.h">
       <Filter>header\container</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\event\ui_initialize_event.h">
-      <Filter>header\event</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\resource\ui_resource.h">
       <Filter>header\resource</Filter>
     </ClInclude>

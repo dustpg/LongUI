@@ -7,10 +7,8 @@ namespace LongUI {
     /// notice event type
     /// </summary>
     enum class NoticeEvent : uint32_t {
-        // initialize
-        Event_Initialize = 0,
         // refresh min size
-        Event_RefreshBoxMinSize,
+        Event_RefreshBoxMinSize = 0,
         // do default/access action
         Event_DoAccessAction,
         // viewport/ uievent-to-parent only

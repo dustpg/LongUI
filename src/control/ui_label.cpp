@@ -125,6 +125,21 @@ auto LongUI::UILabel::DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept
 }
 
 /// <summary>
+/// initialize UILabel
+/// </summary>
+/// <returns></returns>
+void LongUI::UILabel::initialize() noexcept {
+    // 初始化
+    if (!m_string.empty()) {
+        this->SetText(CUIString{ std::move(m_string) });
+        this->NeedUpdate(Reason_ValueTextChanged);
+    }
+    m_control.FindControl(m_pWindow);
+    // 初始化超类
+    return Super::initialize();
+}
+
+/// <summary>
 /// Does the event.
 /// </summary>
 /// <param name="sender">The sender.</param>
@@ -148,14 +163,6 @@ auto LongUI::UILabel::DoEvent(UIControl* sender, const EventArg& e) noexcept -> 
         // 显示/隐藏访问键
         this->ShowAccessKey(e.derived & 1);
         return Event_Accept;
-    case NoticeEvent::Event_Initialize:
-        // 初始化
-        if (!m_string.empty()) {
-            this->SetText(CUIString{ std::move(m_string) });
-            this->NeedUpdate(Reason_ValueTextChanged);
-        }
-        m_control.FindControl(m_pWindow);
-        [[fallthrough]];
     default:
         // 超类处理
         return Super::DoEvent(sender, e);

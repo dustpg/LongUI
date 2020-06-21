@@ -159,9 +159,6 @@ auto LongUI::UIMenuItem::DoEvent(
     // 初始化
     switch (arg.nevent)
     {
-    case  NoticeEvent::Event_Initialize:
-        this->init_menuitem();
-        break;
     case NoticeEvent::Event_ImplicitGroupChecked:
         // 组有位成员被点中
         if (sender == this) return Event_Ignore;
@@ -280,7 +277,7 @@ void LongUI::UIMenuItem::add_acceltext(U8View text) noexcept {
 /// Initializes the menuitem.
 /// </summary>
 /// <returns></returns>
-void LongUI::UIMenuItem::init_menuitem() noexcept {
+void LongUI::UIMenuItem::initialize() noexcept {
     // 初始选择
     if (m_bSelInit)
         if (const auto obj = uisafe_cast<UIMenuPopup>(m_pParent)) {
@@ -306,6 +303,8 @@ void LongUI::UIMenuItem::init_menuitem() noexcept {
         }
         else UIControlPrivate::ForceAppearance(m_oImage, Appearance_None);
     }
+    // 初始化超类
+    return Super::initialize();
 }
 
 
@@ -484,15 +483,15 @@ auto LongUI::UIMenuList::DoMouseEvent(const MouseEventArg& e) noexcept -> EventA
     }
 }
 
-
 /// <summary>
 /// Initializes the menulist.
 /// </summary>
-void LongUI::UIMenuList::init_menulist() {
+void LongUI::UIMenuList::initialize() noexcept {
     // 没有选择的?
     if (m_pMenuPopup && !m_pMenuPopup->GetLastSelected()) {
         m_pMenuPopup->SelectFirstItem();
     }
+    return Super::initialize();
 }
 
 
@@ -529,10 +528,6 @@ auto LongUI::UIMenuList::DoEvent(UIControl * sender,
     const EventArg & e) noexcept -> EventAccept {
     switch (e.nevent)
     {
-    case NoticeEvent::Event_Initialize:
-        // 初始化
-        this->init_menulist();
-        return Event_Accept;
 #ifndef LUI_NO_MENULIST_EDITABLE
     //case NoticeEvent::Event_RefreshBoxMinSize:
         //if (m_pTextField) {
@@ -910,6 +905,23 @@ auto LongUI::UIMenuPopup::DoMouseEvent(const MouseEventArg&e)noexcept->EventAcce
 }
 
 /// <summary>
+/// initialize UIMenuPopup
+/// </summary>
+/// <returns></returns>
+void LongUI::UIMenuPopup::initialize() noexcept {
+    auto& native_style = UIManager.RefNativeStyle();
+    m_window.SetClearColor(
+        this->is_save_selected()
+        // 保存选择的认为是组合框
+        ? native_style.clearcolor_combobox
+        // 否则认为是一般菜单
+        : native_style.clearcolor_ctxmenu
+    );
+    // 超类初始化
+    Super::Invalidate();
+}
+
+/// <summary>
 /// Does the event.
 /// </summary>
 /// <param name="sender">The sender.</param>
@@ -920,18 +932,6 @@ auto LongUI::UIMenuPopup::DoEvent(
     // 初始化
     switch (arg.nevent)
     {
-    case NoticeEvent::Event_Initialize:
-    {
-        auto& native_style = UIManager.RefNativeStyle();
-        m_window.SetClearColor(
-            this->is_save_selected()
-            // 保存选择的认为是组合框
-            ? native_style.clearcolor_combobox
-            // 否则认为是一般菜单
-            : native_style.clearcolor_ctxmenu
-        );
-        break;
-    }
     case NoticeEvent::Event_UIEvent:
         // 自己不处理自己的UIEvent 否则就stackoverflow了
         if (sender == this) return Event_Accept;

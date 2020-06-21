@@ -75,6 +75,8 @@ namespace LongUI {
         // recreate/init device(gpu) resource
         //auto Recreate() noexcept->Result override;
     protected:
+        // initialize
+        void initialize() noexcept override;
         // open/close node
         void open_close(bool open) noexcept;
         // relayout

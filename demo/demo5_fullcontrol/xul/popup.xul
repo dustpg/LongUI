@@ -152,8 +152,8 @@ function set_text(text)
    </groupbox>
 
 <groupbox>
-<caption label="positions for popups(unsupported yet)" />
-<!-- <grid>
+<caption label="positions for popups" />
+<grid>
   <columns>
     <column flex="1" />
     <column flex="1" />
@@ -179,7 +179,7 @@ function set_text(text)
        <button label="After Pointer" popup="after_pointer" />
     </row>
   </rows>
-</grid> -->
+</grid>
 </groupbox>
 
 </vbox>

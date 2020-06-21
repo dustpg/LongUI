@@ -73,33 +73,20 @@ void LongUI::UIRichListBox::SelectItem(UIRichListItem* item) noexcept {
     if (item) item->StartAnimation({ State_Selected ,State_Selected });
 }
 
-
-
 /// <summary>
-/// Does the event.
+/// initialize UIRichListBox
 /// </summary>
-/// <param name="sender">The sender.</param>
-/// <param name="e">The e.</param>
 /// <returns></returns>
-auto LongUI::UIRichListBox::DoEvent(
-    UIControl* sender,  const EventArg& e) noexcept -> EventAccept {
-    switch (e.nevent)
-    {
-    case NoticeEvent::Event_Initialize:
-        if (m_pSelectedItem) {
-            const auto item = m_pSelectedItem;
-            m_pSelectedItem = nullptr;
-            this->SelectItem(item);
-        }
-        break;
+void LongUI::UIRichListBox::initialize() noexcept {
+    // 初始化选择
+    if (m_pSelectedItem) {
+        const auto item = m_pSelectedItem;
+        m_pSelectedItem = nullptr;
+        this->SelectItem(item);
     }
-    return Super::DoEvent(sender, e);
+    // 初始化超类
+    Super::initialize();
 }
-
-
-
-
-
 
 /// <summary>
 /// Initializes a new instance of the <see cref="UIRichListItem"/> class.

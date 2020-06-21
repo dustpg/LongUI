@@ -88,6 +88,8 @@ namespace LongUI {
         Occasion_Resizing,
         // when frame rendered
         Occasion_Frame,
+        // control initialize
+        Occasion_ControlInitialize,
     };
     // UI Configure Interface
     struct PCN_NOVTABLE IUIConfigure /*: IUIRefCount*/ {

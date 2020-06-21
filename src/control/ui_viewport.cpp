@@ -94,37 +94,31 @@ auto LongUI::UIViewport::AdjustZoomedSize(Size2F scale, Size2L size) const noexc
 /// </summary>
 /// <param name="reason">the reason.</param>
 /// <returns></returns>
-void LongUI::UIViewport::Update(UpdateReason reason) noexcept {
-    const auto relayout_view = [this]() noexcept {
-        // 存在子控件才计算
-        if (!this->GetChildrenCount()) return;
-        // 面积不够
-        const auto& consize = m_oBox.size;
-        if (consize.width <= 0 || consize.height <= 0)  return;
-        // 更新布局
-        m_state.orient == Orient_Horizontal ? this->relayout_h() : this->relayout_v();
-    };
-    // 重新布局
-    if (reason & Reason_BasicRelayout) relayout_view();
-    // 跳过布局
-    UIControl::Update(reason);
-}
+//void LongUI::UIViewport::Update(UpdateReason reason) noexcept {
+//    const auto relayout_view = [this]() noexcept {
+//        // 存在子控件才计算
+//        if (!this->GetChildrenCount()) return;
+//        // 面积不够
+//        const auto& consize = m_oBox.size;
+//        if (consize.width <= 0 || consize.height <= 0)  return;
+//        // 更新布局
+//        m_state.orient == Orient_Horizontal ? this->relayout_h() : this->relayout_v();
+//    };
+//    // 重新布局
+//    if (reason & Reason_BasicRelayout) relayout_view();
+//    // 跳过布局
+//    UIControl::Update(reason);
+//}
 
 /// <summary>
-/// Does the event.
+/// initialize UIViewport
 /// </summary>
-/// <param name="sender">The sender.</param>
-/// <param name="e">The e.</param>
 /// <returns></returns>
-auto LongUI::UIViewport::DoEvent(
-    UIControl* sender, const EventArg & e) noexcept -> EventAccept {
-    switch (e.nevent)
-    {
-    case NoticeEvent::Event_Initialize:
-        m_window.init();
-        [[fallthrough]];
-    }
-    return Super::DoEvent(sender, e);
+void LongUI::UIViewport::initialize() noexcept {
+    // 初始化窗口
+    m_window.init();
+    // 初始化超类
+    Super::initialize();
 }
 
 /// <summary>

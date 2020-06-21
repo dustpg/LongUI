@@ -42,7 +42,7 @@ namespace LongUI {
         // ctor
         explicit UIRichListBox(UIControl* parent = nullptr) noexcept : UIRichListBox(UIRichListBox::s_meta) { this->final_ctor(parent); }
         // do event
-        auto DoEvent(UIControl*, const EventArg& e) noexcept->EventAccept override;
+        //auto DoEvent(UIControl*, const EventArg& e) noexcept->EventAccept override;
         // get now selected
         auto GetSelected() const noexcept { return m_pSelectedItem; };
         // select item, null to clear selected
@@ -50,6 +50,8 @@ namespace LongUI {
         // item detach
         void ItemDetached(UIRichListItem& item) noexcept;
     protected:
+        // initialize
+        void initialize() noexcept override;
         // add child
         void add_child(UIControl& ctrl) noexcept override;
         // lui std ctor

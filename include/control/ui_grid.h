@@ -57,6 +57,8 @@ namespace LongUI {
         // update
         void Update(UpdateReason reason) noexcept override;
     protected:
+        // initialize
+        void initialize() noexcept override;
         // add child
         void add_child(UIControl&) noexcept override;
         // relayout this

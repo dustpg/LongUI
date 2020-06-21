@@ -48,6 +48,8 @@ void InitViewportCallback(LongUI::UIViewport& v) noexcept {
     assert(btn_menubar);
     const auto btn_image = window.FindControl("image");
     assert(btn_image);
+    const auto btn_splitter = window.FindControl("splitter");
+    assert(btn_splitter);
     
     
     CUIWindow* const parent = nullptr;
@@ -150,6 +152,12 @@ void InitViewportCallback(LongUI::UIViewport& v) noexcept {
     btn_image->AddGuiEventListener(
         UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
         create_viewport(u8"xul/image.xul"_sv, {});
+        return Event_Accept;
+    });
+    // SPLITTER
+    btn_splitter->AddGuiEventListener(
+        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
+        create_viewport(u8"xul/splitter.xul"_sv, {});
         return Event_Accept;
     });
 }

@@ -88,6 +88,8 @@ namespace LongUI {
         // input event
         auto DoInputEvent(InputEventArg e) noexcept->EventAccept override;
     protected:
+        // initialize
+        void initialize() noexcept override;
         // add child
         void add_child(UIControl& child) noexcept override;
         // add attribute

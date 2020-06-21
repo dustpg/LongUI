@@ -62,7 +62,7 @@ namespace LongUI {
     // text/font
     struct TextFont;
     // Style model
-    struct Style {
+    struct /*alignas(double)*/ Style {
         // get TextFont
         auto GetTextFont() noexcept {
             assert(offset_tf && "bad offset");

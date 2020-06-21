@@ -45,7 +45,7 @@ namespace LongUI {
         explicit UITreeCell(UIControl* parent = nullptr) noexcept : UITreeCell(UITreeCell::s_meta) { this->final_ctor(parent); }
     public:
         // do normal event
-        auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
+        //auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         // do mouse event
         //auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
         // update, postpone change some data
@@ -55,6 +55,8 @@ namespace LongUI {
         // recreate/init device(gpu) resource
         //auto Recreate() noexcept->Result override;
     protected:
+        // initialize
+        void initialize() noexcept override;
         // add
         void add_attribute(uint32_t key, U8View value) noexcept override;
         // add child

@@ -35,7 +35,7 @@ namespace Demo {
         void Toggle() noexcept { SetChecked(!IsChecked()); }
     public:
         // do normal event
-        auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
+        //auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         // do mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
         // update
@@ -43,6 +43,8 @@ namespace Demo {
         // render this control only, [Global rendering and Incremental rendering]
         void Render() const noexcept override;
     protected:
+        // initialize
+        void initialize() noexcept override;
         // add attribute
         void add_attribute(uint32_t attr, U8View view) noexcept override;
         // set checked

@@ -50,6 +50,8 @@ namespace LongUI {
         // mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
     protected:
+        // initialize
+        void initialize() noexcept override;
         // add child
         void add_child(UIControl& child) noexcept override;
         // add attribute : key = bkdr hashed string key, this method valid before inited

@@ -44,8 +44,6 @@ namespace LongUI {
         using Super = UIBoxLayout;
         // private impl
         struct Private;
-        // menu list
-        void init_menulist();
     public:
         // command selected changed
         static constexpr auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }
@@ -92,6 +90,8 @@ namespace LongUI {
         // input event
         auto DoInputEvent(InputEventArg e) noexcept->EventAccept override;
     protected:
+        // initialize
+        void initialize() noexcept override;
         // add child
         void add_child(UIControl& child) noexcept override;
 #ifndef LUI_NO_MENULIST_EDITABLE

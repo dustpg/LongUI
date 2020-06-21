@@ -169,6 +169,8 @@ namespace LongUI {
         // recreate/init device(gpu) resource
         virtual auto Recreate(bool release_only) noexcept->Result;
     protected:
+        // initialize this
+        virtual void initialize() noexcept;
         // add child ini
         virtual void add_child(UIControl& child) noexcept;
         // get sub element ::before
@@ -386,7 +388,7 @@ namespace LongUI {
         void release_tooltip() noexcept;
     private:
         // init
-        auto init() noexcept->Result;
+        void init() noexcept;
         // remove triggered
         void remove_triggered() noexcept;
         // setup init state

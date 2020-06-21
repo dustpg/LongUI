@@ -66,10 +66,11 @@ namespace LongUI {
         // ref defualt label text
         auto&RefText() const noexcept { return m_oLabel.RefText(); }
     public:
-        // do normal event
-        auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         // update
         void Update(UpdateReason) noexcept override;
+    protected:
+        // initialize
+        void initialize() noexcept override;
     protected:
         // defualt label
         UILabel                 m_oLabel;

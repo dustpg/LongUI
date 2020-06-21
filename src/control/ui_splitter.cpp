@@ -61,23 +61,15 @@ LongUI::UISplitter::UISplitter(const MetaControl& meta) noexcept
     m_oBox.padding = { 2, 2, 2, 2 };
 }
 
-
-
 /// <summary>
-/// Does the event.
+/// initialize UISplitter
 /// </summary>
-/// <param name="sender">The sender.</param>
-/// <param name="e">The e.</param>
 /// <returns></returns>
-auto LongUI::UISplitter::DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept {
-    switch (e.nevent)
-    {
-    case NoticeEvent::Event_Initialize:
-        this->change_cursor();
-        [[fallthrough]];
-    default:
-        return Super::DoEvent(sender, e);
-    }
+void LongUI::UISplitter::initialize() noexcept {
+    // 初始化鼠标指针样式
+    this->change_cursor();
+    // 初始化超类
+    Super::initialize();
 }
 
 /// <summary>
