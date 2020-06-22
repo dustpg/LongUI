@@ -517,7 +517,11 @@ auto LongUI::CUIManager::Initialize(
     impl::init_cursor();
     // 初始化COM
     {
+#if LUI_NO_DROPDRAG
         const Result hr = { ::CoInitialize(nullptr) };
+#else
+        const Result hr = { ::OleInitialize(nullptr) };
+#endif
         if (!hr) return hr;
     }
     // 默认配置
@@ -899,7 +903,11 @@ void LongUI::CUIManager::Uninitialize() noexcept {
     // 手动调用析构函数
     this_()->~CUIManager();
     // 反初始化COM
+#if LUI_NO_DROPDRAG
     ::CoUninitialize();
+#else
+    ::OleUninitialize();
+#endif
     // 反初始化鼠标光标
     impl::uninit_cursor();
     // 反初始化DComp支持

@@ -17,6 +17,8 @@
 #include <core/ui_popup_window.h>
 #include <util/ui_color_system.h>
 #include <graphics/ui_graphics_decl.h>
+// Drop Drag
+#include <dropdrag/ui_droptarget.h>
 // private
 #include "../private/ui_private_control.h"
 
@@ -312,6 +314,14 @@ namespace LongUI {
             assert(this && window->pimpl() == (void*)this);
             return &window->RefViewport();
         }
+    public:
+#ifdef LUI_NO_DROPDRAG
+        // drop target place holder
+        void*               drop_target[1];
+#else
+        // drop target for window
+        CUIWndDropTarget    drop_target;
+#endif
     public:
         // swap chian
         I::Swapchan*    swapchan = nullptr;
@@ -2014,6 +2024,8 @@ void LongUI::CUIWindow::SetTitleName(CUIString&& name) noexcept {
 /// <returns></returns>
 void LongUI::CUIWindow::Private::Destroy(HWND hwnd, bool accessibility) noexcept {
     //LUIDebug(Hint) LUI_FRAMEID << hwnd << endl;
+    //清理 DropDrag
+    ::RevokeDragDrop(hwnd);
     // 尝试直接摧毁
     if (::DestroyWindow(hwnd)) return;
 #ifndef NDEBUG
@@ -2083,7 +2095,7 @@ HWND LongUI::CUIWindow::Private::Init(HWND parent, CUIWindow::WindowConfig confi
         // 额外
         uint32_t ex_flag = 0;
         // DirectComposition 支持
-        if (this->is_direct_composition()) 
+        if (this->is_direct_composition())
             ex_flag |= WS_EX_NOREDIRECTIONBITMAP;
         // WS_EX_TOOLWINDOW 不会让窗口显示在任务栏
         if (config & (CUIWindow::Config_ToolWindow | CUIWindow::Config_Popup))
@@ -2100,12 +2112,17 @@ HWND LongUI::CUIWindow::Private::Init(HWND parent, CUIWindow::WindowConfig confi
             window_rect.left, window_rect.top,
             window_rect.width, window_rect.height,
             // 弹出窗口使用NUL父窗口方便显示
-            config & CUIWindow::Config_Popup ? nullptr : parent ,
+            config & CUIWindow::Config_Popup ? nullptr : parent,
             nullptr,
             ::GetModuleHandleA(nullptr),
             this
         );
     }
+#ifndef LUI_NO_DROPDRAG
+    // 对于非弹出窗口注册拖放
+    if (!(config & CUIWindow::Config_Popup))
+        ::RegisterDragDrop(hwnd, &drop_target);
+#endif
     // 创建成功
     //if (hwnd)
     this->track_mouse.cbSize = sizeof(this->track_mouse);

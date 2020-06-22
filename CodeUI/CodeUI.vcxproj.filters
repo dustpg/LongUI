@@ -141,6 +141,12 @@
     <Filter Include="RichED">
       <UniqueIdentifier>{7b6f9a88-fda6-41b3-b7d4-61014e1ef5af}</UniqueIdentifier>
     </Filter>
+    <Filter Include="header\dragdrop">
+      <UniqueIdentifier>{8576c350-2b9c-4360-bb62-8ec66c2a4259}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\dragdrop">
+      <UniqueIdentifier>{9753f1cd-7491-4103-a087-159e9973a1cb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\cfunciton\ui_colorsystem.c">
@@ -484,6 +490,9 @@
     </ClCompile>
     <ClCompile Include="..\src\control\ui_grid.cpp">
       <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dragdrop\ui_dragdrop.cpp">
+      <Filter>source\dragdrop</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1094,6 +1103,15 @@
     </ClInclude>
     <ClInclude Include="..\include\control\ui_row.h">
       <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dropdrag\ui_dropdrag_decl.h">
+      <Filter>header\dragdrop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dropdrag\ui_droptarget.h">
+      <Filter>header\dragdrop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dropdrag\ui_dropdrag_impl.h">
+      <Filter>header\dragdrop</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

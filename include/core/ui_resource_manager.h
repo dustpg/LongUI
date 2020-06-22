@@ -30,6 +30,7 @@
 #include "../resource/ui_resource.h"
 #include "../graphics/ui_graphics_decl.h"
 #include "../style/ui_native_style.h"
+#include "../dropdrag/ui_dropdrag_decl.h"
 
 
 // ez helper
@@ -77,6 +78,8 @@ namespace LongUI {
     public:
         // private impl
         struct Private;
+        // get drop target helper
+        auto&RefDropTargetHelper() noexcept { return *m_pDropTargetHelper; }
         // get graphics factory
         auto&RefGraphicsFactory() noexcept { return *m_pGraphicsFactory; }
         // get 2d renderer
@@ -128,6 +131,8 @@ namespace LongUI {
         // release later release
         void release_later_release() noexcept;
     protected:
+        // drop target helper
+        I::DropTargetHelper*    m_pDropTargetHelper = nullptr;
         // graphics factory
         I::FactoryGraphics*     m_pGraphicsFactory = nullptr;
         // 3d device

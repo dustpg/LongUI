@@ -343,7 +343,8 @@ void LongUI::UIControl::init() noexcept {
     UIManager.RenderUnlock();
     // 初始化大小
     if (m_oBox.size.width == static_cast<float>(INVALID_CONTROL_SIZE)) {
-        this->Resize({ DEFAULT_CONTROL_WIDTH, DEFAULT_CONTROL_HEIGHT });
+        m_oBox.size = { DEFAULT_CONTROL_WIDTH, DEFAULT_CONTROL_HEIGHT };
+        //this->Resize({ DEFAULT_CONTROL_WIDTH, DEFAULT_CONTROL_HEIGHT });
     }
     // 设置初始化状态
     this->setup_init_state();

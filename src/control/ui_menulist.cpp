@@ -918,7 +918,7 @@ void LongUI::UIMenuPopup::initialize() noexcept {
         : native_style.clearcolor_ctxmenu
     );
     // 超类初始化
-    Super::Invalidate();
+    Super::initialize();
 }
 
 /// <summary>

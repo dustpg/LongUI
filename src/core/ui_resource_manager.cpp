@@ -1265,7 +1265,9 @@ bool LongUI::CUIResMgr::wait_for_vblank() noexcept {
     return true;
 }
 
-
+// DragDropHelper
+extern "C" const GUID CLSID_DragDropHelper;
+extern "C" const IID IID_IDropTargetHelper;
 
 /// <summary>
 /// Initializes a new instance of the <see cref="CUIResMgr" /> class.
@@ -1293,6 +1295,17 @@ LongUI::CUIResMgr::CUIResMgr(IUIConfigure* cfg, Result& out) noexcept {
     detail::ctor_dtor<CUIResMgr::Private>::create(&rm());
     // 初始化无关资源
     Result hr = rm().init();
+    // 创建拖放目标帮助器
+    if (hr) {
+        hr.code = ::CoCreateInstance(
+            CLSID_DragDropHelper,
+            nullptr,
+            CLSCTX_INPROC_SERVER,
+            IID_IDropTargetHelper,
+            reinterpret_cast<void**>(&m_pDropTargetHelper)
+        );
+        longui_debug_hr(hr, L"CoCreateInstance CLSID_DragDropHelper faild");
+    }
     // 创建本地风格渲染器
     if (hr) {
         const auto p = m_bufNative;
@@ -1342,6 +1355,8 @@ LongUI::CUIResMgr::~CUIResMgr() noexcept {
         auto& naive_style  = this->RefNativeStyle();
         impl::delete_native_style_renderer(&naive_style);
     }
+    // 释放帮助器
+    LongUI::SafeRelease(reinterpret_cast<IUnknown*&>(m_pDropTargetHelper));
     // 释放设备资源
     this->release_device();
     // 释放资源列表

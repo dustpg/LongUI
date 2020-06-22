@@ -28,9 +28,9 @@ namespace LongUI {
         // private data for manager
         template<size_t> struct private_window;
         // 32bit
-        template<> struct private_window<4> { enum { size = 960, align = 4 }; };
+        template<> struct private_window<4> { enum { size = 964, align = 4 }; };
         // 64bit
-        template<> struct private_window<8> { enum { size = 1216, align = 8 }; };
+        template<> struct private_window<8> { enum { size = 1224, align = 8 }; };
     }
     /// <summary>
     /// window base class
