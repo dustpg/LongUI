@@ -1,0 +1,3 @@
+# LongUI Special
+
+## HiDPI Support

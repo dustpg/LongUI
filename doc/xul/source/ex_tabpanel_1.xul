@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<window id="example-window" title="Example 4.3.1"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<tabbox>
+  <tabs>
+    <tab label="Mail"/>
+    <tab label="News"/>
+  </tabs>
+  <tabpanels>
+    <tabpanel id="mailtab">
+      <checkbox label="Automatically check for mail"/>
+    </tabpanel>
+    <tabpanel id="newstab">
+      <button label="Clear News Buffer"/>
+    </tabpanel>
+  </tabpanels>
+</tabbox>
+
+
+</window>
+

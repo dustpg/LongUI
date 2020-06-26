@@ -4,20 +4,22 @@
 # Layout
 
  - [box](./xul/box.md) [vbox](./xul/vbox.md) [hbox](./xul/vbox.md)
+ - [stack](./xul/stack.md) [deck](./xul/deck.md) 
+ - [grid](./xul/grid.md)
 
 # Controls
 
 ## Control List
 
- - [\<button>](#\<button>) [type="menu"](#\<button\ type="menu">)
- - [\<checkbox>](#\<checkbox>) [\<groupbox>](#\<groupbox>) [\<radio>](#\<radio>)
- - [\<image>](#\<image>) [\<label>](#\<label>)
- - [\<listbox>](#\<listbox>) [\<tree>](#\<tree>) \<richlistbox> 
+ - [\<button>](#button) [type="menu"](#button-typemenu)
+ - [\<checkbox>](#checkbox) [\<groupbox>](#groupbox) [\<radio>](#radio)
+ - [\<image>](#image) [\<label>](#label)
+ - [\<listbox>](#listbox) [\<tree>](#tree) \<richlistbox> 
  - \<menu> \<splitter>
- - [\<menulist(combobox)>](#\<menulist>) [editable="true"](#<menulist\ editable="true">)
- - [\<progressmeter>](#\<progressmeter>) [\<scale>](#\<scale>)
- - [\<textbox>](#\<textbox>) [multiline="true"](#\<textbox\ multiline="true">) [type="number"](#\<textbox\ type="number">) [type="password"](#\<textbox\ type="password">)
- - [\<toolbarbutton>](#\<toolbarbutton>) [type="menu"](#\<toolbarbutton\ type="menu">)
+ - [\<menulist(combobox)>](#menulist) [editable="true"](#menulist-editabletrue)
+ - [\<progressmeter>](#progressmeter) [\<scale>](#scale)
+ - [\<textbox>](#textbox) [multiline="true"](#textbox-multilinetrue) [type="number"](#textbox-typenumber>) [type="password"](#textbox-typepassword>)
+ - [\<toolbarbutton>](#toolbarbutton) [type="menu"](#toolbarbutton-typemenu>)
 
 
 

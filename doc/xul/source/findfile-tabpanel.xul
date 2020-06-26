@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<window
+    id="findfile-window"
+    title="Find Files"
+    orient="horizontal"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+<vbox flex="1">
+
+<tabbox>
+  <tabs>
+    <tab label="Search" selected="true"/>
+    <tab label="Options"/>
+  </tabs>
+
+  <tabpanels>
+   <tabpanel id="searchpanel" orient="vertical">
+
+
+  <label value="Enter your search criteria below and select the Find button to begin the search."/>
+
+<spacer style="height: 10px"/>
+
+<groupbox orient="horizontal">
+  <caption label="Search Criteria"/>
+    <menulist id="searchtype">
+      <menupopup>
+        <menuitem label="Name"/>
+        <menuitem label="Size"/>
+        <menuitem label="Date Modified"/>
+      </menupopup>
+    </menulist>
+    <spacer style="width: 10px;"/>
+    <menulist id="searchmode">
+      <menupopup>
+        <menuitem label="Is"/>
+        <menuitem label="Is Not"/>
+      </menupopup>
+    </menulist>
+    <spacer style="width: 10px;"/>
+    <textbox id="find-text" flex="1" style="min-width: 15em;"/>
+  </groupbox>
+</tabpanel>
+   <tabpanel id="optionspanel" orient="vertical">
+    <checkbox id="casecheck" label="Case Sensitive Search"/>
+    <checkbox id="wordscheck" label="Match Entire Filename"/>
+   </tabpanel>
+
+ </tabpanels>
+</tabbox>
+
+  <spacer style="height: 10px"/>
+
+  <hbox>
+    <progressmeter value="50%" style="margin: 4px;"/>
+    <spacer flex="1"/>
+    <button id="find-button" label="Find" default="true"/>
+    <button id="cancel-button" label="Cancel"/>
+  </hbox>
+
+</vbox>
+
+</window>
+

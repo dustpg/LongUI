@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<window id="example-window" title="Example 4.1.1"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<stack>
+  <label value="Shadowed" style="padding-left: 1px; padding-top: 1px; font-size: 15px"/>
+  <label value="Shadowed" style="color: red; font-size: 15px;"/>
+</stack>
+
+
+</window>
+

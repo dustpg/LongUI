@@ -6,6 +6,8 @@ A button that can be pressed by the user. Event handlers can be used to trap mou
 
 按钮就是可以点击的东西。事件处理程序可以用来捕获鼠标、键盘和其他事件。它通常呈现为一个灰色开始长方形。您可以指定按钮的 [label](#label) 属性来将按钮的文字设置好，或者直接写在标签中间也行。
 
+ - LongUI::UIButton
+
 
 ## Attributes List
 [accesskey](#accesskey), autocheck, checkState, [checked](#checked), command, crop, [dir](#dir), [disabled](#disabled), dlgtype, [group](#group), icon, [image](#image), [label](#label), open, [orient](#orient), tabindex, [type](#type)

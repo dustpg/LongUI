@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin" type="text/css"?>
-<?xml-stylesheet href="css/test.css" type="text/css"?>
 
 <window title="XUL Test"
         
@@ -17,12 +16,14 @@ function get_text() {
 
 ]]>
 </script>
-<vbox flex="1" style="overflow: scroll">
-  <vbox style="background-color: blue; overflow: auto">
-    <hbox style="min-width: 100px; min-height: 500px"/>
-  </vbox>
-  <vbox style="background-color: green;">
-    <hbox style="min-width: 100px; min-height: 500px"/>
-  </vbox>
-  </vbox>
+
+<button label="A"/>
+
+<vbox flex="1" >
+  <hbox flex="1" style="overflow: auto">
+    <label flex="2" crop="center" value="And this one-line label" />
+    <label flex="1" crop="center" value="And this one-line label, if there isn't enough room for it,  will be cropped in the middle." />
+    <label flex="1" value="And" />
+  </hbox>
+</vbox>
 </window>
