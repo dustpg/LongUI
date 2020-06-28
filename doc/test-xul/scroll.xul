@@ -17,13 +17,34 @@ function get_text() {
 ]]>
 </script>
 
-<button label="A"/>
 
-<vbox flex="1" >
+<!-- <vbox flex="1" >
   <hbox flex="1" style="overflow: auto">
     <label flex="2" crop="center" value="And this one-line label" />
     <label flex="1" crop="center" value="And this one-line label, if there isn't enough room for it,  will be cropped in the middle." />
     <label flex="1" value="And" />
   </hbox>
+  <hbox flex="1">
+    <button flex="1" label="And" />
+    <button flex="1" label="And" style="max-width:200px" />
+    <button flex="1" label="And" maxwidth="300px" />
+  </hbox>
+</vbox> -->
+
+
+<!-- <vbox flex="1" id="a" style="overflow:auto">
+  <label value="AAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBB" crop="end"/>
+  <label value="AAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBB" />
 </vbox>
+
+<vbox flex="1" id="b" style="overflow:auto">
+  <label value="AAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBB"/>
+</vbox> -->
+
+
+<vbox flex="1">
+  <label crop="end" value="AAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBB"/>
+</vbox>
+
+
 </window>

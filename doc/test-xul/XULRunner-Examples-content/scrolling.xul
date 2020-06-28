@@ -79,37 +79,37 @@
 <description value="arrowscrollbox - hover over the arrow to scroll" />
 <arrowscrollbox orient="vertical" flex="1">
 
-  <button label=" 1 Astérix le Gaulois" />
+  <button label=" 1 AstÃ©rix le Gaulois" />
   <button label=" 2 La serpe d'or" />
-  <button label=" 3 Astérix et les Goths" />
-  <button label=" 4 Astérix gladiateur" />
-  <button label=" 5 Le tour de Gaule d'Astérix" />
-  <button label=" 6 Astérix et Cléopâtre" />
+  <button label=" 3 AstÃ©rix et les Goths" />
+  <button label=" 4 AstÃ©rix gladiateur" />
+  <button label=" 5 Le tour de Gaule d'AstÃ©rix" />
+  <button label=" 6 AstÃ©rix et ClÃ©opÃ¢tre" />
   <button label=" 7 Le combat des chefs" />
-  <button label=" 8 Astérix chez les Bretons" />
-  <button label=" 9 Astérix et les Normands" />
-  <button label="10 Astérix légionnaire" />
+  <button label=" 8 AstÃ©rix chez les Bretons" />
+  <button label=" 9 AstÃ©rix et les Normands" />
+  <button label="10 AstÃ©rix lÃ©gionnaire" />
   <button label="11 Le bouclier Arverne" />
-  <button label="12 Astérix aux jeux olympiques" />
-  <button label="13 Astérix et le chaudron" />
-  <button label="14 Astérix en Hispanie" />
+  <button label="12 AstÃ©rix aux jeux olympiques" />
+  <button label="13 AstÃ©rix et le chaudron" />
+  <button label="14 AstÃ©rix en Hispanie" />
   <button label="15 La zizanie" />
-  <button label="16 Astérix chez les Helvêtes" />
+  <button label="16 AstÃ©rix chez les HelvÃªtes" />
   <button label="17 Le domaine des Dieux" />
-  <button label="18 Les lauriers de César" />
+  <button label="18 Les lauriers de CÃ©sar" />
   <button label="19 Le devin" />
-  <button label="20 Astérix en Corse" />
-  <button label="21 Le cadeau de César" />
-  <button label="22 La grande traversée" />
-  <button label="23 Obélix et compagnie" />
-  <button label="24 Astérix chez les Belges" />
-  <button label="25 Le grand Fossé" />
-  <button label="26 L'Odyssée d'Astérix" />
-  <button label="27 Le fils d'Astérix" />
-  <button label="28 Astérix chez Rahàzade" />
+  <button label="20 AstÃ©rix en Corse" />
+  <button label="21 Le cadeau de CÃ©sar" />
+  <button label="22 La grande traversÃ©e" />
+  <button label="23 ObÃ©lix et compagnie" />
+  <button label="24 AstÃ©rix chez les Belges" />
+  <button label="25 Le grand FossÃ©" />
+  <button label="26 L'OdyssÃ©e d'AstÃ©rix" />
+  <button label="27 Le fils d'AstÃ©rix" />
+  <button label="28 AstÃ©rix chez RahÃ zade" />
   <button label="29 La rose et le glaive" />
-  <button label="30 La galère d'Obélix" />
-  <button label="31 Astérix et Latraviata" />
+  <button label="30 La galÃ¨re d'ObÃ©lix" />
+  <button label="31 AstÃ©rix et Latraviata" />
 
 </arrowscrollbox>
 
