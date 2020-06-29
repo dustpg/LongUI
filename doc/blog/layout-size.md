@@ -15,20 +15,15 @@ CSS的属性会覆写LUI属性对应值，并且处于高优先级。即：
 
 ```cpp
 case BKDR_MINWIDTH:
-    // minwidth
+    // minwidth    : width属性下限
     m_oStyle.limited.width = value.ToFloat();
-    m_oStyle.overflow_sizestyled.min_width = true;
-    break;
-case BKDR_MINHEIGHT:
-    // minheight
-    m_oStyle.limited.height = value.ToFloat();
-    m_oStyle.overflow_sizestyled.min_height = true;
+    reinterpret_cast<uint8_t&>(m_oStyle.overflow_xex) |= uint8_t(4 << 2);
     break;
 ```
 
 
 
-一个最简单的例子就是图像`<image>`，建议宽度就是使用图片的宽度，下限宽度可以考虑`0`或者`1`。但是需要设置`flex`为有效值, 否则布局器依然会按照图片尺寸布局.
+一个最简单的例子就是图像`<image>`，建议宽度就是使用图片的宽度，下限宽度可以考虑`0`。但是需要设置`flex`为有效值, 否则布局器依然会按照图片尺寸布局.
 
 复杂点的例子就是箱型布局`<box>`。LongUI中，使用对应滚动条(这里就是水平滚动条)的`<box>`下限宽度会调整到`0`，建议宽度依然是有效子控件建议宽度(以及 `margin` 什么的，具体来说是 CSS 属性`box-sizing`控制的，XUL默认是`box-sizing: border-box`, LongUI中目前不支持动态切换`box-sizing`)累加.
 
@@ -62,4 +57,31 @@ LongUI中`<box>`布局算法如下, 为了方便说明先定义一些东西:
  - 极大概率: O(N)
  - 理论最差: O(N^2)
 
-最后确定的临时宽度就是控件的最终宽度，而控件的另一维度，即高度，对齐方式由其他属性控制，与主维度宽度相比就简单多了，不再赘述。
+最后确定的临时宽度就是控件的最终宽度，而控件的另一维度，即高度，由其他属性控制。与主维度宽度相比就简单多了。
+
+ - 如果可以缩放，在min-height 与 max-height之间匹配合适的高度
+ - 否则就是`height`
+ - 可以缩放的条件是`align: stretcht`
+ - 合适的高度是指内容高度与**实际**最低高度的极大值
+ - 之所以是实际，XUL中如果`<box>`使用`style="overflow:auto"`后会改变(LUI中)自身下限值的设置规则——因为可以滚动了，所以下限值变成0。
+
+# 深入了解
+ 这个部分是通过栗子详细了解`<box>`布局，所以先给代码，再给问题，最后给解释。
+
+## 例1
+
+```xml
+<hbox flex="1">
+  <label crop="end" value="AAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBB"/>
+</hbox>
+```
+然后吧 `hbox` 换成 `vbox`
+```xml
+<vbox flex="1">
+  <label crop="end" value="AAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBB"/>
+</vbox>
+```
+
+这两个有什么区别，会裁剪字符串显示吗？
+
+## 例2
