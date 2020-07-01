@@ -8,5 +8,6 @@
     <ClCompile Include="demo5_init.cpp" />
     <ClCompile Include="demo5_main.cpp" />
     <ClCompile Include="stack.cpp" />
+    <ClCompile Include="control_tree.cpp" />
   </ItemGroup>
 </Project>

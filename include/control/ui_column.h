@@ -46,9 +46,12 @@ namespace LongUI {
         explicit UIColumn(UIControl* parent = nullptr) noexcept : UIColumn(UIColumn::s_meta) { this->final_ctor(parent); }
     public:
         // update
-        //void Update(UpdateReason reason) noexcept override;
+        void Update(UpdateReason reason) noexcept override;
         // do normal event
         //auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
+    public:
+        // update fitting
+        void UpdateValue(float limited, float fitting) noexcept;
     private:
     };
     // get meta info for UIColumn

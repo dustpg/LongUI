@@ -379,7 +379,7 @@ void LongUI::UITextField::private_update() noexcept {
         if (values & RichED::Changed_Text) {
             pimpl()->text_changed = true;
             pimpl()->need_request = true;
-            Super::FireEvent(this->_onInput());
+            this->FireSimpleEvent(this->_onInput());
         }
         // 估计大小修改
         if (values & (RichED::Changed_EstimatedWidth | RichED::Changed_EstimatedHeight)) {
@@ -412,6 +412,18 @@ void LongUI::UITextField::need_update() noexcept {
 }
 
 /// <summary>
+/// refresh fitting size
+/// </summary>
+/// <returns></returns>
+void LongUI::UITextField::refresh_fitting() noexcept {
+    // 设置建议尺寸
+    const auto fitsize = m_tfBuffer.font.size;
+    this->set_limited_width_lp(fitsize);
+    this->set_limited_height_lp(fitsize);
+    this->update_fitting_size({ fitsize, fitsize });
+}
+
+/// <summary>
 /// Privates the font changed.
 /// </summary>
 /// <returns></returns>
@@ -421,6 +433,8 @@ void LongUI::UITextField::private_tf_changed(bool layout) noexcept {
     Private::ToRichED(m_tfBuffer, doc.default_riched);
     // 文本布局发生修改
     if (layout) {
+        // 刷新
+        this->refresh_fitting();
         this->need_update();
         // 非富文本模式强制重置
         if (!(m_flag & RichED::Flag_RichText))

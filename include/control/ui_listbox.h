@@ -39,6 +39,16 @@ namespace LongUI {
     class UIListItem;
     // list head
     class UIListHead;
+    // listbox body
+    class UIListBoxBody final : public UIScrollArea {
+        // need relayout
+        auto is_need_relayout() const noexcept { return m_state.reason & Reason_BasicRelayout; }
+    public:
+        // ctor
+        UIListBoxBody(UIControl*p) noexcept : UIScrollArea(p) {  }
+        // update
+        void Update(UpdateReason) noexcept override;
+    };
     // listbox control
     class UIListBox : public UIControl {
         // super class
@@ -65,7 +75,7 @@ namespace LongUI {
         // get item index
         auto GetItemIndex(const UIListItem&) noexcept -> uint32_t;
         // get item count
-        auto GetItemCount() const noexcept { return m_list; }
+        auto GetItemCount() const noexcept { return m_list.size(); }
         // get item at
         auto GetItemAt(uint32_t i) const noexcept { return m_list[i]; }
         // insert item to
@@ -84,7 +94,7 @@ namespace LongUI {
         void SetLineSize(Size2F) noexcept;
     public:
         // do normal event
-        auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
+        //auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         // Update
         void Update(UpdateReason) noexcept override;
     protected:
@@ -92,10 +102,10 @@ namespace LongUI {
         void add_attribute(uint32_t key, U8View value) noexcept;
         // add child
         void add_child(UIControl& child) noexcept override;
-        // refresh cols min size
-        void refresh_cols_minsize() noexcept;
-        // refresh this min size
-        void refresh_minsize() noexcept;
+        // refresh cols fitting
+        void refresh_cols_fitting() noexcept;
+        // refresh this fitting
+        void refresh_fitting() noexcept;
         // select item
         void select_item(UIListItem& item) noexcept;
         // refresh items index
@@ -110,7 +120,7 @@ namespace LongUI {
         void mark_need_refresh_index() noexcept { m_bRefreshTndex = true; }
     private:
         // listbox body
-        UIScrollArea        m_oListboxBody;
+        UIListBoxBody       m_oListboxBody;
         // list cols
         UIListCols*         m_pCols = nullptr;
         // list head
@@ -121,8 +131,6 @@ namespace LongUI {
         ItemList            m_list;
         // selected
         ItemList            m_selected;
-        // minwidth
-        POD::Vector<float>  m_minwidth;
         // display row | xul::rows related
         uint16_t            m_displayRow = 4;
         // need refresh index

@@ -79,8 +79,8 @@ LongUI::UIListBox::~UIListBox() noexcept {
 /// Initializes a new instance of the <see cref="UIListBox" /> class.
 /// </summary>
 /// <param name="meta">The meta.</param>
-LongUI::UIListBox::UIListBox(const MetaControl& meta) noexcept : Super(meta),
-    m_oListboxBody(this) {
+LongUI::UIListBox::UIListBox(const MetaControl& meta) noexcept : 
+    Super(meta), m_oListboxBody(this) {
     // 焦点允许
     //m_state.focusable = true;
     // 默认为列表框
@@ -92,6 +92,9 @@ LongUI::UIListBox::UIListBox(const MetaControl& meta) noexcept : Super(meta),
     // 创建Body控件
     m_oListboxBody.SetAutoOverflow();
 #ifndef NDEBUG
+    //auto& style = const_cast<Style&>(m_oListboxBody.RefStyle());
+    //style.overflow_y = Overflow_Scroll;
+    //m_oListboxBody.SetOverflow(Overflow_Auto, Overflow_Scroll);
     m_oListboxBody.SetDebugName("listbox::listboxbody");
 #endif // !NDEBUG
 }
@@ -113,12 +116,82 @@ void LongUI::UIListBox::SetLineSize(Size2F size) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIListBox::Update(UpdateReason reason) noexcept {
+    // 重新计算建议值
+    if (reason & Reason_BasicUpdateFitting) this->refresh_fitting();
+    // 重新布局
+    if (reason & Reason_BasicRelayout) this->relayout();
     // 其他的交给超类处理
     Super::Update(reason);
-    // 要求重新布局
-    // XXX: 检查重新布局的情况
-    if (reason & Reason_BasicRelayout) this->relayout();
 }
+
+
+/// <summary>
+/// Refreshes the fitting.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIListBox::refresh_cols_fitting() noexcept {
+    // TODO: 列建议值
+#if 0
+    // 根本没有列信息
+    if (!m_pCols) return;
+    // 内存不足?
+    m_minwidth.resize(m_pCols->GetChildrenCount());
+    if (!m_minwidth.is_ok()) return;
+    // 清空
+    std::memset(m_minwidth.data(), 0, m_pCols->GetChildrenCount() * sizeof(float));
+    const auto end = m_minwidth.end();
+    // 遍历数据
+    for (auto ctrl : m_list) {
+        auto itr = m_minwidth.begin();
+        for (auto& child : (*ctrl)) {
+            if (itr == end) break;
+            const auto ms = child.GetMinSize();
+            float& minwidth = *itr;
+            minwidth = std::max(minwidth, ms.width);
+            ++itr;
+        }
+    }
+    // 设置
+    auto itr = m_minwidth.begin();
+    for (auto& child : (*m_pCols)) {
+        UIControlPrivate::SetBoxMinWidth(child, *itr);
+        ++itr;
+    }
+    m_pCols->DoEvent(this, { NoticeEvent::Event_RefreshBoxMinSize });
+#endif
+}
+
+
+/// <summary>
+/// Refreshes the minsize.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIListBox::refresh_fitting() noexcept {
+    Size2F fsize = { 0.f };
+    // 先确定Head
+    if (m_pHead) fsize = m_pHead->GetBoxFittingSize();
+    const auto line_height = m_oListboxBody.line_size.height;
+    if (!line_height) return;
+    fsize.height += m_displayRow * line_height;
+#ifdef LUI_BOXSIZING_BORDER_BOX
+    const auto bpw = m_oBox.border.left + m_oBox.border.right
+        + m_oBox.padding.left + m_oBox.padding.right;
+    const auto bph = m_oBox.border.top + m_oBox.border.bottom
+        + m_oBox.padding.top + m_oBox.padding.bottom;
+    fsize.width += bpw; 
+    fsize.height += bph;
+#endif
+    // 设置大小
+    this->set_limited_width_lp(fsize.width);
+    this->set_limited_height_lp(fsize.height);
+    this->update_fitting_size(fsize);
+#ifndef NDEBUG
+    if (!std::strcmp(m_id.id, "multiple")) {
+        int bk = 9;
+    }
+#endif
+}
+
 
 
 /// <summary>
@@ -129,21 +202,22 @@ void LongUI::UIListBox::relayout() noexcept {
     // 获取左上角位置
     auto lt = this->RefBox().GetContentPos();
     auto ctsize = this->RefBox().GetContentSize();
-    const auto xofffset = lt.x;
-
     // 先布局列对象(有面积!)
     if (m_pCols) {
         m_pCols->SetPos(lt);
         this->resize_child(*m_pCols, ctsize);
         // 下次再来
-        if (m_pCols->WillRelayout())
-            return this->NeedUpdate(Reason_ChildLayoutChanged);
-        //int bk = 9;
+        if (m_pCols->WillRelayout()) {
+            this->NeedUpdate(Reason_ChildLayoutChanged);
+            m_oListboxBody.NeedUpdate(Reason_ChildLayoutChanged);
+            if (m_pHead) m_pHead->NeedUpdate(Reason_ChildLayoutChanged);
+            return;
+        }
     }
     // 拥有头对象?
     if (m_pHead) {
         m_pHead->SetPos(lt);
-        const auto height = m_pHead->GetMinSize().height;
+        const auto height = m_pHead->GetBoxFittingSize().height;
         lt.y += height;
         ctsize.height -= height;
         this->resize_child(*m_pHead, { ctsize.width, height });
@@ -151,26 +225,62 @@ void LongUI::UIListBox::relayout() noexcept {
     // Body 位置大小
     m_oListboxBody.SetPos(lt);
     this->resize_child(m_oListboxBody, ctsize);
-
-    // == Item ==
-    float item_offset = 0.f;
-    // 先获取获取行高度
-    const auto line_height = [this]() noexcept {
-        float height = 0.f;
-        for (auto* child : m_list) 
-            height = std::max(height, child->GetMinSize().height);
-        return height;
-    }();
-    // 遍历有效子节点
-    for (auto* child : m_list) {
-        child->SetPos({xofffset, item_offset });
-        this->resize_child(*child, { ctsize.width,  line_height });
-        item_offset += line_height;
+#ifndef NDEBUG
+    if (!std::strcmp(m_id.id, "multiple")) {
+        int bk = 9;
     }
-    // TODO: 宽度
-    m_oListboxBody.ForceUpdateScrollSize({ ctsize.width, item_offset });
+#endif
 }
 
+
+/// <summary>
+/// update this
+/// </summary>
+/// <param name="reason"></param>
+/// <returns></returns>
+void LongUI::UIListBoxBody::Update(UpdateReason reason) noexcept {
+    // 重新计算建议值
+    if (reason & Reason_BasicUpdateFitting) {
+        assert(m_pParent);
+        // 先获取获取行高度
+        const auto line_height = [this]() noexcept {
+            float height = 0.f;
+            // 遍历有效子节点
+            UIControl* child = this->begin();
+            while (child != m_pFinalEnd) {
+                height = std::max(height, child->GetBoxFittingSize().height);
+                child = UIControlPrivate::Next(child);
+            }
+            return height;
+        }();
+        line_size.height = line_height;
+        const auto count = longui_cast<UIListBox*>(m_pParent)->GetItemCount();
+        const auto min_height = static_cast<float>(count) * line_height;
+        m_minScrollSize.height = min_height;
+        // 设置大小
+        this->set_limited_height_lp(min_height);
+        this->update_fitting_size({ 0, min_height });
+    }
+    // 重新布局
+    if (reason & Reason_BasicRelayout) {
+        const auto remain = this->layout_scroll_bar();
+        // 需要重新布局 本次没有必要再计算了
+        if (this->is_need_relayout()) return;
+        // 内容区
+        float item_offset = 0.f;
+        const auto line_height = this->line_size.height;
+        // 遍历有效子节点
+        UIControl* child = this->begin();
+        while (child != m_pFinalEnd) {
+            child->SetPos({ 0, item_offset });
+            this->resize_child(*child, { remain.width,  line_height });
+            item_offset += line_height;
+            child = UIControlPrivate::Next(child);
+        }
+    }
+    // 超类处理
+    UIScrollArea::Update(reason);
+}
 
 /// <summary>
 /// Refreshes the index of the item.
@@ -179,7 +289,7 @@ void LongUI::UIListBox::relayout() noexcept {
 void LongUI::UIListBox::refresh_item_index() noexcept {
     uint32_t index = 0;
     for (auto child : m_list) {
-        UIControlPrivate::SetParentData(*child, index);
+        UIControlPrivate::SetLayoutValueU(*child, index);
         ++index;
     }
     this->clear_need_refresh_index();
@@ -221,6 +331,7 @@ void LongUI::UIListBox::add_child(UIControl& child) noexcept {
     if (const auto item = uisafe_cast<UIListItem>(&child)) {
         m_list.push_back(item);
         this->mark_need_refresh_index();
+        //this->NeedUpdate(Reason_ChildIndexChanged);
         UIControlPrivate::AddChild(m_oListboxBody, child);
         return;
     }
@@ -230,8 +341,6 @@ void LongUI::UIListBox::add_child(UIControl& child) noexcept {
         Super::add_child(child);
         // 交换body cols以提高优先级处理鼠标消息
         this->SwapNode(child, m_oListboxBody);
-        // 正在添加节点, 没必要用SwapChildren?
-        //this->SwapChildren(child, *m_pListboxBody);
         return;
     }
     // 是ListHead
@@ -346,7 +455,7 @@ PCN_NOINLINE
 /// <returns></returns>
 auto LongUI::UIListBox::GetItemIndex(const UIListItem& item) noexcept -> uint32_t {
     if (this->need_refresh_index()) this->refresh_item_index();
-    return UIControlPrivate::GetParentData(item);
+    return UIControlPrivate::GetLayoutValueU(item);
 }
 
 /// <summary>
@@ -380,78 +489,6 @@ void LongUI::UIListBox::ItemRemoved(UIListItem& item) noexcept {
     }
     // 3. 标记需要修改索引
     this->mark_need_refresh_index();
-}
-
-/// <summary>
-/// Does the event.
-/// </summary>
-/// <param name="sender">The sender.</param>
-/// <param name="e">The e.</param>
-/// <returns></returns>
-auto LongUI::UIListBox::DoEvent(UIControl* sender, 
-    const EventArg& e) noexcept -> EventAccept {
-    switch (e.nevent)
-    {
-    case NoticeEvent::Event_RefreshBoxMinSize:
-        // 先更新cols的最小大小以确定宽度
-        this->refresh_cols_minsize();
-        // 更新最小大小
-        //Super::DoEvent(sender, e);
-        this->refresh_minsize();
-        return Event_Accept;
-    default:
-        // 其他事件
-        return Super::DoEvent(sender, e);
-    }
-}
-
-/// <summary>
-/// Refreshes the minsize.
-/// </summary>
-/// <returns></returns>
-void LongUI::UIListBox::refresh_cols_minsize() noexcept {
-    // 根本没有列信息
-    if (!m_pCols) return;
-    // 内存不足?
-    m_minwidth.resize(m_pCols->GetChildrenCount());
-    if (!m_minwidth.is_ok()) return;
-    // 清空
-    std::memset(m_minwidth.data(), 0, m_pCols->GetChildrenCount() * sizeof(float));
-    const auto end = m_minwidth.end();
-    // 遍历数据
-    for (auto ctrl : m_list) {
-        auto itr = m_minwidth.begin();
-        for (auto& child : (*ctrl)) {
-            if (itr == end) break;
-            const auto ms = child.GetMinSize();
-            float& minwidth = *itr;
-            minwidth = std::max(minwidth, ms.width);
-            ++itr;
-        }
-    }
-    // 设置
-    auto itr = m_minwidth.begin();
-    for (auto& child : (*m_pCols)) {
-        UIControlPrivate::SetBoxMinWidth(child, *itr);
-        ++itr;
-    }
-    m_pCols->DoEvent(this, { NoticeEvent::Event_RefreshBoxMinSize });
-}
-
-
-/// <summary>
-/// Refreshes the minsize.
-/// </summary>
-/// <returns></returns>
-void LongUI::UIListBox::refresh_minsize() noexcept {
-    Size2F msize = { 0.f };
-    // 先确定Head
-    if (m_pHead) msize = m_pHead->RefBox().minsize;
-    // 再确定Body
-    const auto line_height = m_oListboxBody.line_size.height;
-    msize.height += m_displayRow * line_height;
-    // 设置大小
-    this->set_contect_minsize(msize);
 }
 
 // ----------------------------------------------------------------------------
@@ -584,12 +621,10 @@ void LongUI::UIListItem::relayout() noexcept {
         // 获取UIListBox
         if (const auto list = m_pListBox) {
             if (const auto cols = list->GetCols()) {
-                return cols->MatchLayout(*this);
+                this->MatchLayout(UIListCol::s_meta, *cols, 1);
             }
-            // TODO: 没有cols的场合?
         }
     }
-    // 默认的水平布局
     else this->relayout_h();
 }
 
@@ -678,20 +713,25 @@ void LongUI::UIListItem::Update(UpdateReason reason) noexcept {
         }
         m_pListBox = listbox;
     }
-    // TODO: 布局
-    if (reason & Reason_BasicRelayout) {
-        this->relayout();
-#if 1
-        // XXX: 直接调用最基的
-        UIControl::Update(reason);
-#else
-        // 取消布局
-        Super::Update(reason & ~Reason_BasicRelayout);
-#endif
-        return;
-    }
-    // 超类处理
-    Super::Update(reason);
+    // 尺寸
+    if (reason & Reason_BasicUpdateFitting) this->refresh_fitting();
+    // 布局
+    if (reason & Reason_BasicRelayout) this->relayout();
+    // 超超类处理
+    UIScrollArea::Update(reason);
+}
+
+
+/// <summary>
+/// refresh fitting for item
+/// </summary>
+/// <returns></returns>
+void LongUI::UIListItem::refresh_fitting() noexcept {
+    float fitting = 0;
+    for (auto& child : (*this))
+        fitting = std::max(fitting, child.GetBoxFittingSize().height);
+    this->set_limited_height_lp(fitting);
+    this->update_fitting_size({ 0, fitting }, m_pListBox);
 }
 
 /// <summary>
@@ -702,7 +742,7 @@ void LongUI::UIListItem::initialize() noexcept {
     // 没子控件
     if (!this->GetChildrenCount()) {
         // TODO: 没有文本时候的处理
-        m_oLabel.SetAsDefaultMinsize();
+        //m_oLabel.SetAsDefaultMinsize();
         this->add_private_child();
     }
     // 同步状态
@@ -717,19 +757,19 @@ void LongUI::UIListItem::initialize() noexcept {
 /// <param name="sender">The sender.</param>
 /// <param name="e">The e.</param>
 /// <returns></returns>
-auto LongUI::UIListItem::DoEvent(UIControl * sender,
-    const EventArg & e) noexcept -> EventAccept {
-    switch (e.nevent)
-    {
-    case NoticeEvent::Event_RefreshBoxMinSize:
-        Super::DoEvent(sender, e);
-        if (const auto list = m_pListBox)
-            list->SetLineSize(this->RefBox().minsize);
-        return Event_Accept;
-    }
-    // 超类处理
-    return Super::DoEvent(sender, e);
-}
+//auto LongUI::UIListItem::DoEvent(UIControl * sender,
+//    const EventArg & e) noexcept -> EventAccept {
+//    switch (e.nevent)
+//    {
+//    case NoticeEvent::Event_RefreshBoxMinSize:
+//        Super::DoEvent(sender, e);
+//        if (const auto list = m_pListBox)
+//            list->SetLineSize(this->RefBox().minsize);
+//        return Event_Accept;
+//    }
+//    // 超类处理
+//    return Super::DoEvent(sender, e);
+//}
 
 
 
@@ -819,33 +859,6 @@ bool LongUI::UIListCols::WillRelayout() const noexcept {
 }
 
 
-/// <summary>
-/// Matches the layout.
-/// </summary>
-/// <param name="container">The container.</param>
-/// <returns></returns>
-void LongUI::UIListCols::MatchLayout(UIControl& container) noexcept {
-    const auto height = container.RefBox().GetContentSize().height;
-    auto itr = container.begin();
-    const auto end = container.end();
-    // 遍历cols
-    for (auto& col : (*this)) {
-        // 必须是col
-        if (!uisafe_cast<UIListCol>(&col)) continue;
-        // 下面没了
-        if (itr == end) break;
-        // 设置
-        auto& cchild = *itr;
-        const auto width = col.GetSize().width;
-        UIControl::resize_child(cchild, { width, height });
-        cchild.SetPos(col.GetPos());
-        //LUIDebug(Hint) << (void*)&cchild << cchild.GetPos() << endl;
-        // 递进
-        ++itr;
-    }
-}
-
-
 // ----------------------------------------------------------------------------
 // --------------------           List Col            -------------------------
 // ----------------------------------------------------------------------------
@@ -918,14 +931,12 @@ LongUI::UIListHead::~UIListHead() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIListHead::Update(UpdateReason reason) noexcept {
+    // 尺寸
+    if (reason & Reason_BasicUpdateFitting) this->refresh_fitting();
     // 布局
-    if (reason & Reason_BasicRelayout) {
-        this->relayout();
-        // 略过布局
-        return UIControl::Update(reason);
-    }
-    // 超类处理
-    return Super::Update(reason);
+    if (reason & Reason_BasicRelayout) this->relayout();
+    // 超超类处理
+    UIScrollArea::Update(reason);
 }
 
 /// <summary>
@@ -936,7 +947,7 @@ void LongUI::UIListHead::relayout() noexcept {
     // 获取UIListBox
     if (const auto list = longui_cast<UIListBox*>(m_pParent)) {
         if (const auto cols = list->GetCols()) {
-            return cols->MatchLayout(*this);
+            this->MatchLayout(UIListCol::s_meta, *cols, 1);
         }
     }
     // 默认的水平布局
@@ -975,6 +986,7 @@ namespace LongUI {
 LongUI::UIListHeader::UIListHeader(const MetaControl& meta) noexcept : Super(meta),
     m_oImage(this), m_oLabel(this), m_oSortDir(this) {
     //m_state.focusable = true;
+    m_oLabel.InitCrop(Crop_End);
     // 属于HEADER CELL
     m_oStyle.appearance = Appearance_TreeHeaderCell;
 #ifndef NDEBUG

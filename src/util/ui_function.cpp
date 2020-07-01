@@ -1,4 +1,5 @@
-﻿#include <util/ui_function.h>
+﻿#include <util/ui_sort.h>
+#include <util/ui_function.h>
 #include <cassert>
 
 
@@ -62,4 +63,54 @@ auto LongUI::detail::uifunc_helper::add_chain_helper(
 /// <param name="">The .</param>
 /// <returns></returns>
 void LongUI::detail::empty_dtor(void*) noexcept {
+
+}
+
+namespace LongUI {
+    // bubble sort for vector or list
+    template<typename Itr, typename Lamda>
+    inline void BubbleSort(Itr begin, Itr end, Lamda lam) noexcept {
+        --end;
+        bool flag = true;
+        while (flag) {
+            flag = false;
+            for (auto i = begin; i != end; ++i) {
+                auto j = i; ++j;
+                if (lam(*j, *i)) {
+                    std::swap(*j, *i);
+                    flag = true;
+                }
+            }
+            --end;
+        }
+    }
+}
+
+PCN_NOINLINE
+/// <summary>
+/// sort the pointers
+/// </summary>
+/// <param name="ptr"></param>
+/// <param name="end"></param>
+/// <param name="offset"></param>
+/// <param name="mask"></param>
+/// <returns></returns>
+void LongUI::SortPointers(const void**ptr, const void**end, uint32_t offset, uint32_t mask) noexcept {
+    assert(end > ptr && "bad count");
+    assert((offset & 3) == 0 && "bad offset");
+    const auto comp = [offset, mask](const char* a, const char *b) noexcept {
+        const auto x = *reinterpret_cast<const uint32_t*>(a + offset) & mask;
+        const auto y = *reinterpret_cast<const uint32_t*>(b + offset) & mask;
+        return x < y;
+    };
+    const auto begin_x = reinterpret_cast<const char**>(ptr);
+    const auto end_x = reinterpret_cast<const char**>(end);
+#if 0
+    // 针对大于1000个使用 高级排序算法
+    if (count > 1000) {
+        std::sort(begin, end, comp);
+        return;
+    }
+#endif
+    LongUI::BubbleSort(begin_x, end_x, comp);
 }

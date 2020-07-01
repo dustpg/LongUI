@@ -60,8 +60,6 @@ namespace LongUI {
         void MoveToGlobalSubView(UIViewport&) noexcept;
         // find subviewport with unique string
         auto FindSubViewportWithUID(const char*) const noexcept->UIViewport*;
-        // mark window minsize changed, donothing if null
-        static void MarkWindowMinsizeChanged(CUIWindow* window) noexcept;
     protected:
         // delete all window
         void delete_all_window() noexcept;
@@ -79,8 +77,6 @@ namespace LongUI {
         void sleep_for_vblank() noexcept;
         // refresh control world in all windows
         void refresh_window_world() noexcept;
-        // refresh all given windows(and children) minsize
-        void refresh_window_minsize() noexcept;
         // recreate_device all windows
         auto recreate_windows() noexcept->Result;
         // before all given windows(and children) render

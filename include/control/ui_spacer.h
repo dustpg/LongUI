@@ -48,6 +48,8 @@ namespace LongUI {
         explicit UISpacer(UIControl* parent = nullptr) noexcept : UISpacer(UISpacer::s_meta) { this->final_ctor(parent); }
         // render
         void Render() const noexcept override;
+        // set spacer data
+        void SetSpacer(Size2F size, float flex) noexcept;
     };
     // get meta info for UISpacer
     LUI_DECLARE_METAINFO(UISpacer);

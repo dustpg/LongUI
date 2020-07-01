@@ -39,11 +39,8 @@ LongUI::CUIRendererBackground::~CUIRendererBackground() noexcept {
 void LongUI::CUIRendererBackground::ReleaseDeviceData() {
     UIManager.TSReleaseCOM(LUI_OBJECT_TO_COM(m_pOutput));
     UIManager.TSReleaseCOM(LUI_OBJECT_TO_COM(m_pBackground));
-    //LongUI::SafeRelease(m_pImageBrush);
-#ifndef DEBUG
-    m_pBackground = reinterpret_cast<I::Effect*>(1);
-    m_pOutput = reinterpret_cast<I::EOutput*>(1);
-#endif // !DEBUG
+    m_pOutput = nullptr;
+    m_pBackground = nullptr;
 }
 
 /// <summary>
@@ -140,13 +137,21 @@ namespace LongUI { namespace detail {
     /// <param name="box">The box.</param>
     /// <param name="rect">The rect.</param>
     /// <returns></returns>
-    void get_render_rect(
-        AttributeBox attr,
-        const Box& box, 
-        RectF& rect) noexcept {
+    void get_render_rect(AttributeBox attr,const Box& box, RectF& rect) noexcept {
+#if 0
+        // 外边距
+        rect = { 0, 0, box.size.width, box.size.height };
+        if (attr == Box_MarginBox) return;
+        // 边框
+        rect.top += box.margin.top;
+        rect.left += box.margin.left;
+        rect.right -= box.margin.right;
+        rect.bottom -= box.margin.bottom;
+#endif
         switch (attr)
         {
         default: [[fallthrough]];
+        case LongUI::Box_MarginBox:  box.GetMarginEdge(rect);  break;
         case LongUI::Box_BorderBox:  box.GetBorderEdge(rect);  break;
         case LongUI::Box_PaddingBox: box.GetPaddingEdge(rect); break;
         case LongUI::Box_ContentBox: box.GetContentEdge(rect); break;

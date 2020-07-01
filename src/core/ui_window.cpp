@@ -1021,7 +1021,7 @@ bool LongUI::CUIWindow::SetFocus(UIControl& ctrl) noexcept {
     focused = &ctrl;
     ctrl.StartAnimation({ State_Focus, State_Focus });
     // Focus 事件
-    ctrl.FireEvent(UIControl::_onFocus());
+    ctrl.FireSimpleEvent(UIControl::_onFocus());
     return true;
 }
 
@@ -1083,6 +1083,19 @@ bool LongUI::CUIWindow::FocusNext() noexcept {
     if (!target) return false;
     this->SetDefault(*target);
     return this->SetFocus(*target);
+}
+
+/// <summary>
+/// do something after control got invisible
+/// </summary>
+/// <param name="ctrl"></param>
+/// <returns></returns>
+void LongUI::CUIWindow::DoControlInvisible(UIControl& ctrl) noexcept {
+    // TODO: 是检查VisibleEx 还是 直接取消?
+    if (const auto f = pimpl()->focused)
+        if (f->IsAncestorForThis(ctrl)) this->KillFocus(*f);
+    if (const auto d = pimpl()->now_default)
+        if (d->IsAncestorForThis(ctrl)) this->NullDefault();
 }
 
 /// <summary>
@@ -1164,7 +1177,7 @@ void LongUI::CUIWindow::KillFocus(UIControl& ctrl) noexcept {
         //m_private->saved_focused = nullptr;
         ctrl.StartAnimation({ State_Focus, State_Non });
         // Blur 事件
-        ctrl.FireEvent(UIControl::_onBlur());
+        ctrl.FireSimpleEvent(UIControl::_onBlur());
     }
 }
 
@@ -1223,6 +1236,18 @@ void LongUI::CUIWindow::SetDefault(UIControl& ctrl) noexcept {
     auto& nowc = pimpl()->now_default;
     if (nowc) nowc->StartAnimation({ State_Default, State_Non });
     (nowc = &ctrl)->StartAnimation({ State_Default, State_Default });
+}
+
+/// <summary>
+/// Sets the default.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+void LongUI::CUIWindow::NullDefault() noexcept {
+    auto& nowc = pimpl()->now_default;
+    if (!nowc) return;
+    nowc->StartAnimation({ State_Default, State_Non });
+    nowc = nullptr;
 }
 
 /// <summary>

@@ -103,6 +103,8 @@ namespace LongUI {
         auto RefDefaultFont() const noexcept -> const FontArg&;
         // thread safe release COM object 
         void TSReleaseCOM(I::COM*) noexcept;
+        // set text cropping
+        void SetCropping(I::Text&) noexcept;
     public:
         // set alpha ch. premultiply for reading image
         void SetAlphaMode(bool premultiply) noexcept;

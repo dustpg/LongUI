@@ -45,7 +45,7 @@ namespace LongUI {
         explicit UIStack(UIControl* parent = nullptr) noexcept : UIStack(UIStack::s_meta) { this->final_ctor(parent); }
     public:
         // do normal event
-        auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
+        //auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         //// do mouse event
         //auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
         // update
@@ -55,8 +55,8 @@ namespace LongUI {
         //// recreate/init device(gpu) resource
         //auto Recreate() noexcept->Result override;
     protected:
-        // refresh min size
-        void refresh_minsize() noexcept;
+        // refresh fitting
+        void refresh_fitting() noexcept;
         // relayout stack
         void relayout_stack() noexcept;
     protected:

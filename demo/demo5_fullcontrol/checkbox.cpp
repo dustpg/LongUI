@@ -13,8 +13,8 @@ void InitViewport_CheckBox(LongUI::UIViewport& viewport) noexcept {
     auto& window = viewport.RefWindow();
     struct set_label_text {
         UILabel*    display = nullptr;
-        auto operator()(UIControl& ctrl) noexcept {
-            const auto checkbox = longui_cast<UICheckBox*>(&ctrl);
+        auto operator()(const GuiEventArg& arg) noexcept {
+            const auto checkbox = longui_cast<UICheckBox*>(arg.current);
             display->SetText(checkbox->RefText());
             return Event_Accept;
         }

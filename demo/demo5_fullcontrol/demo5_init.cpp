@@ -12,6 +12,12 @@ void InitViewport_Scale(LongUI::UIViewport&) noexcept;
 void InitViewport_Stack(LongUI::UIViewport&) noexcept;
 struct init_func_t { void (*func)(LongUI::UIViewport&) noexcept; };
 
+
+auto CreateViewport_Controls(
+    LongUI::CUIWindow*, 
+    LongUI::CUIWindow::WindowConfig
+) noexcept ->LongUI::UIViewport*;
+
 /// <summary>
 /// Initializes the viewport callback.
 /// </summary>
@@ -50,13 +56,13 @@ void InitViewportCallback(LongUI::UIViewport& v) noexcept {
     assert(btn_image);
     const auto btn_splitter = window.FindControl("splitter");
     assert(btn_splitter);
+    const auto btn_controls = window.FindControl("controls");
+    assert(btn_controls);
     
     
     CUIWindow* const parent = nullptr;
     // NORMAL
     const auto create_viewport = [&window, modal](U8View view, init_func_t call) noexcept {
-
-
         const CUIWindow::WindowConfig cfg =
             CUIWindow::Config_Default
             //| CUIWindow::Config_QuitOnClose
@@ -69,7 +75,25 @@ void InitViewportCallback(LongUI::UIViewport& v) noexcept {
         p->SetXulFromFile(view);
         if (call.func) call.func(*p);
 
-        p->SetAutoOverflow();
+        //p->SetAutoOverflow();
+        p->RefWindow().SetClearColor({ 1,1,1,1 });
+        p->RefWindow().ShowWindow();
+
+        if (modal->IsChecked())
+            p->RefWindow().Exec();
+    };
+    // CONTROLS
+    const auto create_controls = [&window, modal]() noexcept {
+        const CUIWindow::WindowConfig cfg =
+            CUIWindow::Config_Default
+            //| CUIWindow::Config_QuitOnClose
+            | CUIWindow::Config_DeleteOnClose
+            ;
+        const auto parent = modal->IsChecked() ? &window : nullptr;
+        const auto p = CreateViewport_Controls(parent, cfg);
+        if (!p) return;
+        p->RefWindow().ResizeRelative({ 600, 400 });
+
         p->RefWindow().SetClearColor({ 1,1,1,1 });
         p->RefWindow().ShowWindow();
 
@@ -78,86 +102,92 @@ void InitViewportCallback(LongUI::UIViewport& v) noexcept {
     };
     // LAYOUT
     btn_layout->AddGuiEventListener(
-        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
+        UIButton::_onCommand(), [create_viewport](const LongUI::GuiEventArg&) noexcept {
         create_viewport(u8"xul/layout.xul"_sv, {});
         return Event_Accept;
     });
     // TEXTBOX
     btn_textbox->AddGuiEventListener(
-        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
+        UIButton::_onCommand(), [create_viewport](const LongUI::GuiEventArg&) noexcept {
         create_viewport(u8"xul/textbox.xul"_sv, { InitViewport_TextBox });
         return Event_Accept;
     });
     // TEXTBOX2
     btn_textbox2->AddGuiEventListener(
-        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
+        UIButton::_onCommand(), [create_viewport](const LongUI::GuiEventArg&) noexcept {
         create_viewport(u8"xul/textbox2.xul"_sv, { InitViewport_TextBox2 });
         return Event_Accept;
     });
     // SCALE
     btn_scale->AddGuiEventListener(
-        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
+        UIButton::_onCommand(), [create_viewport](const LongUI::GuiEventArg&) noexcept {
         create_viewport(u8"xul/scale.xul"_sv, { InitViewport_Scale });
         return Event_Accept;
     });
     // TAB
     btn_tab->AddGuiEventListener(
-        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
+        UIButton::_onCommand(), [create_viewport](const LongUI::GuiEventArg&) noexcept {
         create_viewport(u8"xul/tab.xul"_sv, { });
         return Event_Accept;
     });
     // CHECKBOX
     btn_checkbox->AddGuiEventListener(
-        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
+        UIButton::_onCommand(), [create_viewport](const LongUI::GuiEventArg&) noexcept {
         create_viewport(u8"xul/checkbox.xul"_sv, { InitViewport_CheckBox });
         return Event_Accept;
     });
     // RADIO
     btn_radio->AddGuiEventListener(
-        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
+        UIButton::_onCommand(), [create_viewport](const LongUI::GuiEventArg&) noexcept {
         create_viewport(u8"xul/radio.xul"_sv, { InitViewport_Radio });
         return Event_Accept;
     });
     // SCROLLING
     btn_scrolling->AddGuiEventListener(
-        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
+        UIButton::_onCommand(), [create_viewport](const LongUI::GuiEventArg&) noexcept {
         create_viewport(u8"xul/scrolling.xul"_sv, {  });
         return Event_Accept;
     });
     // POPUP
     btn_popup->AddGuiEventListener(
-        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
+        UIButton::_onCommand(), [create_viewport](const LongUI::GuiEventArg&) noexcept {
         create_viewport(u8"xul/popup.xul"_sv, {});
         return Event_Accept;
     });
     // BUTTON
     btn_button->AddGuiEventListener(
-        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
+        UIButton::_onCommand(), [create_viewport](const LongUI::GuiEventArg&) noexcept {
         create_viewport(u8"xul/button.xul"_sv, {});
         return Event_Accept;
     });
     // STACK
     btn_stack->AddGuiEventListener(
-        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
+        UIButton::_onCommand(), [create_viewport](const LongUI::GuiEventArg&) noexcept {
         create_viewport(u8"xul/stack.xul"_sv, { InitViewport_Stack });
         return Event_Accept;
     });
     // MENU BAR
     btn_menubar->AddGuiEventListener(
-        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
+        UIButton::_onCommand(), [create_viewport](const LongUI::GuiEventArg&) noexcept {
         create_viewport(u8"xul/menubar.xul"_sv, {});
         return Event_Accept;
     });
     // IMAGE
     btn_image->AddGuiEventListener(
-        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
+        UIButton::_onCommand(), [create_viewport](const LongUI::GuiEventArg&) noexcept {
         create_viewport(u8"xul/image.xul"_sv, {});
         return Event_Accept;
     });
     // SPLITTER
     btn_splitter->AddGuiEventListener(
-        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
+        UIButton::_onCommand(), [create_viewport](const LongUI::GuiEventArg&) noexcept {
         create_viewport(u8"xul/splitter.xul"_sv, {});
+        return Event_Accept;
+    });
+    // CONTROLS
+    btn_controls->AddGuiEventListener(
+        UIButton::_onCommand(), [create_controls](const LongUI::GuiEventArg&) noexcept {
+        create_controls();
         return Event_Accept;
     });
 }

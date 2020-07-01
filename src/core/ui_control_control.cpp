@@ -9,6 +9,7 @@
 #include <core/ui_window.h>
 #include <core/ui_string.h>
 #include <core/ui_manager.h>
+#include <util/ui_sort.h>
 // debug
 #include <debugger/ui_debug.h>
 
@@ -21,6 +22,8 @@
 static bool sg_bDebugFlag = false;
 #endif // !NDEBUG
 
+
+//#define LUI_SORT_UPDATE_LIST
 
 
 namespace LongUI {
@@ -60,6 +63,12 @@ struct LongUI::CUIControlControl::Private {
     ControlNode             update_list = { nullptr };
     // delete list
     ControlNode             delete_list = { nullptr };
+    // max depth of tree
+    uint16_t                update_max_depth = 0;
+    // min depth of tree
+    uint16_t                update_min_depth = 0xffff;
+    // count of list
+    uint32_t                update_count = 0;
     // style cache
     POD::Vector<UIControl*> style_cache;
     // animation list
@@ -83,6 +92,12 @@ struct LongUI::CUIControlControl::Private {
 
     // add into update list
     void add_into_update_list(UIControl& ctrl) noexcept {
+#ifdef LUI_SORT_UPDATE_LIST
+        ++update_count;
+        const uint16_t depth = ctrl.GetLevel();
+        update_max_depth = std::max(update_max_depth, depth);
+        update_min_depth = std::min(update_min_depth, depth);
+#endif
         const size_t offset = offsetof(UIControl, m_oManager.next_delinitupd);
         CUIControlControl::AddControlToList(ctrl, luiref update_list, offset);
     }
@@ -94,6 +109,8 @@ struct LongUI::CUIControlControl::Private {
         CUIControlControl::RemoveControlInList(ctrl, luiref init_list_lock_free, offset);
         ctrl.m_oManager.next_delinitupd = nullptr;
     }
+    // sort the list
+    auto sort_update() noexcept -> UIControl*;
 };
 
 /// <summary>
@@ -182,49 +199,24 @@ void LongUI::CUIControlControl::RecursiveRender(
     const UIControl& ctrl,
     const RectF region[], 
     uint32_t length) noexcept {
-    /*
-    块呈现器的堆栈顺序如下：
-        background color
-        background image
-        border
-        children
-        outline
-    */
     // 脏矩形渲染: 没有交集就不渲染
     if (length && std::all_of(region, region + length, [&](const RectF& rect) {
         return !LongUI::IsOverlap(rect, ctrl.m_oBox.visible);
     })) return;
     // 看不到就不渲染
-    const auto csize = ctrl.GetSize();
+    const auto csize = ctrl.GetBoxSize();
     if (!ctrl.IsVisible() || csize.width <= 0.f || csize.height <= 0.f)
         return;
-    // 渲染器设置本身裁剪矩形以免绘制出去
-    //auto& r = LongUI::Private::renderer();
-    //r.setClipRect(qt({}, ctrl.m_oBox.rect));
-
     // 设置世界转换矩阵
     ctrl.apply_world_transform();
     // 设置裁剪矩形
     ctrl.apply_clip_rect();
-    // 区域渲染上层已经
+    // 区域渲染
     ctrl.Render();
-
-    // TODO: 优化 Attachment_Fixed
-    // 渲染子节点: 滚动
-    for (auto& child : ctrl) {
-        if (child.m_state.attachment == Attachment_Scroll)
-            RecursiveRender(child, region, length);
-    }
-    // 渲染子节点: 固定
-    for (auto& child : ctrl) {
-        if (child.m_state.attachment != Attachment_Scroll)
-            RecursiveRender(child, region, length);
-    }
-
+    // 渲染子节点
+    for (auto& child : ctrl) RecursiveRender(child, region, length);
     // 取消裁剪矩形
     ctrl.cancel_clip_rect();
-
-    //ctrl.render_children();
 }
 
 /// <summary>
@@ -727,13 +719,38 @@ void LongUI::CUIControlControl::update_control_in_list() noexcept {
             ctrl.GetWindow()->SetControlWorldChanged(ctrl);
     };
     // 遍历更新表
-    auto node = cccc.update_list.first;
+    auto node = cccc.sort_update();
+#ifdef LUI_SORT_UPDATE_LIST
+#ifndef NDEBUG
+    // 以防BUG
+    uint16_t level_dbg = 0xffff;
+    const auto count_dbg = cccc.update_count;
+    auto node_dbg = node;
+    uint32_t i_dbg = 0;
+    // 遍历初始化列表
+    while (node_dbg) {
+        node_dbg = node_dbg->m_oManager.next_delinitupd;
+        assert(i_dbg != count_dbg);
+        ++i_dbg;
+    }
+    assert(i_dbg == count_dbg);
+#endif
+    cccc.update_count = 0;
+    cccc.update_max_depth = 0;
+    cccc.update_min_depth = 0xffff;
+#endif
     cccc.update_list = { nullptr, nullptr };
-
     // 遍历初始化列表
     while (node) {
         // 本次处理
         const auto ctrl = node;
+#ifndef NDEBUG
+#ifdef LUI_SORT_UPDATE_LIST
+        const uint16_t lv = ctrl->GetLevel();
+        assert(level_dbg >= lv);
+        level_dbg = lv;
+#endif
+#endif
         node = ctrl->m_oManager.next_delinitupd;
         ctrl->m_oManager.next_delinitupd = nullptr;
         // 更新
@@ -741,6 +758,94 @@ void LongUI::CUIControlControl::update_control_in_list() noexcept {
     }
 }
 
+/// <summary>
+/// sort the node
+/// </summary>
+/// <param name="node"></param>
+/// <param name="max"></param>
+/// <param name="count"></param>
+/// <returns></returns>
+auto LongUI::CUIControlControl::Private::sort_update() noexcept -> UIControl* {
+#ifdef LUI_SORT_UPDATE_LIST
+    assert(update_count);
+    assert(update_max_depth >= update_min_depth);
+    // 只有一层就不用排序
+    if (update_min_depth == update_max_depth) return update_list.first;
+    // 使用DEPTH信息排序阈值
+    constexpr uint32_t DEPTH_SORT_THRESHOLD = 32;
+    // DEPTH信息排序, 算法复杂度 O(N), 但是初始代价较高
+    UIControl* head[MAX_CONTROL_TREE_DEPTH];
+    const auto count = update_count;
+    if (count > DEPTH_SORT_THRESHOLD) {
+        // 空间复杂度 S(D)
+        UIControl** tail[MAX_CONTROL_TREE_DEPTH];
+        const auto min = update_min_depth;
+        const auto max = update_max_depth + 1;
+        assert(max > min);
+        std::memset(head + min, 0, sizeof(head[0]) * (max - min));
+        for (auto i = min; i != max; ++i) tail[i] = head + i;
+        // 遍历表格
+        auto node = update_list.first;
+        while (node) {
+            // 本次处理
+            const auto ctrl = node;
+            node = ctrl->m_oManager.next_delinitupd;
+            const auto level = ctrl->GetLevel();
+            assert(level >= min);
+            assert(level < max);
+            assert(level < MAX_CONTROL_TREE_DEPTH);
+            if (!head[level]) head[level] = ctrl;
+            *tail[level] = ctrl;
+            tail[level] = &ctrl->m_oManager.next_delinitupd;
+        }
+        assert(head[update_min_depth] && head[update_max_depth]);
+        // 收尾
+        *tail[min] = nullptr;
+        auto i = update_max_depth;
+        const auto last = update_min_depth;
+        while (true) {
+            const auto head_this = head[i];
+            const auto tail_this = tail[i];
+            --i;
+            if (head_this) {
+                while (!head[i]) --i;
+                *tail_this = head[i];
+            }
+            if (i == last) break;
+        }
+        return head[update_max_depth];
+    }
+    // 冒泡排序, 算法复杂度 O(N*N)
+    else {
+        // 空间复杂度 S(N)
+        static_assert(DEPTH_SORT_THRESHOLD <= MAX_CONTROL_TREE_DEPTH, "LESS");
+        // 遍历初始化列表
+        auto node = update_list.first;
+        uint32_t i = 0;
+        while (node) {
+            head[i] = node; ++i;
+            node = node->m_oManager.next_delinitupd;
+        }
+        // 指针排序
+        const auto bi = reinterpret_cast<const void**>(const_cast<const UIControl**>(head));
+        const auto ei = reinterpret_cast<const void**>(const_cast<const UIControl**>(head + i));
+        constexpr uint32_t offset = offsetof(UIControl, m_state.level);
+        constexpr uint32_t offset4 = offset & uint32_t(~3);
+        constexpr uint32_t offset_remain = offset & 3;
+        constexpr uint32_t mask = helper::u8u32_mask<offset_remain>::value;
+        LongUI::SortPointers(bi, ei, offset4, mask);
+        // 串起来
+        assert(count > 1);
+        for (uint16_t i = 1; i < count; ++i) {
+            head[i]->m_oManager.next_delinitupd = head[i - 1];
+        }
+        head[0]->m_oManager.next_delinitupd = nullptr;
+        return head[count - 1];
+    }
+#else
+    return update_list.first;
+#endif
+}
 
 #include <control/ui_viewport.h>
 
@@ -939,8 +1044,7 @@ auto LongUI::CUIControlControl::FindBasicAnimation(
     -> const ControlAnimationBasic* {
     auto& anima = cc().basic_anima;
     // 对比函数
-    const auto finder = [&ctrl](
-        const ControlAnimationBasic& ca) noexcept {
+    const auto finder = [&ctrl](const ControlAnimationBasic& ca) noexcept {
         return ca.ctrl == &ctrl;
     };
     const auto end_itr = anima.end();

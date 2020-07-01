@@ -39,10 +39,15 @@ void LongUI::UISplitter::SetOrient(AttributeOrient o) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UISplitter::change_cursor() noexcept {
-    m_hovered = m_state.orient
-        ? CUICursor::Cursor_SizeNS
-        : CUICursor::Cursor_SizeWE
-        ;
+    if (m_state.orient) {
+        m_hovered = CUICursor::Cursor_SizeNS;
+        m_oStyle.appearance = Appearance_SplitterV;
+    }
+    else {
+        m_hovered = CUICursor::Cursor_SizeWE;
+        m_oStyle.appearance = Appearance_SplitterH;
+
+    }
 }
 
 
@@ -52,13 +57,15 @@ void LongUI::UISplitter::change_cursor() noexcept {
 /// <param name="meta">The meta.</param>
 LongUI::UISplitter::UISplitter(const MetaControl& meta) noexcept
     : Super(meta), m_hovered(CUICursor::Cursor_Arrow) {
+    m_attribute.resizebefore = Resize_Closest;
+    m_attribute.resizeafter = Resize_Closest;
+    m_attribute.collapse = Resizea_None;
     // 这个根据父节点自行定义?
     // 默认是水平方向拉拽?
     m_state.orient = Orient_Horizontal;
     // 允许焦点?
     m_state.capturable = true;
-    // XXX: 硬编码
-    m_oBox.padding = { 2, 2, 2, 2 };
+    m_oStyle.appearance = Appearance_SplitterH;
 }
 
 /// <summary>

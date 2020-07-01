@@ -70,7 +70,7 @@ void LongUI::UIScale::Update(UpdateReason reason) noexcept {
 /// <returns></returns>
 void LongUI::UIScale::refresh_thumb_postion() noexcept {
     const auto csize = this->RefBox().GetContentSize();
-    const auto ssize = this->thumb.GetSize();
+    const auto ssize = this->thumb.GetBoxSize();
     assert(m_fValue >= m_fMin && m_fValue <= m_fMax && "out of range");
     Point2F pos = this->RefBox().GetContentPos();
     // 相等就算了
@@ -101,7 +101,7 @@ void LongUI::UIScale::refresh_thumb_size() noexcept {
     const auto csize = this->RefBox().GetContentSize();
     const auto ratio = m_fPageIncrement / (m_fPageIncrement + length);
     const auto xsize = this->thumb.RefStyle().maxsize;
-    Size2F size = this->thumb.GetMinSize();
+    Size2F size = this->thumb.GetBoxFittingSize();
     // 水平方向
     if (this->GetOrient() == Orient_Horizontal) {
         size.width = std::max(csize.width * ratio, size.width);
@@ -131,7 +131,7 @@ void LongUI::UIScale::SetValue(float value) noexcept {
     // 修改数据
     m_fValue = newv;
     // 触发修改GUI事件
-    this->FireEvent(this->_onChange());
+    this->FireSimpleEvent(this->_onChange());
     this->NeedUpdate(Reason_ValueTextChanged);
 }
 
@@ -213,7 +213,7 @@ auto LongUI::UIScale::DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept
         if (m_pHovered) {
             assert(m_pHovered == &this->thumb);
             const auto csize = this->RefBox().GetContentSize();
-            const auto ssize = this->thumb.GetSize();
+            const auto ssize = this->thumb.GetBoxSize();
             const int i = this->GetOrient() == Orient_Horizontal ? 0 : 1;
             const auto width = i[&csize.width] - i[&ssize.width];
             const auto x = i[&pt_this.x] - m_fClickOffset;

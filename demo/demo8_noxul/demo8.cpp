@@ -112,7 +112,7 @@ CDemo8NoXul::CDemo8NoXul() noexcept :
     Unsafe::AddAttrUninited(m_oBox, align, "center"_sv);
     this->RefWindow().SetClearColor({ 1,1,1,1 });
     m_oBoxB_Button.AddGuiEventListener(m_oBoxB_Button._onCommand(),
-        [this](UIControl& c) noexcept {
+        [this](const GuiEventArg&) noexcept {
         auto& text = m_oBoxB_TextBox.RequestText();
         CUIBlockingGuiOpAutoUnlocker unlocker;
         const auto hwnd = this->RefWindow().GetHwnd();
@@ -122,7 +122,7 @@ CDemo8NoXul::CDemo8NoXul() noexcept :
     });
     const auto context = "context"_bkdr;
     Unsafe::AddAttrUninited(m_oBoxB_TextBox, context, "demo8context"_sv);
-    m_oStyle.overflow_x = m_oStyle.overflow_x = Overflow_Auto;
+    this->SetAutoOverflow();
 }
 
 

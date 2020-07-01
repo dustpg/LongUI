@@ -17,6 +17,7 @@ namespace LongUI {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIImage::UIImage(const MetaControl& meta) noexcept: Super(meta) {
+
 }
 
 
@@ -70,14 +71,18 @@ void LongUI::UIImage::SetSource(U8View src) noexcept {
         m_idSrc.SetId(id);
         m_idFrame = 0;
         m_uFrameCount = 1;
+        Size2F fitting = { 0 };
+        // 有效图片
         if (id) {
             auto& res = m_idSrc.RefResource();
             auto& img = static_cast<CUIImage&>(res);
+            // 更新建议值
+            fitting = img.size;
+            // 计算帧动画
             m_uFrameCount = img.frame_count;
             if (m_uFrameCount > 1) this->SetTimer(img.delay, 0);
         }
-        this->mark_window_minsize_changed();
-        // XXX: 新的理由?
+        this->update_fitting_size(fitting);
         this->NeedUpdate(Reason_SizeChanged);
         this->Invalidate();
     }
@@ -91,21 +96,9 @@ void LongUI::UIImage::SetSource(U8View src) noexcept {
 auto LongUI::UIImage::DoEvent(UIControl* sender, const EventArg& e) noexcept -> EventAccept {
     switch (e.nevent)
     {
-        Size2F minsize_set;
-    case LongUI::NoticeEvent::Event_RefreshBoxMinSize:
-        // IMAGE最小尺寸就是图片大小
-        minsize_set = { 0.f };
-        if (m_idSrc.GetId()) {
-            auto& res = m_idSrc.RefResource();
-            auto& img = static_cast<CUIImage&>(res);
-            assert(res.RefData().GetType() == ResourceType::Type_Image);
-            minsize_set.width = static_cast<float>(img.size.width);
-            minsize_set.height = static_cast<float>(img.size.height);
-        }
-        this->set_contect_minsize(minsize_set);
-        return Event_Accept;
     case LongUI::NoticeEvent::Event_Timer0:
         // TIMER#0 作为帧动画使用
+        if (m_uFrameCount < 2) return Event_Ignore;
         m_idFrame = (m_idFrame + 1) % m_uFrameCount;
         this->Invalidate();
         return Event_Accept;

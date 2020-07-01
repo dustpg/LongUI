@@ -32,9 +32,9 @@
 // ui namespace
 namespace LongUI {
     // columns control
-    class UIColumns : public UIControl {
+    class UIColumns : public UIBoxLayout {
         // super class
-        using Super = UIControl;
+        using Super = UIBoxLayout;
     protected:
         // ctor
         UIColumns(const MetaControl&) noexcept;
@@ -47,7 +47,7 @@ namespace LongUI {
         explicit UIColumns(UIControl* parent = nullptr) noexcept : UIColumns(UIColumns::s_meta) { this->final_ctor(parent); }
     public:
         // update
-        //void Update(UpdateReason reason) noexcept override;
+        void Update(UpdateReason reason) noexcept override;
         // do normal event
         //auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
     private:

@@ -91,9 +91,9 @@ void LongUI::UITextField::Update(UpdateReason reason) noexcept {
 /// </summary>
 /// <param name="event">The event.</param>
 /// <returns></returns>
-auto LongUI::UITextField::FireEvent(GuiEvent event) noexcept -> EventAccept {
+auto LongUI::UITextField::FireEvent(const GuiEventArg& event) noexcept -> EventAccept {
     EventAccept code = Event_Ignore;
-    switch (event)
+    switch (event.GetType())
     {
     case LongUI::GuiEvent::Event_OnFocus:
         this->EventOnFocus();
@@ -142,7 +142,7 @@ bool LongUI::UITextField::try_trigger_change_event() noexcept {
     bool code = false;
     if (this->is_change_could_trigger()) {
         this->clear_change_could_trigger();
-        code = Super::FireEvent(this->_onChange()) != Event_Ignore;
+        code = this->FireSimpleEvent(this->_onChange()) & 1;
     }
     return code;
 }
@@ -165,9 +165,12 @@ void LongUI::UITextField::initialize() noexcept {
         m_colorCaret.b = 1.f - m_colorCaret.b;
     }
 #endif
+    this->refresh_fitting();
     // 初始化超类
     Super::initialize();
 }
+
+
 
 
 /// <summary>
@@ -181,10 +184,6 @@ auto LongUI::UITextField::DoEvent(UIControl * sender,
     // 分类讨论
     switch (e.nevent)
     {
-    case NoticeEvent::Event_RefreshBoxMinSize:
-        // 保证一行
-        this->set_contect_minsize({ m_tfBuffer.font.size, m_tfBuffer.font.size });
-        return Event_Accept;
     case NoticeEvent::Event_DoAccessAction:
         // 默认行为(聚焦)
         this->SetAsDefaultAndFocus();

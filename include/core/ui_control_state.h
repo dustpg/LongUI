@@ -68,9 +68,14 @@ namespace LongUI {
         // basic relayout reason
         Reason_BasicRelayout 
             = Reason_ParentChanged
-            | Reason_ChildIndexChanged
             | Reason_SizeChanged
             | Reason_BoxChanged
+            | Reason_ChildLayoutChanged
+            | Reason_ChildIndexChanged
+        ,
+        // basic update fitting reason
+        Reason_BasicUpdateFitting
+            = Reason_ChildIndexChanged
             | Reason_ChildLayoutChanged
         ,
     };

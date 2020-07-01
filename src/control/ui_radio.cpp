@@ -159,9 +159,9 @@ auto LongUI::UIRadio::DoEvent(
 /// </summary>
 /// <param name="event">The event.</param>
 /// <returns></returns>
-auto LongUI::UIRadio::FireEvent(GuiEvent event) noexcept -> EventAccept {
+auto LongUI::UIRadio::FireEvent(const GuiEventArg& event) noexcept -> EventAccept {
     // 由于焦点位置特殊, 针对焦点的处理 
-    switch (event)
+    switch (event.GetType())
     {
     case LongUI::GuiEvent::Event_OnFocus:
         this->UpdateFocusRect();
@@ -261,7 +261,7 @@ void LongUI::UIRadio::SetChecked(bool checked) noexcept {
     this->StartAnimation({ State_Checked , target });
     // 检查回馈
     if (checked && m_pRadioGroup) {
-        this->FireEvent(this->_onCommand());
+        this->FireSimpleEvent(this->_onCommand());
         m_pRadioGroup->SetChecked(*this);
     }
 }
@@ -353,7 +353,7 @@ void LongUI::UIRadioGroup::Update(UpdateReason reason) noexcept {
         // 没有找到
         m_pChecked = nullptr;
         // 修改事件?
-        this->FireEvent(_onCommand());
+        this->FireSimpleEvent(_onCommand());
     };
     // 子节点修改过?
     if (reason & Reason_ChildIndexChanged) {
@@ -397,5 +397,5 @@ void LongUI::UIRadioGroup::set_checked(UIRadio * radio) noexcept {
     // 设置当前的状态
     if ((m_pChecked = radio)) m_pChecked->SetChecked(true);
     // 修改事件
-    this->FireEvent(this->_onCommand());
+    this->FireSimpleEvent(this->_onCommand());
 }

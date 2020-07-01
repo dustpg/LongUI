@@ -40,6 +40,9 @@
 // using _CrtMemState under MS's crtdbg.h chekc memleak between 2-points
 //#define LUI_DEBUG_WINDOW_MEMLEAK
 
+// box-sizing: border-box;
+#define LUI_BOXSIZING_BORDER_BOX
+
 // ----------------------------------------------------------------------------
 
 // LongUI Need Win7-PlatformUpdate
@@ -125,7 +128,7 @@ namespace LongUI {
         // default popup window class name zhuangbilty
         static constexpr const wchar_t* WindowClassNameP = L"Windows.UI.LongUI.PopupWindow";
         // default window icon name
-        static constexpr const wchar_t* WindowIconName = nullptr; // (const wchar_t*)1
+        static constexpr const wchar_t* WindowIconName = (const wchar_t*)1;
         // bug dump file path, set nullptr to disable dump-file
         static constexpr const char16_t*BugDumpFilePath = u"longui-v0.2.2.dmp";
     };

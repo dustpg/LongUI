@@ -15,6 +15,7 @@
 #include <core/ui_string.h>
 #include <util/ui_ostype.h>
 #include <util/ui_endian.h>
+#include <util/ui_sort.h>
 
 // c++
 #include <type_traits>
@@ -38,8 +39,6 @@ inline auto LongUI::CUIManager::this_() noexcept -> CUIManager* {
 
 // private manager
 namespace LongUI { struct CUIManager::Private {
-    // mark winmin
-    static void MarkWndMin() noexcept { UIManager.m_flagWndMinSizeChanged = true; }
     // TC
     using TC = CUITimeCapsule;
     // meta
@@ -198,11 +197,7 @@ void LongUI::CUIManager::OneFrame() noexcept {
     // 刷新控件控制
     this_()->normal_update();
     // 初始化控件
-    while (this_()->init_control_in_list() || m_flagWndMinSizeChanged) {
-        // 标记为空
-        m_flagWndMinSizeChanged = false;
-        // 更新窗口最小大小
-        this_()->refresh_window_minsize();
+    while (this_()->init_control_in_list()) {
         // 刷新在表控件
         this_()->update_control_in_list();
 #ifndef NDEBUG
@@ -368,16 +363,6 @@ auto LongUI::CUIManager::CreateControl(U8View element,
 /// longui namespace
 /// </summary>
 namespace LongUI {
-    // detail namespace
-    namespace detail {
-        /// <summary>
-        /// Marks the wndmin changed.
-        /// </summary>
-        /// <returns></returns>
-        void mark_wndmin_changed() noexcept {
-            CUIManager::Private::MarkWndMin();
-        }
-    }
     // help
     enum {
         pmanag1 = sizeof(CUIManager::Private),
@@ -766,7 +751,11 @@ auto LongUI::CUIManager::Initialize(
             const auto cmp = [](MetaControlCP a, MetaControlCP b) noexcept {
                 return a->bkdr_hash < b->bkdr_hash;
             };
-            std::sort(m_oCtrlInfo.info_list, m_oCtrlInfo.end_of_list, cmp);
+            const auto bi = reinterpret_cast<const void**>(m_oCtrlInfo.info_list);
+            const auto ei = reinterpret_cast<const void**>(m_oCtrlInfo.end_of_list);
+            const uint32_t offset = offsetof(MetaControl, bkdr_hash);
+            const uint32_t mask = 0xfffffffful;
+            LongUI::SortPointers(bi, ei, offset, mask);
 #ifndef NDEBUG
             // 不允许重复
             const auto count = static_cast<int>(m_oCtrlInfo.end_of_list - m_oCtrlInfo.info_list - 1);

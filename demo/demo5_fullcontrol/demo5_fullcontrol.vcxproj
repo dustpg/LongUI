@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="checkbox.cpp" />
+    <ClCompile Include="control_tree.cpp" />
     <ClCompile Include="demo5_main.cpp" />
     <ClCompile Include="demo5_init.cpp" />
     <ClCompile Include="radio.cpp" />

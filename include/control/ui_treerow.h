@@ -59,8 +59,6 @@ namespace LongUI {
         bool CloseNode() noexcept;
         // toggle node
         bool ToggleNode() noexcept;
-        // set level offset
-        void SetLevelOffset(float offset) noexcept;
         // Init open close[ call this from parent]
         void InitOpen_Parent(bool) noexcept;
     public:
@@ -81,16 +79,14 @@ namespace LongUI {
         void open_close(bool open) noexcept;
         // relayout
         void relayout() noexcept;
-        // refresh minsize
-        void refresh_minsize() noexcept;
+        // refresh fitting
+        void refresh_fitting() noexcept;
     private: // private impl
         // private twisty[+]
         UIImage                 m_oTwisty;
         // private image
         UIImage                 m_oImage;
     protected:
-        // offset
-        float                   m_fLevelOffset = 0.f;
         // node closed
         bool                    m_bOpened = true;
         // node keep child

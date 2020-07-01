@@ -171,17 +171,10 @@ auto LongUI::UIScrollBar::DoEvent(UIControl * sender,
     const EventArg & e) noexcept -> EventAccept {
     switch (e.nevent)
     {
-    //case NoticeEvent::Event_Initialize:
-    //    // 初始化
-    //    this->init_bar();
-    //    return Event_Accept;
     case NoticeEvent::Event_UIEvent:
         // Gui事件: 数据修改事件向上传递
-    {
-        const auto ge = static_cast<const EventGuiArg&>(e).GetEvent();
-        assert(sender == &m_oSlider);
-        return this->FireEvent(ge);
-    }
+        static_cast<const GuiEventArg&>(e).current = this;
+        return this->FireEvent(static_cast<const GuiEventArg&>(e));
     default:
         // 超类处理
         return Super::DoEvent(sender, e);

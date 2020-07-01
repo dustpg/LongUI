@@ -23,8 +23,10 @@ namespace LongUI {
     LUI_CONTROL_META_INFO(UIColumn, "column");
     // UIColumns类 元信息
     LUI_CONTROL_META_INFO(UIColumns, "columns");
-    // max count of gridview
-    enum : uint32_t { MAX_COUNT_GRIDVIEW = 256 };
+    // MAX subline count
+    enum : uint32_t { MAX_SUBLINE_COUNT = 256 };
+    // l x f
+    struct GridLF { float limited, fitting; };
 }
 
 
@@ -72,76 +74,54 @@ void LongUI::UIGrid::initialize() noexcept {
         }
         // 直接隐藏第一个
         m_pFirst->SetVisible(false);
+#ifndef NDEBUG
+        m_pFirst->SetVisible(m_state.dbg_output);
+#endif
     }
     return Super::initialize();
 }
 
-/// <summary>
-/// Does the event.
-/// </summary>
-/// <param name="sender">The sender.</param>
-/// <param name="e">The e.</param>
-/// <returns></returns>
-auto LongUI::UIGrid::DoEvent(UIControl* sender, 
-    const EventArg& e) noexcept -> EventAccept {
-    float buf[MAX_COUNT_GRIDVIEW];
-    switch (e.nevent)
-    {
-        Size2F minsize;
-    case NoticeEvent::Event_RefreshBoxMinSize:
-        minsize = {};
-        if (m_pSecond) {
-            const auto rv = this->check_minsize(buf);
-            float sum = 0;
-            for (uint32_t i = 0; i != rv.first; ++i) sum += buf[i];
-            if (this->is_col_mode()) minsize = { rv.second, sum };
-            else minsize = { sum, rv.second };
-        }
-        this->set_contect_minsize(minsize);
-        return Event_Accept;
-    }
-    return Super::DoEvent(sender, e);
-}
-
-
 // ui::impl
 namespace LongUI { namespace impl {
     /// <summary>
-    /// 计算行数据
+    /// each line
     /// </summary>
-    /// <param name="line"></param>
-    /// <param name="buf"></param>
-    /// <param name="real_len"></param>
-    /// <returns></returns>
-    template<typename T, typename U>
-    const auto grid_row(U call, UIControl& line, float buf[], uint32_t real_len) noexcept {
-        float max_height = 0;
-        // 有效行
-        if (uisafe_cast<T>(&line)) {
-            uint32_t i = 0;
-            for (auto& child : line) {
-                // 可见即可
-                if (child.IsVaildInLayout()) {
-                    if (i == real_len) {
-#ifndef NDEBUG
-                        LUIDebug(Warning) << "children over col" << endl;
-#endif // !NDEBUG
-                        break;
-                    }
-                    const auto ms = call(child.GetMinSize());
-                    buf[i] = std::max(buf[i], ms.width); ++i;
-                    max_height = std::max(max_height, ms.height);
-                }
+    template<typename T, typename U, typename V> 
+    auto each_line(T& line, GridLF buf[], U ucall, V vcall) noexcept {
+        uint32_t index = 0;
+        float max_fitting = 0;
+        for (auto& child : line) {
+            if (!child.IsVaildInLayout()) continue;
+            auto& value = buf[index];
+            const auto lsize = child.GetBoxLimitedSize();
+            value.limited = std::max(value.limited, ucall(lsize));
+            const auto fsize = child.GetBoxFittingSize();
+            value.fitting = std::max(value.fitting, ucall(fsize));
+            max_fitting = std::max(max_fitting, vcall(fsize));
+            ++index; if (index == MAX_SUBLINE_COUNT) break;
+        }
+        line.UpdateValue(max_fitting, max_fitting);
+        return max_fitting;
+    };
+    /// <summary>
+    /// each line
+    /// </summary>
+    template<typename T> 
+    auto update_line(UIControl& first, GridLF buf[]) noexcept {
+        float limited = 0, fitting = 0;
+        uint32_t index = 0;
+        for (auto& child : first)
+            if (const auto column = uisafe_cast<T>(&child)) {
+                const auto& value = buf[index];
+                column->UpdateValue(value.limited, value.fitting);
+                limited += value.limited;
+                fitting += value.fitting;
+                ++index;
             }
-            UIControlPrivate::SetConMinsize(line, call({ 0, max_height }));
-        }
-        // 无效行
-        else {
-            const auto ms = call(line.GetMinSize());
-            buf[0] = std::max(buf[0], ms.width);
-            max_height = std::max(max_height, ms.height);
-        }
-        return max_height;
+        GridLF rv;
+        rv.limited = limited;
+        rv.fitting = fitting;
+        return rv;
     };
 }}
 
@@ -150,25 +130,49 @@ namespace LongUI { namespace impl {
 /// check minsize
 /// </summary>
 /// <returns></returns>
-auto LongUI::UIGrid::check_minsize(float buf[]) noexcept ->std::pair<uint32_t, float> {
+void LongUI::UIGrid::refresh_fitting() noexcept {
     assert(m_pFirst && m_pSecond && "check before call");
-    const uint32_t view_len = m_pFirst->GetChildrenCount();
-    const uint32_t real_len = std::min(view_len, uint32_t(MAX_COUNT_GRIDVIEW));
-    if (!real_len) return {};
-    std::memset(buf, 0, real_len * sizeof(*buf));
-    float length = 0;
-
-    if (this->is_col_mode())
+    // 初始化建议值
+    const auto real_count = m_pFirst->GetChildrenCount();
+#ifndef NDEBUG
+    if (real_count > MAX_SUBLINE_COUNT) {
+        LUIDebug(Error) << "LongUI donot support subline > MAX_SUBLINE_COUNT" << endl;
+    }
+#endif
+    const auto current = std::min(uint32_t(MAX_SUBLINE_COUNT), real_count);
+    GridLF buf[MAX_SUBLINE_COUNT];
+    std::memset(buf, 0, sizeof(buf[0]) * current);
+    const auto get_width = [](Size2F s) noexcept {return s.width; };
+    const auto get_height = [](Size2F s) noexcept {return s.height; };
+    // 初始化
+    if (this->is_col_mode()) {
+        float sum = 0;
+        // 计算建议值
         for (auto& line : (*m_pSecond)) {
-            const auto func = [](Size2F s) { std::swap(s.width, s.height); return s; };
-            length += impl::grid_row<UIColumn>(func, line, buf, real_len);
+            if (const auto row = uisafe_cast<UIColumn>(&line)) 
+                sum += impl::each_line(*row, buf, get_height, get_width);
         }
-    else
+        // 利用BOX设置
+        const auto rv = impl::update_line<UIRow>(*m_pFirst, buf);
+        // 更新值
+        this->set_limited_width_lp(sum );
+        this->set_limited_height_lp(rv.limited);
+        this->update_fitting_size({ sum, rv.fitting });
+    }
+    else {
+        float sum = 0;
+        // 计算建议值
         for (auto& line : (*m_pSecond)) {
-            const auto func = [](Size2F s) { return s; };
-            length += impl::grid_row<UIRow>(func, line, buf, real_len);
+            if (const auto row = uisafe_cast<UIRow>(&line)) 
+                sum += impl::each_line(*row, buf, get_width, get_height);
         }
-    return { real_len, length };
+        // 利用BOX设置
+        const auto rv = impl::update_line<UIColumn>(*m_pFirst, buf);
+        // 更新值
+        this->set_limited_width_lp(rv.limited);
+        this->set_limited_height_lp(sum);
+        this->update_fitting_size({ rv.fitting , sum });
+    }
 }
 
 
@@ -177,6 +181,9 @@ auto LongUI::UIGrid::check_minsize(float buf[]) noexcept ->std::pair<uint32_t, f
 /// </summary>
 /// <returns></returns>
 void LongUI::UIGrid::Update(UpdateReason reason) noexcept {
+    // 更新尺寸
+    if (reason & Reason_BasicUpdateFitting && m_pSecond)
+        this->refresh_fitting();
     // 排版
     if ((reason & Reason_BasicRelayout) && m_pSecond)
         this->relayout_this();
@@ -190,86 +197,14 @@ void LongUI::UIGrid::Update(UpdateReason reason) noexcept {
 /// <param name="child"></param>
 /// <returns></returns>
 void LongUI::UIGrid::relayout_this() noexcept {
-    const auto minsize = m_oBox.minsize;
     const auto consize = m_oBox.GetContentSize();
-    const auto remaining_w = consize.width - minsize.width;
-    const auto remaining_h = consize.height - minsize.height;
-    if (remaining_w < 0 || remaining_h < 0) return;
     assert(m_pFirst && m_pSecond && "check before call");
     const auto size = m_oBox.GetContentSize();
+    this->resize_child(*m_pFirst, size);
     this->resize_child(*m_pSecond, size);
     const auto pos = m_oBox.GetContentPos();
+    m_pFirst->SetPos(pos);
     m_pSecond->SetPos(pos);
-    // 计算剩余数据
-    float buf[MAX_COUNT_GRIDVIEW];
-    const auto rv = this->check_minsize(buf);
-    const auto length = rv.first;
-    if (!length) return;
-    // 权重
-    const auto flex_1st = m_pFirst->SumChildrenFlex();
-    const auto flex_2nd = m_pSecond->SumChildrenFlex();
-    // 计算单位权重
-    const auto col_mode = this->is_col_mode();
-    const auto remaining_1st = col_mode ? remaining_h : remaining_w;
-    const auto remaining_2nd = col_mode ? remaining_w : remaining_h;
-    const Point2F matrix = col_mode ? Point2F{ 1, 0 } : Point2F{ 0, 1 };
-    const auto& mode_meta = col_mode ? UIColumn::s_meta : UIRow::s_meta;
-    const auto len_unit_1st = flex_1st > 0 ? remaining_1st / flex_1st : 0;
-    const auto len_unit_2nd = flex_2nd > 0 ? remaining_2nd / flex_2nd : 0;
-    Point2F move_pos = m_oBox.GetContentPos();
-    // 计算pack位置
-    if (len_unit_2nd == 0) {
-        const auto fpack = static_cast<float>(m_pSecond->RefStyle().pack);
-        const auto base = fpack * 0.5f * remaining_2nd;
-        move_pos.x += base * matrix.x;
-        move_pos.y += base * matrix.y;
-    }
-    // 遍历主体
-    for (auto& line : (*m_pSecond)) {
-        if (!line.IsVaildInLayout()) continue;
-        const auto line_min = line.GetMinSize();
-        const auto line_width = (line_min.width + line.RefStyle().flex * len_unit_2nd) * matrix.x;
-        const auto line_height = (line_min.height + line.RefStyle().flex * len_unit_2nd) * matrix.y;
-        line.SetPos(move_pos);
-        move_pos.x += line_width;
-        move_pos.y += line_height;
-        Size2F line_size;
-        line_size.width = consize.width * matrix.y + line_width;
-        line_size.height = consize.height * matrix.x + line_height;
-        // XXX: max clamp?
-        m_pSecond->resize_child(line, line_size);
-        // 有效行
-        if (line.SafeCastTo(mode_meta)) {
-            Point2F item_pos = {  };
-            auto itr_1st = m_pFirst->begin();
-            const auto end_1st = m_pFirst->end();
-            uint32_t i = 0;
-            for (auto& item : line) {
-                if (!item.IsVaildInLayout()) continue;
-                // 越界
-                if (i == length) break;
-                // 从1st获取flex
-                float item_flex = 0.f;
-                if (itr_1st != end_1st) {
-                    item_flex = itr_1st->RefStyle().flex;
-                    ++itr_1st;
-                }
-                // 计算宽高度
-                const auto item_wh = buf[i] + len_unit_1st * item_flex; ++i;
-                item.SetPos(item_pos);
-                Size2F item_size = { 
-                    line_width + item_wh * matrix.y, 
-                    line_height + item_wh * matrix.x 
-                };
-                item_pos.x += item_size.width * matrix.y;
-                item_pos.y += item_size.height * matrix.x;
-                // 但是不能超过本身限制
-                item_size.width = std::min(item.GetMaxSize().width, item_size.width);
-                item_size.height = std::min(item.GetMaxSize().height, item_size.height);
-                line.resize_child(item, item_size);
-            }
-        }
-    }
 }
 
 /// <summary>
@@ -321,27 +256,33 @@ LongUI::UIRow::UIRow(const MetaControl& meta) noexcept : Super(meta) {
 /// update this instance.
 /// </summary>
 /// <returns></returns>
-//void LongUI::UIRow::Update(UpdateReason reason) noexcept {
-//    return Super::Update(reason);
-//}
+void LongUI::UIRow::Update(UpdateReason reason) noexcept {
+    // 重新布局
+    if (reason & Reason_BasicUpdateFitting) {
+        if (m_pParent) if (const auto grid = uisafe_cast<UIGrid>(m_pParent->GetParent())) {
+            assert(grid->GetChildrenCount());
+            UIControl* first = grid->begin();
+            if (m_pParent != first && uisafe_cast<UIColumns>(first)) {
+                this->MatchLayout(UIColumn::s_meta, *first, 1);
+            }
+        }
+    }
+    // 超类处理
+    return Super::Update(reason);
+}
 
 
 /// <summary>
-/// Does the event.
+/// update value
 /// </summary>
-/// <param name="sender">The sender.</param>
-/// <param name="e">The e.</param>
+/// <param name="value"></param>
 /// <returns></returns>
-//auto LongUI::UIRow::DoEvent(UIControl* sender,
-//    const EventArg& e) noexcept -> EventAccept {
-//    switch (e.nevent)
-//    {
-//    case NoticeEvent::Event_RefreshBoxMinSize:
-//        this->set_contect_minsize(impl::sum_children_minsize_h(*this));
-//        return Event_Accept;
-//    }
-//    return Super::DoEvent(sender, e);
-//}
+void LongUI::UIRow::UpdateValue(float limited, float fitting) noexcept {
+    this->set_limited_height_lp(limited);
+    this->update_fitting_size({ 0, fitting });
+}
+
+
 
 // ----------------------------------------------------------------------------
 //                               UIRows
@@ -363,6 +304,7 @@ LongUI::UIRows::~UIRows() noexcept {
 /// </summary>
 /// <param name="meta">The meta.</param>
 LongUI::UIRows::UIRows(const MetaControl& meta) noexcept : Super(meta) {
+    m_state.orient = Orient_Vertical;
 }
 
 
@@ -370,27 +312,19 @@ LongUI::UIRows::UIRows(const MetaControl& meta) noexcept : Super(meta) {
 /// update this instance.
 /// </summary>
 /// <returns></returns>
-//void LongUI::UIRows::Update(UpdateReason reason) noexcept {
-//    return Super::Update(reason);
-//}
+void LongUI::UIRows::Update(UpdateReason reason) noexcept {
+    // 交给超类处理
+    Super::Update(reason);
+    // 父节点状态
+    if (reason & Reason_BasicRelayout)
+        if (const auto grid = uisafe_cast<UIGrid>(m_pParent)) {
+            const auto first = grid->GetFirst();
+            const auto second = grid->GetSecond();
+            if (first == this) for (auto& child : (*second))
+                child.NeedUpdate(Reason_ChildLayoutChanged);
+        }
+}
 
-
-/// <summary>
-/// Does the event.
-/// </summary>
-/// <param name="sender">The sender.</param>
-/// <param name="e">The e.</param>
-/// <returns></returns>
-//auto LongUI::UIRows::DoEvent(UIControl* sender,
-//    const EventArg& e) noexcept -> EventAccept {
-//    switch (e.nevent)
-//    {
-//    case NoticeEvent::Event_RefreshBoxMinSize:
-//        this->set_contect_minsize(impl::sum_children_minsize_v(*this));
-//        return Event_Accept;
-//    }
-//    return Super::DoEvent(sender, e);
-//}
 
 // ----------------------------------------------------------------------------
 //                              UIColumn
@@ -403,6 +337,7 @@ LongUI::UIRows::UIRows(const MetaControl& meta) noexcept : Super(meta) {
 /// <returns></returns>
 LongUI::UIColumn::~UIColumn() noexcept {
 }
+
 
 
 /// <summary>
@@ -418,27 +353,29 @@ LongUI::UIColumn::UIColumn(const MetaControl& meta) noexcept : Super(meta) {
 /// update this instance.
 /// </summary>
 /// <returns></returns>
-//void LongUI::UIColumn::Update(UpdateReason reason) noexcept {
-//    return Super::Update(reason);
-//}
+void LongUI::UIColumn::Update(UpdateReason reason) noexcept {
+    // 重新布局
+    if (reason & Reason_BasicUpdateFitting) {
+        if (m_pParent) if (const auto grid = uisafe_cast<UIGrid>(m_pParent->GetParent())) {
+            assert(grid->GetChildrenCount());
+            UIControl* first = grid->begin();
+            if (m_pParent != first && uisafe_cast<UIRows>(first)) {
+                this->MatchLayout(UIRow::s_meta, *first, 0);
+            }
+        }
+    }
+    // 超类处理
+    return Super::Update(reason);
+}
 
 
 /// <summary>
-/// Does the event.
+/// update value
 /// </summary>
-/// <param name="sender">The sender.</param>
-/// <param name="e">The e.</param>
-/// <returns></returns>
-//auto LongUI::UIColumn::DoEvent(UIControl* sender,
-//    const EventArg& e) noexcept -> EventAccept {
-//    switch (e.nevent)
-//    {
-//    case NoticeEvent::Event_RefreshBoxMinSize:
-//        this->set_contect_minsize(impl::sum_children_minsize_v(*this));
-//        return Event_Accept;
-//    }
-//    return Super::DoEvent(sender, e);
-//}
+void LongUI::UIColumn::UpdateValue(float limited, float fitting) noexcept {
+    this->set_limited_width_lp(limited);
+    this->update_fitting_size({ fitting, 0 });
+}
 
 // ----------------------------------------------------------------------------
 //                              UIColumns
@@ -467,24 +404,15 @@ LongUI::UIColumns::UIColumns(const MetaControl& meta) noexcept : Super(meta) {
 /// update this instance.
 /// </summary>
 /// <returns></returns>
-//void LongUI::UIColumns::Update(UpdateReason reason) noexcept {
-//    return Super::Update(reason);
-//}
-
-
-/// <summary>
-/// Does the event.
-/// </summary>
-/// <param name="sender">The sender.</param>
-/// <param name="e">The e.</param>
-/// <returns></returns>
-//auto LongUI::UIColumns::DoEvent(UIControl* sender,
-//    const EventArg& e) noexcept -> EventAccept {
-//    switch (e.nevent)
-//    {
-//    case NoticeEvent::Event_RefreshBoxMinSize:
-//        this->set_contect_minsize(impl::sum_children_minsize_h(*this));
-//        return Event_Accept;
-//    }
-//    return Super::DoEvent(sender, e);
-//}
+void LongUI::UIColumns::Update(UpdateReason reason) noexcept {
+    // 交给超类处理
+    Super::Update(reason);
+    // 父节点状态
+    if (reason & Reason_BasicRelayout) 
+        if (const auto grid = uisafe_cast<UIGrid>(m_pParent)) {
+            const auto first = grid->GetFirst();
+            const auto second = grid->GetSecond();
+            if (first == this) for (auto& child : (*second)) 
+                child.NeedUpdate(Reason_ChildLayoutChanged);
+        }
+}

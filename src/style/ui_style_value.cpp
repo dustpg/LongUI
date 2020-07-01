@@ -658,14 +658,17 @@ auto LongUI::CUIStyleValue::GetFontStretch()const noexcept->AttributeFontStretch
     return UIManager.RefDefaultFont().stretch;
 }
 
+PCN_NOINLINE
 /// <summary>
 /// Afters the box changed.
 /// </summary>
 void LongUI::CUIStyleValue::after_box_changed() {
     const auto ctrl = static_cast<UIControl*>(this);
-    UIControlPrivate::MarkWindowMinsizeChanged(*ctrl);
+    //UIControlPrivate::MarkWindowMinsizeChanged(*ctrl);
     // XXX: 单独修改Box可能性很低, 内部重新布局
     ctrl->NeedUpdate(Reason_BoxChanged);
+    if (const auto p = ctrl->GetParent()) 
+        p->NeedUpdate(Reason_ChildLayoutChanged);
 }
 
 /// <summary>
@@ -825,18 +828,24 @@ namespace LongUI { namespace detail {
     auto get_text_font(UIControl& ctrl) noexcept->TextFont* {
         auto& style = ctrl.RefStyle();
         // 存在直接Text对象
-        if (style.offset_tf) return const_cast<Style&>(style).GetTextFont();
-        // 查找间接Text对象
-        IndirectTextFontGuiArg arg;
-        ctrl.DoEvent(nullptr, arg);
+        if (style.offset_tf) {
+            // 没对齐
+            if (style.offset_tf & 1) {
+                // 查找间接Text对象
+                IndirectTextFontGuiArg arg;
+                ctrl.DoEvent(nullptr, arg);
 #ifndef NDEBUG
-        if (arg.text_font == nullptr) {
-            LUIDebug(Warning)
-                << "try to set" << ctrl
-                << "with text-font, but not found"
-                << endl;
-        }
+                if (arg.text_font == nullptr) {
+                    LUIDebug(Warning)
+                        << "try to set" << ctrl
+                        << "with text-font, but not found"
+                        << endl;
+                }
 #endif // !NDEBUG
-        return arg.text_font;
+                return arg.text_font;
+            }
+            return const_cast<Style&>(style).GetTextFont();
+        }
+        return nullptr;
     }
 }}

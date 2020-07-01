@@ -79,7 +79,7 @@ namespace LongUI {
             // slider thumb h-w
             SLIDER_THUMB_HW = 10,
             // slider thumb h-h
-            SLIDER_THUMB_HH = 18,
+            SLIDER_THUMB_HH = 10,
             // SLIDER TRACK hor-half-height
             SLIDER_TRACK_HHH = 2,
             // ProgressBar min width
@@ -133,6 +133,8 @@ namespace LongUI {
         static void draw_sb_track(const NativeDrawArgs& args, bool vertical) noexcept;
         // draw sb-thumb
         static void draw_sb_thumb(const NativeDrawArgs& args, bool vertical) noexcept;
+        // draw splitter
+        static void draw_splitter(const NativeDrawArgs& args, bool vertical) noexcept;
         // draw slider track
         static void draw_slider_track(const NativeDrawArgs& args, bool vertical) noexcept;
         // draw slider thumb

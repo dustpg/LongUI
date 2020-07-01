@@ -58,7 +58,7 @@ auto LongUI::UIControlPrivate::EnsureBdRenderer(
 }
 #endif
 
-
+#if 0
 /// <summary>
 /// Recursives the minimum size of the refresh.
 /// </summary>
@@ -90,6 +90,7 @@ void LongUI::UIControlPrivate::RefreshMinSize(UIControl& ctrl) noexcept {
     // 刷新大小
     ctrl.DoEvent(&ctrl, { NoticeEvent::Event_RefreshBoxMinSize });
 }
+#endif
 
 
 /// <summary>

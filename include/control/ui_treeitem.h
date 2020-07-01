@@ -75,17 +75,17 @@ namespace LongUI {
         void TreeChildrenChanged(bool has_child) noexcept;
         // tree children closed
         void TreeChildrenOpenClose(bool open) noexcept;
-        // tree children level offset
-        void TreeLevelOffset(float offset) noexcept { m_fLevelOffset = offset; }
         // select cell
         void SelectCell(UITreeCell* cell) noexcept;
         // select cell
         void SelectCell(std::nullptr_t) noexcept;
         // get selected cell
         auto GetSelectedCell() const noexcept { return m_pSelected; }
+        // calculate offset [NULL this pointer safe]
+        auto CalTreeOffset() const noexcept -> float;
     public:
         // do normal event
-        auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
+        //auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         // do mouse event
         //auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
         // update with some reason
@@ -105,10 +105,10 @@ namespace LongUI {
         // accessible api
         auto accessible(const AccessibleEventArg& args) noexcept->EventAccept override;
 #endif
-        // relayout base
-        void relayout_base(UIControl* head) noexcept;
-        // refresh minsize
-        void refresh_minsize(UIControl* head) noexcept;
+        // refresh fitting
+        void refresh_fitting(UIControl* head) noexcept;
+        // relayout
+        void relayout(UIControl* head) noexcept;
         // is last item
         bool cal_is_last_item() const noexcept;
     protected:
@@ -120,9 +120,9 @@ namespace LongUI {
         UITreeRow*              m_pRow = nullptr;
         // tree children
         UITreeChildren*         m_pChildren = nullptr;
-        // level offset
-        float                   m_fLevelOffset = 0.f;
     public:
+        // level offset
+        float                   level_offset = 0.f;
         // index - vaild on displayed
         uint32_t                index = 0;
     protected:

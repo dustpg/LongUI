@@ -9,15 +9,13 @@
 #include <cassert>
 #include <algorithm>
 
-namespace LongUI { namespace detail {
-    // find viewport
-    UIViewport* find_viewport(
-        const POD::Vector<UIViewport*>&, 
-        const char*
-    ) noexcept;
-    // mark wndmin changed
-    void mark_wndmin_changed() noexcept;
-}}
+//namespace LongUI { namespace detail {
+//    // find viewport
+//    UIViewport* find_viewport(
+//        const POD::Vector<UIViewport*>&, 
+//        const char*
+//    ) noexcept;
+//}}
 
 namespace LongUI {
     // 视口?
@@ -132,17 +130,6 @@ auto LongUI::CUIWndMgr::end()noexcept->Iterator {
 /// <returns></returns>
 auto LongUI::CUIWndMgr::begin()noexcept->Iterator {
     return { static_cast<CUIWindow*>(m_oHead.next) }; 
-}
-
-
-/// <summary>
-/// Marks the window minsize changed.
-/// </summary>
-/// <param name="window">The window.</param>
-/// <returns></returns>
-void LongUI::CUIWndMgr::MarkWindowMinsizeChanged(CUIWindow* window) noexcept {
-    if (window) window->m_bMinsizeList = true;
-    detail::mark_wndmin_changed();
 }
 
 /// <summary>
@@ -337,11 +324,8 @@ auto LongUI::CUIWndMgr::recreate_windows() noexcept -> Result {
     return hr;
 }
 
-// private control
-#include "../private/ui_private_control.h"
-#include <control/ui_viewport.h>
 
-
+#if 0
 /// <summary>
 /// Refreshes the window minsize.
 /// </summary>
@@ -371,6 +355,11 @@ void LongUI::CUIWndMgr::refresh_window_minsize() noexcept {
         }
     }
 }
+#endif
+
+
+// private control
+#include "../private/ui_private_control.h"
 
 /// <summary>
 /// Refreshes the window world.

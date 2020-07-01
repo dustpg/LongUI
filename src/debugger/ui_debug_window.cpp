@@ -68,7 +68,7 @@ namespace LongUI {
             const auto btn = do_button("btn-force");
             if (!btn) return;
             btn->AddGuiEventListener(
-                UIButton::_onCommand(), [](UIControl& control) noexcept {
+                UIButton::_onCommand(), [](const GuiEventArg&) noexcept {
                 //const auto& o = UIManager.GetWindowList();
                 //using List = POD::Vector<CUIWindow*>;
                 //auto& list = reinterpret_cast<const List&>(o);
@@ -82,7 +82,7 @@ namespace LongUI {
             const auto btn = do_button("btn-exit");
             if (!btn) return;
             btn->AddGuiEventListener(
-                UIButton::_onCommand(), [](UIControl& control) noexcept {
+                UIButton::_onCommand(), [](const GuiEventArg&) noexcept {
                 UIManager.Exit();
                 return Event_Accept;
             });
@@ -92,7 +92,7 @@ namespace LongUI {
             const auto btn = do_button("btn-recreate");
             if (!btn) return;
             btn->AddGuiEventListener(
-                UIButton::_onCommand(), [](UIControl& control) noexcept {
+                UIButton::_onCommand(), [](const GuiEventArg&) noexcept {
                 UIManager.NeedRecreate();
                 return Event_Accept;
             });
@@ -104,8 +104,8 @@ namespace LongUI {
             const auto& flag = UIManager.flag;
             checkbox->SetChecked(!!(flag & ConfigureFlag::Flag_DbgDrawDirtyRect));
             checkbox->AddGuiEventListener(
-                checkbox->_onCommand(), [&flag](UIControl& control) noexcept {
-                const auto box = longui_cast<UICheckBox*>(&control);
+                checkbox->_onCommand(), [&flag](const GuiEventArg& arg) noexcept {
+                const auto box = longui_cast<UICheckBox*>(arg.current);
                 auto& mflag = const_cast<ConfigureFlag&>(flag);
                 if (box->IsChecked()) mflag = mflag | ConfigureFlag::Flag_DbgDrawDirtyRect;
                 else mflag = mflag & ConfigureFlag(~ConfigureFlag::Flag_DbgDrawDirtyRect);
@@ -119,8 +119,8 @@ namespace LongUI {
             const auto& flag = UIManager.flag;
             checkbox->SetChecked(!!(flag & ConfigureFlag::Flag_DbgDrawTextCell));
             checkbox->AddGuiEventListener(
-                checkbox->_onCommand(), [&flag](UIControl& control) noexcept {
-                const auto box = longui_cast<UICheckBox*>(&control);
+                checkbox->_onCommand(), [&flag](const GuiEventArg& arg) noexcept {
+                const auto box = longui_cast<UICheckBox*>(arg.current);
                 auto& mflag = const_cast<ConfigureFlag&>(flag);
                 if (box->IsChecked()) mflag = mflag | ConfigureFlag::Flag_DbgDrawTextCell;
                 else mflag = mflag & ConfigureFlag(~ConfigureFlag::Flag_DbgDrawTextCell);
@@ -135,8 +135,8 @@ namespace LongUI {
             checkbox->SetChecked(!(flag & ConfigureFlag::Flag_DbgNoLinkStyle));
 #ifdef NDEBUG
             checkbox->AddGuiEventListener(
-                checkbox->_stateChanged(), [&flag](UIControl& control) noexcept {
-                const auto box = longui_cast<UICheckBox*>(&control);
+                checkbox->_stateChanged(), [&flag](const GuiEventArg& arg) noexcept {
+                const auto box = longui_cast<UICheckBox*>(arg.current);
                 auto& mflag = const_cast<CUIManager::ConfigFlag&>(flag);
                 if (!box->GetChecked()) mflag = mflag | ConfigureFlag::Flag_DbgNoLinkStyle;
                 else mflag = mflag & CUIManager::ConfigFlag(~ConfigureFlag::Flag_DbgNoLinkStyle);
@@ -150,6 +150,7 @@ namespace LongUI {
         CUIDebugView() noexcept :
             Super(nullptr, CUIWindow::Config_ToolWindow) {
             this->SetXul(debug_view_xul);
+            this->SetAutoOverflow();
             auto& window = this->RefWindow();
             window.SetClearColor({ 1, 1, 1, 1 });
             window.ShowWindow();
@@ -168,7 +169,7 @@ namespace LongUI {
                 if (btn && cbx && lbl) {
                     std::memset(m_memstates, 0, sizeof(m_memstates));
                     btn->AddGuiEventListener(
-                        UIButton::_onCommand(), [=](UIControl& control) noexcept {
+                        UIButton::_onCommand(), [=](const GuiEventArg& arg) noexcept {
                         m_memtype = !m_memtype;
                         if (m_memtype) {
                             ::_CrtMemCheckpoint(m_memstates + 0);

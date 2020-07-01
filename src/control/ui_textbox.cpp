@@ -106,6 +106,7 @@ void LongUI::UITextBox::Update(UpdateReason reason) noexcept {
             m_oPlaceHolder.Update(Reason_TextFontLayoutChanged);
         }
         m_oTextField.Update(r);
+        this->refresh_fitting();
     }
     // 重新布局
     if (reason & Reason_BasicRelayout)
@@ -119,7 +120,7 @@ void LongUI::UITextBox::Update(UpdateReason reason) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UITextBox::relayout_textbox() noexcept {
-    m_minScrollSize = m_oTextField.RefBox().minsize;
+    m_minScrollSize = m_oTextField.GetBoxFittingSize();
     // 针对滚动条
     auto remaining = this->layout_scroll_bar();
     // 需要重新布局
@@ -128,14 +129,14 @@ void LongUI::UITextBox::relayout_textbox() noexcept {
     // 计算SPIN按钮
     if (m_pSpinButtons) {
         // TODO: 逆向在左边
-        const auto min = m_pSpinButtons->GetMinSize();
-        m_pSpinButtons->Resize({ min.width, remaining.height });
+        const auto min = m_pSpinButtons->GetBoxFittingSize();
+        this->resize_child(*m_pSpinButtons, { min.width, remaining.height });
         remaining.width = std::max(remaining.width - min.width, 1.f);
         m_pSpinButtons->SetPos({ pos.x + remaining.width, pos.y });
     }
-    m_oTextField.Resize(remaining);
+    this->resize_child(m_oTextField, remaining);
     m_oTextField.SetPos(pos);
-    m_oPlaceHolder.Resize(remaining);
+    this->resize_child(m_oPlaceHolder, remaining);
     m_oPlaceHolder.SetPos(pos);
     this->do_wheel(0, 0);
     this->do_wheel(1, 0);
@@ -146,9 +147,9 @@ void LongUI::UITextBox::relayout_textbox() noexcept {
 /// </summary>
 /// <param name="event">The event.</param>
 /// <returns></returns>
-auto LongUI::UITextBox::FireEvent(GuiEvent event) noexcept -> EventAccept {
+auto LongUI::UITextBox::FireEvent(const GuiEventArg& event) noexcept -> EventAccept {
     EventAccept code = Event_Ignore;
-    switch (event)
+    switch (event.GetType())
     {
     case LongUI::GuiEvent::Event_OnFocus:
         m_oTextField.EventOnFocus();
@@ -173,29 +174,22 @@ auto LongUI::UITextBox::DoEvent(UIControl * sender, const EventArg & e) noexcept
     // 分类讨论
     switch (e.nevent)
     {
-        GuiEvent eid;
-    case NoticeEvent::Event_RefreshBoxMinSize:
-        if (m_bNeedMinsize) {
-            m_bNeedMinsize = false;
-            this->update_minsize();
-        }
-        return Event_Accept;
     case NoticeEvent::Event_DoAccessAction:
         // 默认行为(聚焦)
         this->SetAsDefaultAndFocus();
         return Event_Accept;
     case NoticeEvent::Event_UIEvent:
         assert(sender && "sender in gui event cannot be null");
-        eid = static_cast<const EventGuiArg&>(e).GetEvent();
         // 针对Textfiled的处理
-        if (sender == &m_oTextField) return this->event_from_textfield(eid);
-        switch (eid)
+        if (sender == &m_oTextField) 
+            return this->event_from_textfield(static_cast<const GuiEventArg&>(e));
+        switch (static_cast<const GuiEventArg&>(e).GetType())
         {
         case GuiEvent::Event_OnChange:
-            if (sender == m_pSBHorizontal)
-                m_oTextField.render_positon.x = m_pSBHorizontal->GetValue();
-            else if (sender == m_pSBVertical)
-                m_oTextField.render_positon.y = m_pSBVertical->GetValue();
+            if (sender == m_pScrollBarHor)
+                m_oTextField.render_positon.x = m_pScrollBarHor->GetValue();
+            else if (sender == m_pScrollBarVer)
+                m_oTextField.render_positon.y = m_pScrollBarVer->GetValue();
             else break;
             // SB修改之后调用
             m_oTextField.UpdateRenderPostion();
@@ -215,8 +209,6 @@ auto LongUI::UITextBox::DoEvent(UIControl * sender, const EventArg & e) noexcept
 /// </summary>
 /// <returns></returns>
 void LongUI::UITextBox::initialize() noexcept {
-    // 初始化
-    //this->update_minsize();
     this->SetValueAsDouble(0, true);
     // 初始化 超类
     Super::initialize();
@@ -256,8 +248,8 @@ auto LongUI::UITextBox::SetValueAsDouble(double value, bool increase) noexcept -
 /// </summary>
 /// <param name="eid">event id</param>
 /// <returns></returns>
-auto LongUI::UITextBox::event_from_textfield(GuiEvent eid) noexcept -> EventAccept {
-    switch (eid)
+auto LongUI::UITextBox::event_from_textfield(const GuiEventArg& event) noexcept -> EventAccept {
+    switch (event.GetType())
     {
     case UITextField::_onInput():
         // 针对Input处理
@@ -268,7 +260,9 @@ auto LongUI::UITextBox::event_from_textfield(GuiEvent eid) noexcept -> EventAcce
         this->SetValueAsDouble(0, true);
         break;
     }
-    return this->FireEvent(eid);
+    // 修改当前
+    event.current = this;
+    return this->FireEvent(event);
 }
 
 
@@ -298,20 +292,23 @@ auto LongUI::UITextBox::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
 
 
 /// <summary>
-/// Initializes the textbox.
+/// refresh fitting size
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::update_minsize() noexcept {
+void LongUI::UITextBox::refresh_fitting() noexcept {
     const auto cols = static_cast<float>(m_uCols);
     const auto rows = static_cast<float>(m_uRows);
     auto& tf = m_oTextField.RefTextFont();
     const auto fs = tf.font.size;
     const auto line_height = LongUI::GetLineHeight(tf.font);
-    const auto rect = m_oTextField.RefBox().GetNonContect();
-    this->set_contect_minsize({ 
-        cols * fs * 0.5f + rect.left + rect.right,
-        rows * line_height + rect.top + rect.bottom
-    });
+    //const auto rect = m_oTextField.RefBox().GetNonContect();
+    const Size2F base_size = { 
+        cols * fs * 0.5f /*+ rect.left + rect.right*/,
+        rows * line_height /*+ rect.top + rect.bottom*/
+    };
+    this->set_limited_width_lp(base_size.width);
+    this->set_limited_height_lp(base_size.height);
+    this->update_fitting_size(base_size);
 }
 
 /// <summary>
@@ -384,7 +381,8 @@ void LongUI::UITextBox::add_attribute(uint32_t key, U8View value) noexcept {
         break;
     case BKDR_MULTILINE:
         //m_oStyle.overflow_x = m_oStyle.overflow_y = Overflow_Scroll;
-        m_oStyle.overflow_x = m_oStyle.overflow_y = Overflow_Auto;
+        reinterpret_cast<uint8_t&>(m_oStyle.overflow_xex) &= uint8_t(~3);
+        m_oStyle.overflow_y = Overflow_Auto;
         [[fallthrough]];
     case BKDR_PASSWORD:
     case BKDR_VALUE:

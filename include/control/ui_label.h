@@ -74,8 +74,10 @@ namespace LongUI {
         bool SetText(CUIString&& text) noexcept;
         // set text, return true if changed
         bool SetText(U16View text) noexcept;
+        // init crop value
+        void InitCrop(AttributeCrop c) noexcept { m_crop = c; }
         // set default minsize
-        void SetAsDefaultMinsize() noexcept;
+        //void SetAsDefaultMinsize() noexcept;
         // as same tf to another label
         void SameTfAs(const TextFont& l) noexcept { m_tfBuffer = l; }
         // as same tf to another label
@@ -88,8 +90,6 @@ namespace LongUI {
         // show access key
         void ShowAccessKey(bool show = true) noexcept;
     protected:
-        // old size of text
-        Size2F                  m_szOld = {};
         // hovered curor
         CUICursor               m_hrefCursor;
         // connection control
@@ -105,7 +105,9 @@ namespace LongUI {
         // text string
         CUIString               m_string;
         // access key position
-        uint32_t                m_uPosAkey = 0;
+        uint16_t                m_uPosAkey = 0;
+        // crop rule
+        AttributeCrop           m_crop = Crop_None;
     public:
         // default value
         enum : int32_t {

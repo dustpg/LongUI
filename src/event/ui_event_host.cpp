@@ -167,29 +167,42 @@ auto LongUI::CUIEventHost::add_gui_event_listener(
 /// </summary>
 /// <param name="event">The event.</param>
 /// <returns></returns>
-auto LongUI::CUIEventHost::FireEvent(GuiEvent event) noexcept ->EventAccept {
+auto LongUI::CUIEventHost::FireEvent(const GuiEventArg& event) noexcept ->EventAccept {
     const auto ctrl = static_cast<UIControl*>(this);
     auto func = Event_Ignore;
     bool script_result = false;
     // 查找相应事件
-    if (const auto node = this->find_event(event)) {
+    if (const auto node = this->find_event(event.GetType())) {
         // 脚本
         if (node->scriptptr) {
-            script_result = UIManager.Evaluation(node->script(), *ctrl);
+            script_result = UIManager.Evaluation(node->script(), event);
         }
         // 监听
-        if (node->func.IsOK()) func = node->func(*ctrl);
+        if (node->func.IsOK()) func = node->func(event);
     }
     // 直接管理则为超类
     assert(ctrl->GetWindow() && "cannot fire event not under window");
     UIControl* const handler = ctrl->IsGuiEvent2Parent() ?
         ctrl->GetParent() : &ctrl->GetWindow()->RefViewport();
     // 广播事件
-    const auto upper = handler->DoEvent(ctrl, EventGuiArg{ event });
+    const auto upper = handler->DoEvent(ctrl, event);
     // 检查准确性
     assert((func & 0) == 0); assert((upper & 0) == 0);
     // 返回结果
     return static_cast<EventAccept>(0 | script_result | func | upper);
+}
+
+PCN_NOINLINE
+/// <summary>
+/// fire simple event
+/// </summary>
+/// <param name="event"></param>
+/// <returns></returns>
+auto LongUI::CUIEventHost::FireSimpleEvent(GuiEvent event) noexcept -> EventAccept {
+    const auto ctrl = static_cast<UIControl*>(this);
+    assert(ctrl && "bad pointer");
+    GuiEventArg arg{ event, *ctrl };
+    return this->FireEvent(arg);
 }
 
 /// <summary>

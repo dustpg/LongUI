@@ -7,10 +7,8 @@ namespace LongUI {
     /// notice event type
     /// </summary>
     enum class NoticeEvent : uint32_t {
-        // refresh min size
-        Event_RefreshBoxMinSize = 0,
         // do default/access action
-        Event_DoAccessAction,
+        Event_DoAccessAction = 0,
         // viewport/ uievent-to-parent only
         Event_UIEvent,
         // show access key  [derived: 1/0 show/hide]
@@ -25,12 +23,6 @@ namespace LongUI {
         Event_ImplicitGroupChecked,
         // get indirect TextFont pointer
         Event_IndirectTextFont,
-
-
-        // ----------------
-        // timer event 0~7
-        // ----------------
-
         // timer event #0
         Event_Timer0,
         // timer event #1

@@ -149,9 +149,6 @@ auto LongUI::UILabel::DoEvent(UIControl* sender, const EventArg& e) noexcept -> 
     // 分类讨论
     switch (e.nevent)
     {
-    case NoticeEvent::Event_RefreshBoxMinSize:
-        // 不会改变
-        return Event_Accept;
     case NoticeEvent::Event_DoAccessAction:
         // 检测超链接
         if (!m_href.empty()) ::longui_open_href(m_href.c_str());
@@ -173,11 +170,11 @@ auto LongUI::UILabel::DoEvent(UIControl* sender, const EventArg& e) noexcept -> 
 /// Sets as default minsize.
 /// </summary>
 /// <returns></returns>
-void LongUI::UILabel::SetAsDefaultMinsize() noexcept {
-    const auto& fontsize = UIManager.RefDefaultFont();
-    const auto lineheight = LongUI::GetLineHeight(fontsize);
-    this->set_contect_minsize({ lineheight * 2.f, lineheight });
-}
+//void LongUI::UILabel::SetAsDefaultMinsize() noexcept {
+//    const auto& fontsize = UIManager.RefDefaultFont();
+//    const auto lineheight = LongUI::GetLineHeight(fontsize);
+//    this->set_contect_minsize({ lineheight * 2.f, lineheight });
+//}
 
 
 /// <summary>
@@ -298,14 +295,17 @@ PCN_NOINLINE
 void LongUI::UILabel::after_set_text() noexcept {
     const auto size = m_text.GetSize();
     const Size2F ceil_size{ std::ceil(size.width) , std::ceil(size.height) };
-    if (LongUI::IsSameInGuiLevel(m_szOld, ceil_size)) return;
-    this->set_contect_minsize(m_szOld = ceil_size);
-    this->mark_window_minsize_changed();
+    if (LongUI::IsSameInGuiLevel(m_oStyle.fitting, ceil_size)) return;
+    m_text.SetCropRule(m_crop);
+    // 字符裁剪?
+    this->set_limited_width_lp(m_crop ? ceil_size.height : ceil_size.width);
+    this->set_limited_height_lp(ceil_size.height);
+    // 设置建议尺寸
+    this->update_fitting_size(ceil_size);
     this->mark_world_changed();
 #ifdef LUI_ACCESSIBLE
     LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
 #endif
-    
 }
 
 /// <summary>
@@ -318,7 +318,7 @@ void LongUI::UILabel::add_attribute(uint32_t key, U8View value) noexcept {
     // 新增属性列表
     constexpr auto BKDR_VALUE       = 0x246df521_ui32;
     constexpr auto BKDR_HREF        = 0x0e0d950f_ui32;
-
+    constexpr auto BKDR_CROP        = 0x0d621630_ui32;
     // 分类讨论
     switch (key)
     {
@@ -329,6 +329,10 @@ void LongUI::UILabel::add_attribute(uint32_t key, U8View value) noexcept {
     case BKDR_HREF:
         // href
         m_href = value;
+        break;
+    case BKDR_CROP:
+        // crop
+        m_crop = AttrParser::Crop(value);
         break;
     default:
         // 其他情况, 交给超类处理

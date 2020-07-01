@@ -136,6 +136,8 @@ namespace LongUI {
         // ref later locker
         auto&RefLaterLocker() noexcept { return m_uiLaterLocker; }
     public:
+        // ref control infos
+        auto&RefControlInfos() const noexcept { return m_oCtrlInfo; }
         // exit
         void Exit(uintptr_t code = 0) noexcept;
         // break loop
@@ -150,7 +152,7 @@ namespace LongUI {
         void LoadDataFromUrl(U8View url_utf8, POD::Vector<uint8_t>& buffer) noexcept;
     public:
         // run a section script for event
-        bool Evaluation(ScriptUI s, UIControl& c) noexcept { return this->config->Evaluation(s, c); }
+        bool Evaluation(ScriptUI s, const GuiEventArg& c) noexcept { return this->config->Evaluation(s, c); }
         // alloc the script memory and copy into
         auto AllocScript(U8View view) noexcept { return this->config->AllocScript(view); }
         // free the script memory
@@ -228,8 +230,6 @@ namespace LongUI {
     private:
         // recreate_device flag
         bool                    m_flagRecreate = false;
-        // window minsize changed flag
-        bool                    m_flagWndMinSizeChanged = false;
     private:
         // control infos
         ControlInfoList         m_oCtrlInfo;

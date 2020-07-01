@@ -2,6 +2,24 @@
 
 ACCESSIBLE
 
+BOX add_child
+
+<FindBasicAnimation> 动画使用指针，避免上锁
+
+滚动条 ギリギリ
+
+ScrollArea 取消 m_minScrollSize m_maxScrollSize?
+
+adjust_align
+
+Update 排序 [ fitting->下到上 sizing->上到下 ]
+
+SetText 仅保留 View接口
+
+Appearance Set - Style Link - initialize ?
+
+修改基本参考座标为内容座标?
+
 富文本支持
 
 <progressmeter> 对接操作系统状态

@@ -133,14 +133,16 @@ namespace LongUI {
         // class meta
         static const  MetaControl   s_meta;
         // safe type cast, null this safe
-        auto SafeCastTo(const LongUI::MetaControl&) const noexcept->const UIControl*;
+        auto SafeCastTo(const MetaControl&) const noexcept->const UIControl*;
         // safe type cast, none const overload
-        auto SafeCastTo(const LongUI::MetaControl& m) noexcept {
+        auto SafeCastTo(const MetaControl& m) noexcept {
             const auto* p = this; return const_cast<UIControl*>(p->SafeCastTo(m));
         }
+        // Next MetaControl
+        auto Next(const MetaControl&) noexcept -> UIControl&;
 #ifndef NDEBUG
         // assert type cast, null this pointer acceptable
-        void AssertCast(const LongUI::MetaControl&) const noexcept;
+        void AssertCast(const MetaControl&) const noexcept;
 #endif
     protected:
         // std lui ctrl ctor
@@ -171,12 +173,14 @@ namespace LongUI {
     protected:
         // initialize this
         virtual void initialize() noexcept;
-        // add child ini
+        // add child
         virtual void add_child(UIControl& child) noexcept;
         // get sub element ::before
         //virtual auto get_subelement(U8View name) noexcept->UIControl*;
         // add attribute : key = bkdr hashed string key, this method valid before inited
         virtual void add_attribute(uint32_t key, U8View value) noexcept;
+        // add child ex-impl
+        void insert_child(UIControl& child, UIControl& before) noexcept;
 #ifdef LUI_ACCESSIBLE
     public:
         // get logic accessible control
@@ -265,29 +269,51 @@ namespace LongUI {
         // mark delete later
         auto MarkDeleteLater() noexcept { m_state.delete_later = true; }
     public:
-        // resize
-        bool Resize(Size2F size) noexcept;
-        // set fixed/style size
-        void SetFixedSize(Size2F size) noexcept;
-        // set fixed/style size
-        void SetStyleSize(Size2F size) noexcept { this->SetFixedSize(size); }
-        // set style minsize
-        void SetStyleMinSize(Size2F size) noexcept;
-        // set style maxsize
-        void SetStyleMaxSize(Size2F size) noexcept;
-        // get minsize
-        auto GetMinSize() const noexcept->Size2F;
         // is vaild in layout?
         bool IsVaildInLayout() const noexcept;
-        // get size
-        auto GetSize() const noexcept { return m_oBox.size; }
         // get maxsize
         auto GetMaxSize() const noexcept { return m_oStyle.maxsize; }
+        // get box width
+        auto GetBoxWidth() const noexcept { return m_oBox.size.width; }
+        // get box height
+        auto GetBoxHeight() const noexcept { return m_oBox.size.height; }
+        // get box size
+        auto GetBoxSize() const noexcept { return m_oBox.size; }
+        // get box limited size
+        auto GetBoxLimitedSize() const noexcept->Size2F;
+        // get box fitting size
+        auto GetBoxFittingSize() const noexcept->Size2F;
+        // get box ex-size
+        auto GetBoxExSize() const noexcept->Size2F;
+        // resize the box rect
+        bool ResizeBox(Size2F size) noexcept;
+        // init min size
+        void InitMinSize(Size2F size) noexcept;
+        // init size
+        void InitSize(Size2F size) noexcept;
+        // match layout
+        void MatchLayout(const MetaControl&, UIControl& target, float matrix) noexcept;
     protected:
+        // set size value - low p
+        template<size_t i> void set_sizevalue_lp(float v) noexcept {
+            if (!(m_oStyle.overflow_xex & uint8_t(4 << i))) i[&m_oStyle.fitting.width] = v;
+        }
+        // set fitting width - low p
+        void set_fitting_width_lp(float v) noexcept { set_sizevalue_lp<0>(v); }
+        // set fitting height - low p
+        void set_fitting_height_lp(float v) noexcept { set_sizevalue_lp<1>(v); }
+        // set limited width - low p
+        void set_limited_width_lp(float v) noexcept { set_sizevalue_lp<2>(v); }
+        // set fitting height - low p
+        void set_limited_height_lp(float v) noexcept { set_sizevalue_lp<3>(v); }
         // set box rect minsize
-        void set_box_minsize(Size2F size) noexcept;
+        //void set_box_minsize(Size2F size) noexcept;
         // set box contect minsize
-        void set_contect_minsize(Size2F size) noexcept;
+        //void set_contect_minsize(Size2F size) noexcept;
+        // update fitting size
+        void update_fitting_size(Size2F fitting, UIControl* ex) noexcept;
+        // update fitting size
+        void update_fitting_size(Size2F fitting) noexcept { update_fitting_size(fitting, m_pParent); }
     public:
         // set visible
         void SetVisible(bool visible) noexcept;
@@ -368,10 +394,10 @@ namespace LongUI {
     protected:
         // make text-font-offset from direct-child
         void make_offset_tf_direct(UIControl& child) noexcept;
+        // make text-font-offset from indirect-child
+        void make_offset_tf_indirect() noexcept { m_oStyle.offset_tf = 1; }
         // clear parent
         void clear_parent() noexcept;
-        // mark minsize changed
-        void mark_window_minsize_changed() noexcept;
         // remove child
         void remove_child(UIControl& child) noexcept;
         // calculate child index
@@ -452,8 +478,8 @@ namespace LongUI {
         CtrlState               m_state;
         // child count
         uint32_t                m_cChildrenCount = 0;
-        // parent accessible data
-        uint32_t                m_uData4Parent = 0;
+        // parent using layout value
+        uint32_t                m_uLayoutValue = 0;
         // id of control
         ULID                    m_id = { CUIConstShortString::EMPTY };
         // meta info of control

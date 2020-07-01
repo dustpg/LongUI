@@ -49,31 +49,22 @@ namespace LongUI {
         auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
         // Update
         //void Update(UpdateReason) noexcept override;
+    public:
         // set auto overflow
         void SetAutoOverflow() noexcept;
-        // force update scroll size
-        void ForceUpdateScrollSize(Size2F ss) noexcept;
         // add spacer
         void AddSpacer(Size2F size, float flex) noexcept;
-        // get min scroll size
-        auto GetMinScrollSize() const noexcept { return m_minScrollSize; }
         // get layout direcition
         auto GetLayoutDirection() const noexcept ->AttributeDir { return AttributeDir(m_state.direction); }
-        // get vertical ScrollBar
-        auto GetVerticalScrollBar() noexcept -> UIScrollBar* { return m_pSBVertical; }
-        // get horizontal ScrollBar
-        auto GetHorizontalScrollBar() noexcept -> UIScrollBar* { return m_pSBHorizontal; }
-        // get vertical ScrollBar | const overload
-        auto GetVerticalScrollBar() const noexcept -> const UIScrollBar*{ return m_pSBVertical; }
-        // get horizontal ScrollBar | const overload
-        auto GetHorizontalScrollBar() const noexcept -> const UIScrollBar*{ return m_pSBHorizontal; }
     protected:
-        // synchronize the scroll bar
-        void sync_scroll_bar(Point2F& offset) noexcept;
         // layout the scroll bar
         auto layout_scroll_bar(/*Size2F cs*/) noexcept->Size2F;
+        // synchronize the scroll bar
+        void sync_scroll_bar(Point2F& offset) noexcept;
         // get layout position
         auto get_layout_position() const noexcept->Point2F;
+        // add child
+        void add_child(UIControl&) noexcept override;
     private:
         // on state dirty
         //void on_state_dirty() noexcept;
@@ -81,10 +72,8 @@ namespace LongUI {
         auto do_wheel(int index, float wheel) noexcept->EventAccept;
         // create scroll bar
         auto create_scrollbar(AttributeOrient) noexcept->UIScrollBar*;
-        // layout the scroll bar - h
-        auto layout_vscrollbar(bool notenough) noexcept->float;
-        // layout the scroll bar - v
-        auto layout_hscrollbar(bool notenough) noexcept->float;
+        // layout the scroll bar
+        auto layout_scrollbar(bool notenough, bool index) noexcept->float;
         // layout corner
         void layout_corner(bool visible, Size2F size) noexcept;
     public:
@@ -95,12 +84,14 @@ namespace LongUI {
         Size2F              m_minScrollSize;
         // max scroll size
         Size2F              m_maxScrollSize;
-        // horizontal scroll bar
-        UIScrollBar*        m_pSBHorizontal = nullptr;
-        // vertical scroll bar
-        UIScrollBar*        m_pSBVertical = nullptr;
+        // scroll bar - horizontal
+        UIScrollBar*        m_pScrollBarHor = nullptr;
+        // scroll bar - vertical
+        UIScrollBar*        m_pScrollBarVer = nullptr;
         // corner
         UIControl*          m_pCorner = nullptr;
+        // final end itr
+        UIControl*          m_pFinalEnd;
     };
     // get meta info for UIScrollArea
     LUI_DECLARE_METAINFO(UIScrollArea);

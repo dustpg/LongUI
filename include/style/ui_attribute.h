@@ -137,10 +137,11 @@ namespace LongUI {
     /// aligned box 
     /// </summary>
     enum AttributeBox : uint8_t {
-        Box_BorderBox = 0,
+        Box_MarginBox = 0,
+        Box_BorderBox,
         Box_PaddingBox,
         Box_ContentBox,
-        BOX_COUNT,
+        BOX_COUNT
     };
     /// <summary>
     /// overflow
@@ -150,6 +151,24 @@ namespace LongUI {
         Overflow_Hidden,        // & 1 == 1
         Overflow_Scroll,        // & 1 == 0
         Overflow_Visible,       // & 1 == 1
+    };
+    /// <summary>
+    /// resize
+    /// </summary>
+    enum AttributeResize : uint8_t {
+        Resize_Closest = 0,
+        Resize_Farthest,
+        Resize_Flex,
+        Resize_Grow,
+    };
+    /// <summary>
+    /// collapse
+    /// </summary>
+    enum AttributeCollapse : uint8_t {
+        Resizea_None = 0, 
+        Resizea_Before,   
+        Resizea_After,    
+        Resizea_Both,
     };
     /// <summary>
     /// border style 
@@ -164,6 +183,19 @@ namespace LongUI {
         Style_Ridge,
         Style_Inset,
         Style_OutSet,
+    };
+    /// <summary>
+    /// crop
+    /// </summary>
+    enum AttributeCrop : uint8_t {
+        // none crop
+        Crop_None = 0,
+        // start
+        Crop_Start,
+        // center
+        Crop_Center,
+        // end
+        Crop_End,
     };
     /// <summary>
     /// appearance attr
@@ -193,6 +225,8 @@ namespace LongUI {
         Appearance_ScrollbarTrackV,         // [scrollbartrack-vertical]
         Appearance_MenuSeparator,           // [menuseparator]
         Appearance_MenuArrow,               // [menuarrow]
+        Appearance_SplitterH,               // [undefined in xul] [splitter-horizontal]
+        Appearance_SplitterV,               // [undefined in xul] [splitter-vertical]
         Appearance_Separator,               // [separator]
         Appearance_CheckBoxContainer,       // [checkbox-container]
         Appearance_ScaleH,                  // [scale-horizontal]
@@ -207,7 +241,7 @@ namespace LongUI {
         Appearance_StatusBar,               // [statusbar]
         Appearance_StatusBarPanel,          // [statusbarpanel]
         Appearance_GroupBox,                // [groupbox]
-        Appearance_Caption,                 // undefined in xul
+        Appearance_Caption,                 // [undefined in xul] [caption]
         Appearance_TreeHeaderCell,          // [treeheadercell]
         Appearance_TreeTwisty,              // [treetwisty]
         Appearance_DropDownMarker,          // used for menu list drop down marker
@@ -291,10 +325,12 @@ namespace LongUI {
     struct AttrParser {
         // box
         static auto Box(U8View) noexcept->AttributeBox;
-        // view to align
-        static auto Align(U8View) noexcept->AttributeAlign;
         // view to pack
         static auto Pack(U8View) noexcept->AttributePack;
+        // view to crop
+        static auto Crop(U8View) noexcept->AttributeCrop;
+        // view to align
+        static auto Align(U8View) noexcept->AttributeAlign;
         // view to seltype
         static auto Seltype(U8View) noexcept->AttributeSeltype;
         // view to overflow

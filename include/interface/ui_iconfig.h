@@ -159,7 +159,7 @@ namespace LongUI {
         virtual auto HandleOOM(size_t retry_count, size_t try_alloc) noexcept->CodeOOM = 0;
     public:
         // run a section script for event
-        virtual bool Evaluation(ScriptUI, UIControl&) noexcept = 0;
+        virtual bool Evaluation(ScriptUI, const GuiEventArg&) noexcept = 0;
         // alloc the script memory and copy into(may be compiled into byte code)
         virtual auto AllocScript(U8View) noexcept-> ScriptUI = 0;
         // free the script memory

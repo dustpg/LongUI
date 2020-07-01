@@ -92,7 +92,7 @@ void LongUI::CUIDefaultConfigure::RegisterControl(ControlInfoList& list) noexcep
 /// <param name="script">The script.</param>
 /// <param name="ctrl">The control.</param>
 /// <returns></returns>
-bool LongUI::CUIDefaultConfigure::Evaluation(ScriptUI script, UIControl& ctrl) noexcept {
+bool LongUI::CUIDefaultConfigure::Evaluation(ScriptUI script, const GuiEventArg& ctrl) noexcept {
     assert(!"BAD CALL");
     return false;
 }

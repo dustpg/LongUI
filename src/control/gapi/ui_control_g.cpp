@@ -25,6 +25,14 @@ void LongUI::UIControl::delete_renderer() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIControl::Render() const noexcept {
+    /*
+    块呈现器的堆栈顺序如下：
+        background color
+        background image
+        border
+        children
+        outline
+    */
 #if 0
     char buffer[256]; std::memset(buffer, ' ', 256);
     const auto level = this->GetLevel();
@@ -53,7 +61,7 @@ bool LongUI::UIControl::native_style_render() const noexcept {
     switch (type)
     {
     case AttributeAppearance::Appearance_GroupBox:
-        arg.border.top += (*begin()).GetSize().height * 0.5f
+        arg.border.top += (*begin()).GetBoxSize().height * 0.5f
                         + this->RefBox().padding.top 
                         + this->RefBox().border.top
                         //+ 1.f
@@ -63,6 +71,7 @@ bool LongUI::UIControl::native_style_render() const noexcept {
     // 存在动画
     if (this->exist_basic_animation()) {
         // XXX: [优化]
+        CUIDataAutoLocker locker;
         const auto basic = UIManager.FindBasicAnimation(*this);
         assert(basic && "BAD ACTION");
         if (basic) {
@@ -155,14 +164,14 @@ namespace LongUI { namespace detail {
 /// <returns></returns>
 void LongUI::UIControl::apply_clip_rect() const noexcept {
     // 检查overflow属性
-    const auto overflow_x = this->RefStyle().overflow_x;
+    const auto overflow_x = static_cast<AttributeOverflow>(this->RefStyle().overflow_xex & 3);
     const auto overflow_y = this->RefStyle().overflow_y;
     if (detail::both_visible(overflow_x, overflow_y)) return;
     // 压入
     auto& painter = UIManager.Ref2DRenderer();
     const float max_size = DEFAULT_CONTROL_MAX_SIZE;
     RectF rect = { 0, 0, max_size, max_size };
-    const auto size = this->GetSize();
+    const auto size = this->GetBoxSize();
     if (overflow_x != Overflow_Visible)
         rect.right = size.width;
     if (overflow_y != Overflow_Visible)
@@ -174,7 +183,7 @@ void LongUI::UIControl::apply_clip_rect() const noexcept {
 
 void LongUI::UIControl::cancel_clip_rect() const noexcept {
     // 检查overflow属性
-    const auto overflow_x = this->RefStyle().overflow_x;
+    const auto overflow_x = static_cast<AttributeOverflow>(this->RefStyle().overflow_xex & 3);
     const auto overflow_y = this->RefStyle().overflow_y;
     if (detail::both_visible(overflow_x, overflow_y)) return;
     // 弹出

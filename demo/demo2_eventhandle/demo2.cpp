@@ -53,7 +53,7 @@ public:
         m_pDisplay = display;
         // #EVENT1
         find_button("exit")->AddGuiEventListener(
-            UIButton::_onCommand(), [display](UIControl&) noexcept {
+            UIButton::_onCommand(), [display](const GuiEventArg&) noexcept {
             // Time Capsule
             UIManager.CreateTimeCapsule([display](float p) noexcept {
                 CUIString text;
@@ -65,7 +65,7 @@ public:
         });
         // #EVENT2
         find_button("exit")->AddGuiEventListener(
-            UIButton::_onCommand(), [display](UIControl&) noexcept {
+            UIButton::_onCommand(), [display](const GuiEventArg&) noexcept {
             display->SetText(u"now exit in 0.49sec!"_sv);
             // Time Capsule# 2
             UIManager.CreateTimeCapsule([display](float p) noexcept {
@@ -76,7 +76,7 @@ public:
         });
         // #EVENT3
         find_button("exit")->AddGuiEventListener(
-            UIButton::_onCommand(), [display](UIControl&) noexcept {
+            UIButton::_onCommand(), [display](const GuiEventArg&) noexcept {
             display->SetText(u"here never arrived! because of Disconnect!"_sv);
             return Event_Accept;
         }).Disconnect();
@@ -88,8 +88,8 @@ public:
         {
         case NoticeEvent::Event_UIEvent:
         {
-            auto& guie = static_cast<const EventGuiArg&>(e);
-            switch (guie.GetEvent())
+            auto& guie = static_cast<const GuiEventArg&>(e);
+            switch (guie.GetType())
             {
             case UIButton::_onCommand():
                 if (const auto btn = uisafe_cast<UIButton>(sender)) {

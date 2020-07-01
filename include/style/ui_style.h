@@ -16,7 +16,7 @@ namespace LongUI {
         RectF       visible;
         // box position
         Point2F     pos;
-        // box rect
+        // box size(margin-box size)
         Size2F      size;
         // margin
         RectF       margin;
@@ -24,14 +24,8 @@ namespace LongUI {
         RectF       border;
         // padding
         RectF       padding;
-        // box used min size
-        Size2F      minsize;
-        // TODO: box used max size 
-        Size2F      maxsize;
         // ctor
         void Init() noexcept;
-        // get Non-content rect
-        auto GetNonContect() const noexcept { RectF rc; GetNonContect(rc); return rc; }
         // get margin edge
         auto GetMarginEdge() const noexcept { RectF rc; GetMarginEdge(rc); return rc; }
         // get border edge
@@ -48,8 +42,12 @@ namespace LongUI {
         auto GetBorderSize() const noexcept->Size2F;
         // get contect pos
         auto GetContentPos() const noexcept->Point2F;
-        // get Non-content rect
-        void GetNonContect(RectF&) const noexcept;
+        // get non contect size
+        auto GetNonContentSize() const noexcept->Size2F;
+        //// get Non-content size
+        //void GetNonContect(RectF&) const noexcept;
+        //// get Non-content rect
+        //auto GetNonContect() const noexcept { RectF rc; GetNonContect(rc); return rc; }
         // get margin edge
         void GetMarginEdge(RectF&) const noexcept;
         // get border edge
@@ -94,17 +92,19 @@ namespace LongUI {
         // t-timing funtion [1]
         uint8_t             tfunction;
 
-        // overflow-x       [1]
-        AttributeOverflow   overflow_x;
-        // overflow-y       [1]
+        // overflow-x       [1] high 6bit for min-* * max-*
+        AttributeOverflow   overflow_xex;
+        // overflow-y
         AttributeOverflow   overflow_y;
         // accesskey char   [1]
         char                accesskey;
         // extri-anima-buck [1]
         uint8_t             extra_abcount;
 
-        // style used min size
-        Size2F              minsize;
+        // fitting size / size if overflow_sizestyled.xxx
+        Size2F              fitting;
+        // limited size / min-size if sizestyled
+        Size2F              limited;
         // style used max size
         Size2F              maxsize;
 #ifndef LUI_DISABLE_STYLE_SUPPORT

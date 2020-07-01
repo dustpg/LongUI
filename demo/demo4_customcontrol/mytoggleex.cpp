@@ -26,7 +26,9 @@ namespace Demo {
         m_top0 = ColorF::FromRGBA_CT<RGBA_Black>();
         m_top1 = ColorF::FromRGBA_CT<RGBA_White>();
         m_oBox.border = { 1,1,1,1 };
-        this->SetStyleMinSize({ MyToggleMM , MyToggleMH });
+        this->set_limited_width_lp(MyToggleMM);
+        this->set_limited_height_lp(MyToggleMH);
+        this->update_fitting_size({ MyToggleMM , MyToggleMH });
     }
     /// <summary>
     /// initialize MyToggleEx
@@ -169,7 +171,7 @@ namespace Demo {
             this->Invalidate();
         }, m_time, this);
         // trigger 'oncommand'
-        this->FireEvent(this->_onCommand());
+        this->FireSimpleEvent(this->_onCommand());
         // TODO: ACCESSIBLE
 #ifndef LUI_ACCESSIBLE
 

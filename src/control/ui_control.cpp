@@ -51,9 +51,7 @@ PCN_NOINLINE
 /// </summary>
 /// <param name="meta">The meta.</param>
 /// <returns></returns>
-auto LongUI::UIControl::SafeCastTo(
-    const LongUI::MetaControl & meta
-) const noexcept -> const UIControl *{
+auto LongUI::UIControl::SafeCastTo(const LongUI::MetaControl & meta) const noexcept -> const UIControl* {
     // 空this指针安全
     if (this) {
         auto info = &m_refMetaInfo;
@@ -161,22 +159,6 @@ void LongUI::UIControl::resize_child(UIControl& child, Size2F size) noexcept {
     child.m_oBox.size = size;
 }
 
-/// <summary>
-/// Resizes the specified size.
-/// </summary>
-/// <param name="size">The size.</param>
-/// <returns></returns>
-bool LongUI::UIControl::Resize(Size2F size) noexcept {
-    // 无需修改
-    if (IsSameInGuiLevel(m_oBox.size, size)) return false;
-    // XXX: 如果与父节点布局不相关可以略过?
-    if (m_pParent) m_pParent->NeedUpdate(Reason_ChildLayoutChanged);
-    // 修改了数据
-    this->NeedUpdate(Reason_SizeChanged);
-    this->mark_world_changed();
-    m_oBox.size = size;
-    return true;
-}
 
 
 /// <summary>
@@ -192,6 +174,98 @@ void LongUI::UIControl::mark_world_changed() noexcept {
     m_state.world_changed = true;
     this->NeedUpdate(Reason_NonChanged);
 }
+
+
+/// <summary>
+/// Resizes the specified size.
+/// </summary>
+/// <param name="size">The size.</param>
+/// <returns></returns>
+bool LongUI::UIControl::ResizeBox(Size2F size) noexcept {
+    // 无需修改
+    if (IsSameInGuiLevel(m_oBox.size, size)) return false;
+    // 如果与父节点布局不相关可以略过?
+    if (m_pParent && this->IsVaildInLayout()) 
+        m_pParent->NeedUpdate(Reason_ChildLayoutChanged);
+    // 修改了数据
+    this->NeedUpdate(Reason_SizeChanged);
+    this->mark_world_changed();
+    m_oBox.size = size;
+    return true;
+}
+
+
+/// <summary>
+/// min-width min-heigh
+/// </summary>
+/// <param name="size">The size.</param>
+/// <returns></returns>
+void LongUI::UIControl::InitMinSize(Size2F size) noexcept {
+    m_oStyle.fitting = size;
+    m_oStyle.limited = size;
+    constexpr uint8_t flags = uint8_t(4 << 0) | uint8_t(4 << 1) | uint8_t(4 << 2) | uint8_t(4 << 3);
+    reinterpret_cast<uint8_t&>(m_oStyle.overflow_xex) |= flags;
+}
+
+/// <summary>
+/// 
+/// </summary>
+/// <param name="size"></param>
+/// <returns></returns>
+void LongUI::UIControl::InitSize(Size2F size) noexcept {
+    m_oStyle.fitting = size;
+    constexpr uint8_t flags = uint8_t(4 << 0) | uint8_t(4 << 1);
+    reinterpret_cast<uint8_t&>(m_oStyle.overflow_xex) |= flags;
+}
+
+/// <summary>
+/// match layout
+/// </summary>
+/// <param name="meta"></param>
+/// <param name="target"></param>
+/// <param name="matrix">the matrix.</param>
+/// <returns></returns>
+void LongUI::UIControl::MatchLayout(const MetaControl& meta, UIControl& target, float matrix) noexcept {
+    // 避免不必要的计算
+    if (target.m_state.reason & Reason_BasicRelayout) return;
+    // 计算矩阵数据
+    const auto matrix_x = matrix;
+    const auto matrix_y = 1 - matrix;
+    const auto size1 = m_oBox.GetContentSize();
+    // 主循环
+    auto itr = target.begin();
+    const auto target_end = target.end();
+    for (auto& child : (*this)) {
+        if (!child.IsVaildInLayout()) continue;
+        // 查找适合的布局对象
+        while (true) {
+            if (itr == target_end) return;
+            if (itr->SafeCastTo(meta)) break; itr++;
+        }
+        // 匹配成功
+        child.SetPos(itr->GetPos());
+        const auto size0 = itr->GetBoxSize();
+        //const auto size1 = child.GetBoxFittingSize();
+        this->resize_child(child, {
+            size0.width * matrix_x + size1.width * matrix_y,
+            size0.height * matrix_y + size1.height * matrix_x,
+        });
+        itr++;
+    }
+}
+
+/// <summary>
+/// Sets the size of the fixed.
+/// </summary>
+/// <param name="size">The size.</param>
+/// <returns></returns>
+//void LongUI::UIControl::SetFixedSize(Size2F size) noexcept {
+//    this->SetStyleMaxSize(size);
+//    this->SetStyleMinSize(size);
+//    this->Resize(size);
+//}
+
+#if 0
 
 PCN_NOINLINE
 /// <summary>
@@ -209,16 +283,6 @@ auto LongUI::UIControl::GetMinSize() const noexcept -> Size2F {
     };
 }
 
-/// <summary>
-/// Sets the size of the fixed.
-/// </summary>
-/// <param name="size">The size.</param>
-/// <returns></returns>
-void LongUI::UIControl::SetFixedSize(Size2F size) noexcept {
-    this->SetStyleMaxSize(size);
-    this->SetStyleMinSize(size);
-    this->Resize(size);
-}
 
 /// <summary>
 /// Sets the maximum size of the style.
@@ -227,7 +291,6 @@ void LongUI::UIControl::SetFixedSize(Size2F size) noexcept {
 /// <returns></returns>
 void LongUI::UIControl::SetStyleMaxSize(Size2F size) noexcept {
     m_oStyle.maxsize = size;
-    //UIManager.MarkWindowMinsizeChanged(m_pWindow);
 }
 
 
@@ -263,7 +326,6 @@ void LongUI::UIControl::set_contect_minsize(Size2F size) noexcept {
     });
 }
 
-#if 0
 /// <summary>
 /// Sets the minimum size.
 /// 指定最小尺寸
@@ -305,8 +367,6 @@ void LongUI::UIControl::SpecifyMaxSize(Size2F size) noexcept {
     assert(m_oStyle.minsize.height <= m_oStyle.maxsize.height);
 }
 #endif
-
-
 
 
 
@@ -407,30 +467,24 @@ void LongUI::UIControl::Update(UpdateReason reason) noexcept {
 /// <param name="release_only">if set to <c>true</c> [release only].</param>
 /// <returns></returns>
 auto LongUI::UIControl::Recreate(bool release_only) noexcept -> Result {
-    Result hr = { Result::RS_OK };
     // --------------------- 释放数据
-
 #ifndef LUI_DISABLE_STYLE_SUPPORT
     // 背景
     if (m_pBgRender) m_pBgRender->ReleaseDeviceData();
     // 边框
     if (m_pBdRender) m_pBdRender->ReleaseDeviceData();
 #endif
-
     // 仅仅释放
+    Result hr = { Result::RS_OK };
     if (release_only) return hr;
-
-
     // --------------------- 创建数据
-
 #ifndef LUI_DISABLE_STYLE_SUPPORT
     // 背景
     if (m_pBgRender) hr = m_pBgRender->CreateDeviceData();
     // 边框
     if (m_pBdRender && hr) hr = m_pBdRender->CreateDeviceData();
 #endif
-
-    return{ Result::RS_OK };
+    return hr;
 }
 
 /// <summary>
@@ -442,6 +496,21 @@ auto LongUI::UIControl::Recreate(bool release_only) noexcept -> Result {
 //    // ::before ::after?
 //    return nullptr;
 //}
+
+PCN_NOINLINE
+/// <summary>
+/// update fitting value
+/// </summary>
+/// <param name="fitting"></param>
+/// <returns></returns>
+void LongUI::UIControl::update_fitting_size(Size2F fitting, UIControl* target) noexcept {
+    const auto old_fitting = m_oStyle.fitting;
+    this->set_fitting_width_lp(fitting.width);
+    this->set_fitting_height_lp(fitting.height);
+    if (target && this->IsVaildInLayout())
+        if (!LongUI::IsSameInGuiLevel(m_oStyle.fitting, old_fitting))
+            target->NeedUpdate(Reason_ChildLayoutChanged);
+}
 
 #ifndef NDEBUG
 #include <constexpr/const_bkdr.h>
@@ -467,24 +536,31 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
     constexpr auto BKDR_STYLE       = 0xf253f789_ui32;
     constexpr auto BKDR_ALIGN       = 0xb54685e9_ui32;
     constexpr auto BKDR_CLASS       = 0xd85fe06c_ui32;
-    constexpr auto BKDR_WIDTH       = 0x370bff82_ui32;
-    constexpr auto BKDR_HEIGHT      = 0x28d4978b_ui32;
     constexpr auto BKDR_ORIENT      = 0xeda466cd_ui32;
     constexpr auto BKDR_CHECKED     = 0x091a155f_ui32;
     constexpr auto BKDR_VISIBLE     = 0x646b6442_ui32;
     constexpr auto BKDR_CONTEXT     = 0x89f92d3b_ui32;
     constexpr auto BKDR_TOOLTIP     = 0x9a54b5f3_ui32;
     constexpr auto BKDR_DEFAULT     = 0xdc8b8bf9_ui32;
-    //constexpr auto BKDR_TABINDEX    = 0x1c6477b9_ui32;
+    constexpr auto BKDR_TABINDEX    = 0x1c6477b9_ui32;
     constexpr auto BKDR_DISABLED    = 0x715f1adc_ui32;
     constexpr auto BKDR_ACCESSKEY   = 0xba56ab7b_ui32;
     constexpr auto BKDR_DRAGGABLE   = 0xbd13c3b5_ui32;
     constexpr auto BKDR_TOOLTIPTEXT = 0x77a52e88_ui32;
-
+    // SIZE 属性
+    constexpr auto BKDR_WIDTH       = 0x370bff82_ui32;
+    constexpr auto BKDR_HEIGHT      = 0x28d4978b_ui32;
+    constexpr auto BKDR_MINWIDTH    = 0x3d791b9c_ui32;
+    constexpr auto BKDR_MINHEIGHT   = 0x72a9f8d9_ui32;
+    constexpr auto BKDR_MAXWIDTH    = 0x6b0f2f52_ui32;
+    constexpr auto BKDR_MAXHEIGHT   = 0xc6760efb_ui32;
+    // EXTRA
     constexpr auto BKDR_DATAUSER    = 0x5c110136_ui32;
     constexpr auto BKDR_DATAU16     = 0xc036b6f7_ui32;
     constexpr auto BKDR_DATAU8      = 0xe4278072_ui32;
-   
+
+    // TODO: 单位?
+    //const auto unit = LongUI::SplitUnit(luiref value);
 
     // HASH 一致就认为一致即可
     switch (key)
@@ -502,31 +578,45 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
         break;
     case BKDR_LEFT:
         // left
-        // TODO: 单位?
-        //const auto unit = LongUI::SplitUnit(luiref value);
         m_oBox.pos.x = value.ToFloat();
         break;
     case BKDR_TOP:
         // top
-        // TODO: 单位?
-        //const auto unit = LongUI::SplitUnit(luiref value);
         m_oBox.pos.y = value.ToFloat();
         break;
     case BKDR_WIDTH:
-        // width
-        m_oStyle.maxsize.width =
-            m_oStyle.minsize.width =
-            m_oBox.size.width = value.ToFloat();
+        // width        : 类CSS属性 width
+        m_oStyle.fitting.width = value.ToFloat();
+        reinterpret_cast<uint8_t&>(m_oStyle.overflow_xex) |= uint8_t(4 << 0);
         break;
     case BKDR_HEIGHT:
-        // height
-        m_oStyle.maxsize.height =
-            m_oStyle.minsize.height =
-            m_oBox.size.width = value.ToFloat();
+        // height       : 类CSS属性 height
+        m_oStyle.fitting.height = value.ToFloat();
+        reinterpret_cast<uint8_t&>(m_oStyle.overflow_xex) |= uint8_t(4 << 1);
+        break;
+    case BKDR_MINWIDTH:
+        // minwidth    : width属性下限
+        m_oStyle.limited.width = value.ToFloat();
+        reinterpret_cast<uint8_t&>(m_oStyle.overflow_xex) |= uint8_t(4 << 2);
+        break;
+    case BKDR_MINHEIGHT:
+        // minheight    : height属性下限
+        m_oStyle.limited.height = value.ToFloat();
+        reinterpret_cast<uint8_t&>(m_oStyle.overflow_xex) |= uint8_t(4 << 3);
+        break;
+    case BKDR_MAXWIDTH:
+        // maxwidth     : width属性上限
+        m_oStyle.maxsize.width = value.ToFloat();
+        reinterpret_cast<uint8_t&>(m_oStyle.overflow_xex) |= uint8_t(4 << 4);
+        break;
+    case BKDR_MAXHEIGHT:
+        // maxheight    : height属性上限
+        m_oStyle.maxsize.height = value.ToFloat();
+        reinterpret_cast<uint8_t&>(m_oStyle.overflow_xex) |= uint8_t(4 << 5);
         break;
 #ifndef LUI_DISABLE_STYLE_SUPPORT
     case BKDR_STYLE:
-        // style      : 内联样式表
+        // style        : 内联样式表
         if (LongUI::ParseInlineStyle(m_oStyle.matched, value))
             m_state.has_inline_style = true;
 
@@ -799,6 +889,7 @@ void LongUI::UIControl::ControlMakingEnd() noexcept {
 /// </summary>
 LongUI::UIControl::UIControl(const MetaControl& meta) noexcept : 
 m_pParent(nullptr), m_refMetaInfo(meta) {
+    static_assert(sizeof(uint32_t) == sizeof(float), "same!");
     Node::next = nullptr;
     Node::prev = nullptr;
     m_ptChildOffset = { 0, 0 };
@@ -863,13 +954,6 @@ auto LongUI::UIControl::make_sp_traversal() noexcept -> SpTraversal {
 /// <param name="e">The e.</param>
 /// <returns></returns>
 auto LongUI::UIControl::DoEvent(UIControl* sender, const EventArg& e) noexcept -> EventAccept {
-    // ---------------- 事件处理分支
-    switch (e.nevent)
-    {
-    case LongUI::NoticeEvent::Event_RefreshBoxMinSize:
-        this->set_contect_minsize({});
-        return Event_Accept;
-    }
     return Event_Ignore;
 }
 
@@ -1158,7 +1242,7 @@ auto LongUI::UIControl::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
                 m_pClicked->DoMouseEvent(e);
         }
         // 触发[onclick]事件
-        this->FireEvent(_onClick());
+        this->FireSimpleEvent(_onClick());
         return Event_Accept;
     case LongUI::MouseEvent::Event_RButtonUp:
         // 子控件优先处理事件
@@ -1296,7 +1380,6 @@ void LongUI::UIControl::SwapChildren(UIControl& a, UIControl& b) noexcept {
     assert(b.GetParent() == this && "not child for this");
     if (a == b) return;
     this->NeedUpdate(Reason_ChildIndexChanged);
-    this->mark_window_minsize_changed();
     UIControl::SwapNode(a, b);
 }
 
@@ -1351,6 +1434,7 @@ void LongUI::UIControl::SetTooltipText(U8View view) noexcept {
     //this->Invalidate();
 }
 
+PCN_NOINLINE
 /// <summary>
 /// Sets the visible.
 /// </summary>
@@ -1360,17 +1444,15 @@ void LongUI::UIControl::SetVisible(bool visible) noexcept {
     if (this->IsVisible() != visible) {
         m_state.visible = visible;
         if (!m_pParent) return;
+        this->Invalidate();
+        if (m_pWindow && !visible) m_pWindow->DoControlInvisible(*this);
         // XXX: 优化其他情况
 
         // 布局相关
-        this->Invalidate();
         if (m_state.attachment == Attachment_Fixed) {
 
         }
-        else {
-            m_pParent->NeedUpdate(Reason_ChildLayoutChanged);
-            this->mark_window_minsize_changed();
-        }
+        else m_pParent->NeedUpdate(Reason_ChildLayoutChanged);
     }
 }
 
@@ -1418,10 +1500,47 @@ void LongUI::UIControl::remove_child(UIControl& child) noexcept {
     // 在析构中?
     if (m_state.destructing) return;
     // 要求刷新
-    this->mark_window_minsize_changed();
     this->NeedUpdate(Reason_ChildIndexChanged);
 }
 
+
+/// <summary>
+/// get box size except normal size
+/// </summary>
+/// <returns></returns>
+auto LongUI::UIControl::GetBoxExSize() const noexcept -> Size2F {
+#ifdef LUI_BOXSIZING_BORDER_BOX
+    Size2F size;
+    size.width = m_oBox.margin.left + m_oBox.margin.right;
+    size.height = m_oBox.margin.top + m_oBox.margin.bottom;
+    return size;
+#else
+    return m_oBox.GetNonContentSize();
+#endif
+}
+
+/// <summary>
+/// get limited size of box
+/// </summary>
+/// <returns></returns>
+auto LongUI::UIControl::GetBoxLimitedSize() const noexcept -> Size2F {
+    auto size = this->GetBoxExSize();
+    size.width += m_oStyle.limited.width;
+    size.height += m_oStyle.limited.height;
+    return size;
+}
+
+
+/// <summary>
+/// get fitting size of box
+/// </summary>
+/// <returns></returns>
+auto LongUI::UIControl::GetBoxFittingSize() const noexcept -> Size2F {
+    auto size = this->GetBoxExSize();
+    size.width += m_oStyle.fitting.width;
+    size.height += m_oStyle.fitting.height;
+    return size;
+}
 
 /// <summary>
 /// Determines whether [is excluded from the layout].
@@ -1622,27 +1741,23 @@ void LongUI::UIControl::make_offset_tf_direct(UIControl & child) noexcept {
 }
 
 /// <summary>
-/// Marks the window minsize changed.
-/// </summary>
-/// <returns></returns>
-void LongUI::UIControl::mark_window_minsize_changed() noexcept {
-    UIManager.MarkWindowMinsizeChanged(m_pWindow);
-}
-
-/// <summary>
 /// initialize this
 /// </summary>
 /// <returns></returns>
 void LongUI::UIControl::initialize() noexcept {
+
 }
 
+
+PCN_NOINLINE
 /// <summary>
-/// Adds the child.
+/// insert child before
 /// </summary>
-/// <remarks>这条函数非常重要</remarks>
-/// <param name="child">The child.</param>
+/// <param name="child"></param>
+/// <param name="before"></param>
 /// <returns></returns>
-void LongUI::UIControl::add_child(UIControl& child) noexcept {
+void LongUI::UIControl::insert_child(UIControl& child, UIControl& before) noexcept {
+    assert(before == *this->end() || before.GetParent() == this);
     // 视口?
     if (LongUI::IsViewport(child)) {
         assert(m_pWindow && "add subwindow must be vaild window");
@@ -1656,27 +1771,41 @@ void LongUI::UIControl::add_child(UIControl& child) noexcept {
     // 标记
     child.NeedUpdate(Reason_ParentChanged);
     this->NeedUpdate(Reason_ChildIndexChanged);
-    this->mark_window_minsize_changed();
     // 在之前的父控件移除该控件
     if (child.m_pParent) child.m_pParent->remove_child(child);
     child.m_pParent = this;
     ++m_cChildrenCount;
     // 连接前后节点
-#ifdef LUI_CONTROL_USE_SINLENODE
-    m_oHead.prev->next = &child;
-    child.prev = m_oHead.prev;
-    child.next = static_cast<UIControl*>(&m_oHead);
-    m_oHead.prev = &child;
-#else
-    m_oTail.prev->next = &child;
-    child.prev = m_oTail.prev;
-    child.next = static_cast<UIControl*>(&m_oTail);
-    m_oTail.prev = &child;
-#endif
+    before.prev->next = &child;
+    child.prev = before.prev;
+    child.next = &before;
+    before.prev = &child;
+
+//#ifdef LUI_CONTROL_USE_SINLENODE
+//    m_oHead.prev->next = &child;
+//    child.prev = m_oHead.prev;
+//    child.next = static_cast<UIControl*>(&m_oHead);
+//    m_oHead.prev = &child;
+//#else
+//    m_oTail.prev->next = &child;
+//    child.prev = m_oTail.prev;
+//    child.next = static_cast<UIControl*>(&m_oTail);
+//    m_oTail.prev = &child;
+//#endif
     // 同步
     UIControl::sync_data(child, *this);
     // 提示管理器新的控件被添加到控件树中
     //UIManager.ControlAttached(child);
+}
+
+/// <summary>
+/// Adds the child.
+/// </summary>
+/// <remarks>这条函数非常重要</remarks>
+/// <param name="child">The child.</param>
+/// <returns></returns>
+void LongUI::UIControl::add_child(UIControl& child) noexcept {
+    this->insert_child(child, *this->end());
 }
 
 inline
@@ -1828,7 +1957,12 @@ void LongUI::UIControl::ApplyValue(const SSValue& value) noexcept {
         assert(!"unsupported value type");
         break;
     case ValueType::Type_PositionOverflowX:
-        detail::write_value(m_oStyle.overflow_x, value.data4.byte);
+    {
+        constexpr uint8_t mask = ~3;
+        auto& write_to = reinterpret_cast<uint8_t&>(m_oStyle.overflow_xex);
+        write_to &= mask;
+        write_to |= value.data4.byte;
+    }
         break;
     case ValueType::Type_PositionOverflowY:
         detail::write_value(m_oStyle.overflow_y, value.data4.byte);
@@ -1842,38 +1976,21 @@ void LongUI::UIControl::ApplyValue(const SSValue& value) noexcept {
         this->mark_world_changed();
         break;
     case ValueType::Type_DimensionWidth:
-        detail::write_value(m_oStyle.minsize.width, value.data4.single);
-        detail::write_value(m_oStyle.maxsize.width, value.data4.single);
-        detail::write_value(m_oBox.size.width, value.data4.single);
-        this->mark_window_minsize_changed();
-        this->NeedUpdate(Reason_SizeChanged);
-        break;
     case ValueType::Type_DimensionHeight:
-        detail::write_value(m_oStyle.minsize.height, value.data4.single);
-        detail::write_value(m_oStyle.maxsize.height, value.data4.single);
-        detail::write_value(m_oBox.size.height, value.data4.single);
-        this->mark_window_minsize_changed();
-        this->NeedUpdate(Reason_SizeChanged);
-        break;
     case ValueType::Type_DimensionMinWidth:
-        detail::write_value(m_oStyle.minsize.width, value.data4.single);
-        this->mark_window_minsize_changed();
-        break;
     case ValueType::Type_DimensionMinHeight:
-        detail::write_value(m_oStyle.minsize.height, value.data4.single);
-        this->mark_window_minsize_changed();
-        break;
     case ValueType::Type_DimensionMaxWidth:
-        //if (detail::is_percent_value(value.data4.single)) {
-        //    auto p = detail::get_percent_value(value.data4.single);
-        //    if (m_pParent) p *= m_pParent->GetSize().width;
-        //    detail::write_value(m_oStyle.maxsize.width, p);
-        //}
-        detail::write_value(m_oStyle.maxsize.width, value.data4.single);
-        if (m_pParent) m_pParent->NeedUpdate(Reason_ChildLayoutChanged);
-        break;
     case ValueType::Type_DimensionMaxHeight:
-        detail::write_value(m_oStyle.maxsize.height, value.data4.single);
+    {
+        const auto x = static_cast<uint32_t>(value.type);
+        const auto y = static_cast<uint32_t>(ValueType::Type_DimensionWidth);
+        const uint32_t i = x - y;
+        const uint8_t flag = 4 << i;
+        reinterpret_cast<uint8_t&>(m_oStyle.overflow_xex) |= flag;
+        auto& write_to = i[&m_oStyle.fitting.width];
+        detail::write_value(write_to, value.data4.single);
+    }
+        this->NeedUpdate(Reason_SizeChanged);
         if (m_pParent) m_pParent->NeedUpdate(Reason_ChildLayoutChanged);
         break;
     case ValueType::Type_BoxFlex:
@@ -2012,7 +2129,7 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
         assert(!"unsupported value type");
         break;
     case ValueType::Type_PositionOverflowX:
-        detail::write_value(value.data4.byte, m_oStyle.overflow_x);
+        value.data4.byte = static_cast<uint8_t>(m_oStyle.overflow_xex) & 3;
         break;
     case ValueType::Type_PositionOverflowY:
         detail::write_value(value.data4.byte, m_oStyle.overflow_y);
@@ -2024,25 +2141,18 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
         detail::write_value(value.data4.single, m_oBox.pos.y);
         break;
     case ValueType::Type_DimensionWidth:
-        detail::write_value(value.data4.single, m_oBox.size.width);
-        break;
     case ValueType::Type_DimensionHeight:
-        detail::write_value(value.data4.single, m_oBox.size.width);
-        break;
     case ValueType::Type_DimensionMinWidth:
-        detail::write_value(value.data4.single, m_oStyle.minsize.width);
-        break;
     case ValueType::Type_DimensionMinHeight:
-        detail::write_value(value.data4.single, m_oStyle.minsize.height);
-        break;
     case ValueType::Type_DimensionMaxWidth:
-        //detail::write_value(value.data4.single, detail::mark_percent_from1(
-            //m_oStyle.maxsize.width / m_pParent->GetSize().width));
-        detail::write_value(value.data4.single, m_oStyle.maxsize.width);
-        break;
     case ValueType::Type_DimensionMaxHeight:
-        detail::write_value(value.data4.single, m_oStyle.maxsize.height);
+    {
+        const auto x = static_cast<uint32_t>(value.type);
+        const auto y = static_cast<uint32_t>(ValueType::Type_DimensionWidth);
+        const auto read_to = (&m_oStyle.fitting.width)[x - y];
+        detail::write_value(value.data4.single, read_to);
         break;
+    }
     case ValueType::Type_BoxFlex:
         detail::write_value(value.data4.single, m_oStyle.flex);
         break;

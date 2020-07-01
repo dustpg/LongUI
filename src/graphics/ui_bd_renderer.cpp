@@ -47,10 +47,8 @@ void LongUI::CUIRendererBorder::ReleaseDeviceData() noexcept {
 void LongUI::CUIRendererBorder::release_effect() noexcept {
     UIManager.TSReleaseCOM(LUI_OBJECT_TO_COM(m_pBorder));
     UIManager.TSReleaseCOM(LUI_OBJECT_TO_COM(m_pOutput));
-#ifndef DEBUG
-    m_pBorder = reinterpret_cast<I::Effect*>(1);
-    m_pOutput = reinterpret_cast<I::EOutput*>(1);
-#endif // !DEBUG
+    m_pBorder = nullptr;
+    m_pOutput = nullptr;
 }
 
 /// <summary>

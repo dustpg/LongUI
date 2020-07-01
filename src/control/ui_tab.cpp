@@ -387,16 +387,20 @@ void LongUI::UITabBox::SetSelectedIndex(uint32_t index) noexcept {
         // 触发事件
         if (now != m_index) {
             m_index = now;
-            this->FireEvent(_onCommand());
+            this->FireSimpleEvent(_onCommand());
         }
     }
 }
 
+#if 0
 /// <summary>
 /// Updates this instance.
 /// </summary>
 /// <returns></returns>
 void LongUI::UITabBox::Update(UpdateReason reason) noexcept {
+    // 要求更新建议尺寸
+    //if (reason & Reason_BasicUpdateFitting)
+    //    this->refresh_fitting();
     // XXX: 要求重新布局
     //if (reason & Reason_BasicRelayout) {
     //    // 重新布局
@@ -406,26 +410,30 @@ void LongUI::UITabBox::Update(UpdateReason reason) noexcept {
     Super::Update(reason);
 }
 
+#endif
+
 /// <summary>
-/// Does the event.
+/// update fitting size
 /// </summary>
-/// <param name="sender">The sender.</param>
-/// <param name="e">The e.</param>
 /// <returns></returns>
-//auto LongUI::UITabBox::DoEvent(UIControl* sender, 
-//    const EventArg& e) noexcept->EventAccept {
-//    switch (e.nevent)
-//    {
-//    //case NoticeEvent::Event_RefreshBoxMinSize:
-//    //    this->refresh_minsize();
-//    //    return Event_Accept;
-//    case NoticeEvent::Event_Initialize:
-//        this->init_tabbox();
-//        [[fallthrough]];
-//    default:
-//        return Super::DoEvent(sender, e);
+//void LongUI::UITabBox::refresh_fitting() noexcept {
+//    Size2F minsize1 = {};
+//    Size2F minsize2 = {};
+//    if (m_pTabs) minsize1 = m_pTabs->GetBoxFittingSize();
+//    if (m_pTabPanels) minsize2 = m_pTabPanels->GetBoxFittingSize();
+//    // 垂直
+//    if (m_state.orient) {
+//        minsize1.width = std::max(minsize1.width, minsize2.width);
+//        minsize1.height += minsize2.height;
 //    }
+//    // 水平
+//    else {
+//        minsize1.width += minsize2.width;
+//        minsize1.height = std::max(minsize1.height, minsize2.height);
+//    }
+//    this->set_contect_minsize(minsize1);
 //}
+
 
 /// <summary>
 /// Adds the child.
@@ -466,28 +474,6 @@ void LongUI::UITabBox::initialize() noexcept {
 
 
 #if 0
-/// <summary>
-/// refresh minsize for UITabBox
-/// </summary>
-/// <returns></returns>
-void LongUI::UITabBox::refresh_minsize() noexcept {
-    Size2F minsize1 = {};
-    Size2F minsize2 = {};
-    if (m_pTabs) minsize1 = m_pTabs->GetMinSize();
-    if (m_pTabPanels) minsize2 = m_pTabPanels->GetMinSize();
-    // 垂直
-    if (m_state.orient) {
-        minsize1.width = std::max(minsize1.width, minsize2.width);
-        minsize1.height += minsize2.height;
-    }
-    // 水平
-    else {
-        minsize1.width += minsize2.width;
-        minsize1.height = std::max(minsize1.height, minsize2.height);
-    }
-    this->set_contect_minsize(minsize1);
-}
-
 
 /// <summary>
 /// Relayouts this instance.
@@ -569,12 +555,15 @@ LongUI::UITabPanels::UITabPanels(const MetaControl& meta) noexcept : Super(meta)
 /// <param name="reason"></param>
 /// <returns></returns>
 void LongUI::UITabPanels::Update(UpdateReason reason) noexcept {
+    // 要求重新计算
+    if (reason & Reason_BasicUpdateFitting)
+        this->refresh_fitting();
     // XXX: UIDeck 应该一样?
     if (reason & Reason_BasicRelayout) {
         const auto pos = m_oBox.GetContentPos();
         for (auto& child : (*this)) {
             child.SetPos(pos);
-            this->resize_child(child, child.GetMinSize());
+            this->resize_child(child, child.GetBoxFittingSize());
         }
     }
     // 有变数

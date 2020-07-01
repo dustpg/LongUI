@@ -23,10 +23,11 @@ namespace LongUI {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 /// <returns></returns>
-LongUI::UIScrollArea::UIScrollArea(const MetaControl& meta) noexcept: Super(meta) {
+LongUI::UIScrollArea::UIScrollArea(const MetaControl& meta) noexcept : Super(meta) {
     this->line_size = { EMPTY_HEIGHT_PER_ROW, EMPTY_HEIGHT_PER_ROW };
     m_minScrollSize = { };
     m_maxScrollSize = { };
+    m_pFinalEnd = this->end();
 }
 
 
@@ -36,10 +37,10 @@ LongUI::UIScrollArea::UIScrollArea(const MetaControl& meta) noexcept: Super(meta
 /// <returns></returns>
 LongUI::UIScrollArea::~UIScrollArea() noexcept {
 #ifndef NDEBUG
-    m_pSBVertical = nullptr;
-    m_pSBVertical++;
-    m_pSBHorizontal = nullptr;
-    m_pSBHorizontal++;
+    m_pScrollBarVer = nullptr;
+    m_pScrollBarVer++;
+    m_pScrollBarHor = nullptr;
+    m_pScrollBarHor++;
 #endif
 }
 
@@ -49,21 +50,12 @@ LongUI::UIScrollArea::~UIScrollArea() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIScrollArea::SetAutoOverflow() noexcept {
-    m_oStyle.overflow_x = Overflow_Auto;
+    static_assert(Overflow_Auto == 0, "must be 0");
+    constexpr uint8_t mask = ~3;
+    reinterpret_cast<uint8_t&>(m_oStyle.overflow_xex) &= mask;
     m_oStyle.overflow_y = Overflow_Auto;
 }
 
-
-/// <summary>
-/// Forces the size of the update scroll.
-/// </summary>
-/// <param name="ss">The ss.</param>
-/// <returns></returns>
-void LongUI::UIScrollArea::ForceUpdateScrollSize(Size2F ss) noexcept {
-    m_minScrollSize = ss;
-    // XXX: 新的理由
-    this->NeedUpdate(Reason_ChildLayoutChanged);
-}
 
 /// <summary>
 /// Adds the spacer.
@@ -72,14 +64,22 @@ void LongUI::UIScrollArea::ForceUpdateScrollSize(Size2F ss) noexcept {
 void LongUI::UIScrollArea::AddSpacer(Size2F size, float flex) noexcept {
     // 生成对象
     if (const auto spacer = new(std::nothrow) UISpacer{ this }) {
-        // 最小尺寸
-        spacer->SetStyleMinSize(size);
-        // 有效弹簧
-        if (flex > 0.f) UIControlPrivate::SetFlex(*spacer, flex);
-        // 无效弹簧
-        else spacer->SetStyleMaxSize(size);
+        // 设置对应数据
+        spacer->SetSpacer(size, flex);
     }
 }
+
+
+
+/// <summary>
+/// add child for UIScrollArea
+/// </summary>
+/// <param name="child"></param>
+/// <returns></returns>
+void LongUI::UIScrollArea::add_child(UIControl& child) noexcept {
+    Super::insert_child(child, *m_pFinalEnd);
+}
+
 
 /// <summary>
 /// Does the event.
@@ -92,13 +92,13 @@ auto LongUI::UIScrollArea::DoEvent(
     // 消息处理
     if (arg.nevent == NoticeEvent::Event_UIEvent) {
         assert(sender && "sender in gui event cannot be null");
-        switch (static_cast<const EventGuiArg&>(arg).GetEvent())
+        switch (static_cast<const GuiEventArg&>(arg).GetType())
         {
         case GuiEvent::Event_OnChange:
-            if (sender == m_pSBHorizontal)
-                m_ptChildOffset.x = m_pSBHorizontal->GetValue();
-            else if (sender == m_pSBVertical)
-                m_ptChildOffset.y = m_pSBVertical->GetValue();
+            if (sender == m_pScrollBarHor)
+                m_ptChildOffset.x = m_pScrollBarHor->GetValue();
+            else if (sender == m_pScrollBarVer)
+                m_ptChildOffset.y = m_pScrollBarVer->GetValue();
             else break;
             // SB修改之后调用
             this->mark_world_changed();
@@ -197,33 +197,34 @@ auto LongUI::UIControl::SumChildrenFlex() const noexcept -> float {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIScrollArea::sync_scroll_bar(Point2F& offset) noexcept {
-    const bool hok = m_pSBHorizontal && m_pSBHorizontal->IsVisible();
-    const bool vok = m_pSBVertical && m_pSBVertical->IsVisible();
+    m_maxScrollSize = { 0, 0 };
+    const auto csize = m_oBox.GetContentSize();
+    const bool hok = m_pScrollBarHor && m_pScrollBarHor->IsVisible();
+    const bool vok = m_pScrollBarVer && m_pScrollBarVer->IsVisible();
     // 交界区
     const Size2F corner = {
-        vok ? m_pSBVertical->GetMinSize().width : 0.f,
-        hok ? m_pSBHorizontal->GetMinSize().height : 0.f
+        vok ? m_pScrollBarVer->GetBoxWidth() : 0.f,
+        hok ? m_pScrollBarHor->GetBoxHeight() : 0.f
     };
-    const auto csize = m_oBox.GetContentSize();
-    m_maxScrollSize = { 0, 0 };
+    const auto& min_scroll = m_oStyle.fitting;
     // 水平滚动条
     if (hok) {
-        m_pSBHorizontal->SetIncrement(this->line_size.width);
-        m_pSBHorizontal->SetPageIncrement(csize.width - corner.width);
-        m_maxScrollSize.width = m_minScrollSize.width - csize.width + corner.width;
-        m_pSBHorizontal->SetMax(m_maxScrollSize.width);
-        m_pSBHorizontal->SetValue(offset.x);
-        //m_pSBHorizontal->SetSingleStep(m_szSingleStep.width);
+        m_pScrollBarHor->SetIncrement(this->line_size.width);
+        m_pScrollBarHor->SetPageIncrement(csize.width - corner.width);
+        m_maxScrollSize.width = min_scroll.width - csize.width + corner.width;
+        m_pScrollBarHor->SetMax(m_maxScrollSize.width);
+        m_pScrollBarHor->SetValue(offset.x);
+        //m_pScrollBarHor->SetSingleStep(m_szSingleStep.width);
     }
     else offset.x = 0.f;
     // 垂直滚动条
     if (vok) {
-        m_pSBVertical->SetIncrement(this->line_size.height);
-        m_pSBVertical->SetPageIncrement(csize.height - corner.height);
-        m_maxScrollSize.height = m_minScrollSize.height - csize.height + corner.height;
-        m_pSBVertical->SetMax(m_maxScrollSize.height);
-        m_pSBVertical->SetValue(offset.y);
-        //m_pSBVertical->SetSingleStep(m_szSingleStep.height);
+        m_pScrollBarVer->SetIncrement(this->line_size.height);
+        m_pScrollBarVer->SetPageIncrement(csize.height - corner.height);
+        m_maxScrollSize.height = min_scroll.height - csize.height + corner.height;
+        m_pScrollBarVer->SetMax(m_maxScrollSize.height);
+        m_pScrollBarVer->SetValue(offset.y);
+        //m_pScrollBarVer->SetSingleStep(m_szSingleStep.height);
     }
     else offset.y = 0.f;
     this->layout_corner(hok && vok, corner);
@@ -237,23 +238,28 @@ void LongUI::UIScrollArea::sync_scroll_bar(Point2F& offset) noexcept {
 void LongUI::UIScrollArea::layout_corner(bool visible, Size2F size) noexcept{
     if (visible) {
         // 这个是大前提
-        assert(m_pSBHorizontal && m_pSBVertical);
+        assert(m_pScrollBarHor && m_pScrollBarVer);
         // 没有就尝试创建并且初始化
         if (!m_pCorner) {
+            // 插入尾部
+            const auto context = m_pFinalEnd;
+            m_pFinalEnd = this->end();
             m_pCorner = new(std::nothrow) UIControl(this);
+            m_pFinalEnd = context;
             if (!m_pCorner) return;
 #ifndef NDEBUG
             m_pCorner->name_dbg = "scrollarea::corner";
 #endif
+            UIControlPrivate::FixedAttachment(*m_pCorner);
             this->set_child_fixed_attachment(*m_pCorner);
             UIControlPrivate::SetAppearance(*m_pCorner, Appearance_Resizer);
         }
         // 有就进行设置
         if (m_pCorner) {
             m_pCorner->SetVisible(true);
-            m_pCorner->Resize(size);
-            const auto x = m_pSBVertical->GetPos().x;
-            const auto y = m_pSBHorizontal->GetPos().y;
+            this->resize_child(*m_pCorner, size);
+            const auto x = m_pScrollBarVer->GetPos().x;
+            const auto y = m_pScrollBarHor->GetPos().y;
             m_pCorner->SetPos({ x, y });
         }
     }
@@ -261,60 +267,19 @@ void LongUI::UIScrollArea::layout_corner(bool visible, Size2F size) noexcept{
     else if(m_pCorner) m_pCorner->SetVisible(false);
 }
 
-/// <summary>
-/// Layouts the hscrollbar.
-/// </summary>
-/// <param name="notenough">if set to <c>true</c> [notenough].</param>
-/// <returns></returns>
-auto LongUI::UIScrollArea::layout_hscrollbar(bool notenough) noexcept -> float {
-    const auto overflow = this->RefStyle().overflow_x;
-    // 检查绝不可能的情况
-    const bool nosb = overflow & 1;
-    if (nosb) return 0.0f;
-    // 可能存在滚动条
-    if (overflow == Overflow_Auto) {
-        // 不够用就显示
-        if (!notenough) {
-            if (m_pSBHorizontal) m_pSBHorizontal->SetVisible(false);
-            return 0.f;
-        }
-    }
-    // 需要滚动条
-    if (!m_pSBHorizontal) m_pSBHorizontal = this->create_scrollbar(Orient_Horizontal);
-    return m_pSBHorizontal ? m_pSBHorizontal->GetMinSize().height : 0.0f;
-}
 
-/// <summary>
-/// Layouts the vscrollbar.
-/// </summary>
-/// <param name="notenough">if set to <c>true</c> [notenough].</param>
-/// <returns></returns>
-auto LongUI::UIScrollArea::layout_vscrollbar(bool notenough) noexcept -> float {
-    const auto overflow = this->RefStyle().overflow_y;
-    // 检查绝不可能的情况
-    const bool nosb = overflow & 1;
-    if (nosb) return 0.0f;
-    // 可能存在滚动条
-    if (overflow == Overflow_Auto) {
-        // 不够用就显示
-        if (!notenough) {
-            if (m_pSBVertical) m_pSBVertical->SetVisible(false);
-            return 0.f; 
-        }
-    }
-    // 需要滚动条
-    if (!m_pSBVertical) m_pSBVertical = this->create_scrollbar(Orient_Vertical);
-    return m_pSBVertical ? m_pSBVertical->GetMinSize().width : 0.0f;
-}
-
-PCN_NOINLINE
+inline
 /// <summary>
 /// Creates the scrollbar.
 /// </summary>
 /// <returns></returns>
 auto LongUI::UIScrollArea::create_scrollbar(AttributeOrient o) noexcept -> UIScrollBar * {
+    // 插入尾部
+    auto context = m_pFinalEnd;
+    m_pFinalEnd = this->end();
+    UIScrollBar* bar = nullptr;
     // 创建滚动条
-    if (auto bar = new(std::nothrow) UIScrollBar{ this, o }) {
+    if (bar = new(std::nothrow) UIScrollBar{ this, o }) {
 #ifndef NDEBUG
         if (o == Orient_Horizontal)
             bar->name_dbg = "scrollarea::hscrollbar";
@@ -324,10 +289,41 @@ auto LongUI::UIScrollArea::create_scrollbar(AttributeOrient o) noexcept -> UIScr
         this->resize_child(*bar, {});
         this->set_child_fixed_attachment(*bar);
         UIControlPrivate::SetGuiEvent2Parent(*bar);
-        return bar;
+        // 首次插入 则记录起点
+        if (context == m_pFinalEnd) context = bar;
     }
-    return nullptr;
+    m_pFinalEnd = context;
+    return bar;
 }
+
+PCN_NOINLINE
+/// <summary>
+/// Layouts the scrollbar.
+/// </summary>
+/// <param name="notenough">if set to <c>true</c> [notenough].</param>
+/// <returns></returns>
+auto LongUI::UIScrollArea::layout_scrollbar(bool notenough, bool index) noexcept -> float {
+    const auto baseflow = index[&m_oStyle.overflow_xex];
+    const auto overflow = static_cast<AttributeOverflow>(baseflow & 3);
+    // 检查绝不可能的情况
+    const bool nosb = overflow & 1;
+    if (nosb) return 0.0f;
+    auto& scrollbar = index[&m_pScrollBarHor];
+    // 可能存在滚动条
+    if (overflow == Overflow_Auto) {
+        // 不够用就显示
+        if (!notenough) {
+            if (scrollbar) scrollbar->SetVisible(false);
+            return 0.f;
+        }
+    }
+    // 需要滚动条
+    const auto orient = static_cast<AttributeOrient>(index);
+    if (!scrollbar) scrollbar = this->create_scrollbar(orient);
+    if (!scrollbar) return 0.0f;
+    return (&scrollbar->RefStyle().limited.width)[index ^ 1];
+}
+
 
 /// <summary>
 /// Layouts the size of the content.
@@ -345,16 +341,16 @@ auto LongUI::UIScrollArea::layout_scroll_bar(/*Size2F content_size_ex*/) noexcep
             ;
         return m_state.reason & relayout_reason;
     };
-    Size2F rv;
     constexpr float MDW = MIN_SCROLLBAR_DISPLAY_SIZE;
     constexpr float MDH = MIN_SCROLLBAR_DISPLAY_SIZE;
     // 内容大小
     const auto content_size = this->RefBox().GetContentSize();
+    const auto overflow_xex = this->RefStyle().overflow_xex;
+    const auto overflow_y = this->RefStyle().overflow_y;
     // 不存在的
-    if (1 & m_oStyle.overflow_x & m_oStyle.overflow_y) 
-        return content_size;
+    if (1 & overflow_xex & overflow_y) return content_size;
     // 内容显示
-    const auto scroll = m_minScrollSize;
+    const auto scroll = m_minScrollSize; // m_oStyle.fitting;
     // 需要显示VSB
     const bool vsbdisplay = content_size.width > MDW &&
         scroll.height > content_size.height;
@@ -362,32 +358,33 @@ auto LongUI::UIScrollArea::layout_scroll_bar(/*Size2F content_size_ex*/) noexcep
     const bool hsbdisplay = content_size.height > MDW &&
         scroll.width > content_size.width;
     // 获取VSB长度
-    const auto vsbar = this->layout_vscrollbar(vsbdisplay);
+    const auto vsbar = this->layout_scrollbar(vsbdisplay, 1);
     // 获取HSB长度
-    const auto hsbar = this->layout_hscrollbar(hsbdisplay);
+    const auto hsbar = this->layout_scrollbar(hsbdisplay, 0);
     // 需要再次布局
     if (is_need_relayout()) return content_size;
     // 设置VSB位置: 正向-右侧 反向-左侧
     if (vsbar > 0.f) {
-        resize_child(*m_pSBVertical, { vsbar, content_size.height - hsbar });
+        resize_child(*m_pScrollBarVer, { vsbar, content_size.height - hsbar });
         Point2F pos = this->RefBox().GetContentPos();
         const bool normaldir = m_state.direction == Dir_Normal;
         if (normaldir) pos.x += content_size.width - vsbar;
-        m_pSBVertical->SetPos(pos);
-        m_pSBVertical->SetVisible(true);
+        m_pScrollBarVer->SetPos(pos);
+        m_pScrollBarVer->SetVisible(true);
     }
     // 设置HSB位置: 正向-下侧 反向-上侧
     if (hsbar > 0.f) {
-        resize_child(*m_pSBHorizontal, { content_size.width - vsbar, hsbar });
+        resize_child(*m_pScrollBarHor, { content_size.width - vsbar, hsbar });
         Point2F pos = this->RefBox().GetContentPos();
         const bool normaldir = m_state.direction == Dir_Normal;
         if (normaldir) pos.y += content_size.height - hsbar;
-        m_pSBHorizontal->SetPos(pos);
-        m_pSBHorizontal->SetVisible(true);
+        m_pScrollBarHor->SetPos(pos);
+        m_pScrollBarHor->SetVisible(true);
     }
     // 同步SB显示
     this->sync_scroll_bar(luiref m_ptChildOffset);
     // 返回剩余大小
+    Size2F rv;
     rv.width = content_size.width - vsbar;
     rv.height = content_size.height - hsbar;
     return rv;
@@ -398,17 +395,14 @@ auto LongUI::UIScrollArea::layout_scroll_bar(/*Size2F content_size_ex*/) noexcep
 /// </summary>
 /// <returns></returns>
 auto LongUI::UIScrollArea::get_layout_position() const noexcept -> Point2F {
-    const auto base = this->RefBox().GetContentPos();
+    auto base = this->RefBox().GetContentPos();
     //const auto base = Point2F{};
-    // 正向- 左上角
-    if (m_state.direction == Dir_Normal) {
-
-    }
-    // 反向- 左上角+[VSB, 0]
-    else {
-        if (m_pSBVertical && m_pSBVertical->IsVisible()) {
-            return base + Point2F{ m_pSBVertical->GetSize().width, 0.f };
-        }
+    // 反向- 左上角+[VSB, HSB]
+    if (m_state.direction) {
+        if (m_pScrollBarVer && m_pScrollBarVer->IsVisible())
+            base.x += m_pScrollBarVer->GetBoxWidth();
+        if (m_pScrollBarHor && m_pScrollBarHor->IsVisible())
+            base.y += m_pScrollBarHor->GetBoxHeight();
     }
     return base;
 }

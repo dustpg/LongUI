@@ -27,13 +27,14 @@
 #include "ui_control.h"
 
 #ifndef LUI_NO_UIGRID
+#include "ui_box.h"
 
 // ui namespace
 namespace LongUI {
     // rows control
-    class UIRows : public UIControl {
+    class UIRows : public UIBoxLayout {
         // super class
-        using Super = UIControl;
+        using Super = UIBoxLayout;
     protected:
         // ctor
         UIRows(const MetaControl&) noexcept;
@@ -46,7 +47,7 @@ namespace LongUI {
         explicit UIRows(UIControl* parent = nullptr) noexcept : UIRows(UIRows::s_meta) { this->final_ctor(parent); }
     public:
         // update
-        //void Update(UpdateReason reason) noexcept override;
+        void Update(UpdateReason reason) noexcept override;
         // do normal event
         //auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
     private:

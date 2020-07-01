@@ -17,9 +17,9 @@ namespace LongUI {
         // cc size
         template<size_t> struct cc;
         // 32bit
-        template<> struct cc<4> { enum { size = 16*4+24+4*8, align = 4 }; };
+        template<> struct cc<4> { enum { size = 16*4+32+4*8, align = 4 }; };
         // 64bit
-        template<> struct cc<8> { enum { size = 24*4+32+8*8, align = 8 };  };
+        template<> struct cc<8> { enum { size = 24*4+40+8*8, align = 8 };  };
     }
     // locker
     class CUILocker;

@@ -36,9 +36,9 @@ namespace LongUI {
     // listbox
     class UIListBox;
     // listitem
-    class UIListItem : public UIBoxLayout {
+    class UIListItem : public UIHBoxLayout {
         // super class
-        using Super = UIBoxLayout;
+        using Super = UIHBoxLayout;
         // private impl
         struct Private;
     public:
@@ -76,12 +76,14 @@ namespace LongUI {
         void SetText(U16View text) noexcept;
     public:
         // do event
-        auto DoEvent(UIControl * sender, const EventArg & e) noexcept->EventAccept override;
+        //auto DoEvent(UIControl * sender, const EventArg & e) noexcept->EventAccept override;
         // mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
         // update
         void Update(UpdateReason) noexcept override;
     protected:
+        // refresh fitting
+        void refresh_fitting() noexcept;
         // relayout
         void relayout() noexcept;
         // add private child

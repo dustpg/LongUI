@@ -173,10 +173,6 @@ auto LongUI::UIMenuItem::DoEvent(
         // TODO: ACCESSIBLE
 #endif
         break;
-#ifndef NDEBUG
-    case NoticeEvent::Event_RefreshBoxMinSize:
-        return Super::DoEvent(sender, arg);
-#endif
     }
     return Super::DoEvent(sender, arg);
 }
@@ -299,7 +295,9 @@ void LongUI::UIMenuItem::initialize() noexcept {
             }
             // XXX: 标准化
             constexpr float ICON_WIDTH = 22;
-            m_oImage.SetStyleMinSize({ ICON_WIDTH, 0.f });
+            m_oImage.InitMinSize({ ICON_WIDTH, 0.f });
+            //m_oImage.SetStyleMinSize({ ICON_WIDTH, 0.f });
+            //LUIDebug(Hint) << "NOTIMPL" << endl;
         }
         else UIControlPrivate::ForceAppearance(m_oImage, Appearance_None);
     }
@@ -367,7 +365,7 @@ auto LongUI::UIMenuItem::DoMouseEvent(const MouseEventArg & e) noexcept -> Event
         else if (m_type == BehaviorType::Type_Radio)
             this->do_radio();
         // 事件
-        this->FireEvent(this->_onCommand());
+        this->FireSimpleEvent(this->_onCommand());
         m_pWindow->ClosePopupHighLevel();
     }
     return Super::DoMouseEvent(e);
@@ -545,7 +543,7 @@ auto LongUI::UIMenuList::DoEvent(UIControl * sender,
         return Event_Accept;
     case NoticeEvent::Event_UIEvent:
         // UI 传递事件
-        switch (static_cast<const EventGuiArg&>(e).GetEvent())
+        switch (static_cast<const GuiEventArg&>(e).GetType())
         {
         case UIMenuPopup::_onCommand():
             assert(sender == m_pMenuPopup);
@@ -579,7 +577,7 @@ void LongUI::UIMenuList::on_selected_changed() noexcept {
     if (ctrl) this->SetText(ctrl->RefText());
     else this->SetText(CUIString{});
     // 触发事件
-    this->FireEvent(this->_onCommand());
+    this->FireSimpleEvent(this->_onCommand());
 }
 
 
@@ -651,10 +649,10 @@ void LongUI::UIMenuList::add_attribute(uint32_t key, U8View value) noexcept {
 /// </summary>
 /// <param name="event">The event.</param>
 /// <returns></returns>
-auto LongUI::UIMenuList::FireEvent(GuiEvent event) noexcept -> EventAccept {
+auto LongUI::UIMenuList::FireEvent(const GuiEventArg& event) noexcept -> EventAccept {
     EventAccept code = Event_Ignore;
     if (m_pTextField) 
-        switch (event)
+        switch (event.GetType())
         {
         case LongUI::GuiEvent::Event_OnFocus:
             m_pTextField->EventOnFocus();
@@ -764,7 +762,7 @@ void LongUI::UIMenuList::ShowPopup() noexcept {
     if (m_pMenuPopup && m_pMenuPopup->GetChildrenCount()) {
         // 出现在左下角
         const auto edge = this->RefBox().GetBorderEdge();
-        const auto y = this->GetSize().height - edge.top;
+        const auto y = this->GetBoxHeight() - edge.top;
         const auto pos = this->MapToWindowEx({ edge.left, y });
         LongUI::PopupWindowFromViewport(
             *this,
@@ -936,7 +934,7 @@ auto LongUI::UIMenuPopup::DoEvent(
         // 自己不处理自己的UIEvent 否则就stackoverflow了
         if (sender == this) return Event_Accept;
         // UI 传递事件
-        switch (static_cast<const EventGuiArg&>(arg).GetEvent())
+        switch (static_cast<const GuiEventArg&>(arg).GetType())
         {
         case UIMenuItem::_onCommand():
             assert(sender->GetParent() == this);
@@ -1080,9 +1078,9 @@ void LongUI::UIMenuPopup::select(UIControl* child, int32_t index) noexcept {
         m_iSelected = child ? this->cal_child_index<UIMenuItem>(*child) : -1;
     else
         m_iSelected = index;
-    // 事件触发
-    this->FireEvent(this->_onCommand());
-    if (m_pHoster) m_pHoster->DoEvent(this, EventGuiArg{ _onCommand() });
+    // XXX: 事件触发
+    this->FireSimpleEvent(this->_onCommand());
+    if (m_pHoster) m_pHoster->DoEvent(this, GuiEventArg{ _onCommand(), *this });
 }
 
 #ifndef NDEBUG

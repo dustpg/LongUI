@@ -27,6 +27,7 @@
 #include "ui_control.h"
 
 #ifndef LUI_NO_UIGRID
+//#include "ui_box.h"
 
 // ui namespace
 namespace LongUI {
@@ -46,9 +47,12 @@ namespace LongUI {
         explicit UIRow(UIControl* parent = nullptr) noexcept : UIRow(UIRow::s_meta) { this->final_ctor(parent); }
     public:
         // update
-        //void Update(UpdateReason reason) noexcept override;
+        void Update(UpdateReason reason) noexcept override;
         // do normal event
         //auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
+    public:
+        // update fitting
+        void UpdateValue(float limited, float fitting) noexcept;
     private:
     };
     // get meta info for UIRow

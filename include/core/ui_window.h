@@ -222,6 +222,8 @@ namespace LongUI {
         void SetDefault(UIControl& ctrl) noexcept;
         // reset window default control(set window-default control to default)
         void ResetDefault() noexcept;
+        // reset window default control to null
+        void NullDefault() noexcept;
         // Invalidate control
         void InvalidateControl(UIControl&, const RectF* r=nullptr) noexcept;
         // will do full render this frame?
@@ -230,6 +232,8 @@ namespace LongUI {
         bool FocusPrev() noexcept;
         // focus next
         bool FocusNext() noexcept;
+        // after control invisible
+        void DoControlInvisible(UIControl&) noexcept;
     public:
         // end iterator
         auto end()noexcept->Iterator { return{ static_cast<CUIWindow*>(&m_oTail) }; }
@@ -323,7 +327,7 @@ namespace LongUI {
         // big icon
         //bool                m_bBigIcon : 1;
         // state: under "minsize changed" list
-        bool                m_bMinsizeList = false;
+        //bool                m_bMinsizeList = false;
     protected:
         // private data
         std::aligned_storage<

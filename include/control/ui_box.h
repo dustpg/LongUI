@@ -55,7 +55,7 @@ namespace LongUI {
         auto is_need_relayout() const noexcept { return m_state.reason & Reason_BasicRelayout; }
     private:
         // move splitter
-        void move_splitter(UISplitter& splitter, Point2F offset) noexcept;
+        void move_splitter(UIControl& splitter, const EventArg& e) noexcept;
     protected:
          //add attribute
         //void add_attribute(uint32_t key, U8View value) noexcept override;
@@ -65,8 +65,8 @@ namespace LongUI {
         void relayout_h() noexcept;
         // relayout v
         void relayout_v() noexcept;
-        // refresh min size
-        void refresh_min() noexcept;
+        // refresh fitting
+        void refresh_fitting() noexcept;
 #ifdef LUI_ACCESSIBLE
         // accessible 
         auto accessible(const AccessibleEventArg&) noexcept->EventAccept override;
@@ -76,6 +76,9 @@ namespace LongUI {
         void SetOrient(AttributeOrient o) noexcept;
         // get orient
         auto GetOrient() const noexcept { return static_cast<AttributeOrient>(m_state.orient); }
+    protected:
+        // real fitting size
+        Size2F          m_szRealFitting = {};
     };
     // h-box layout
     using UIHBoxLayout = UIBoxLayout;

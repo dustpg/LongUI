@@ -34,10 +34,9 @@ void LongUI::Box::Init() noexcept {
     border = {};
     margin = {};
     padding = {};
-    minsize = {};
-    maxsize = { DEFAULT_CONTROL_MAX_SIZE, DEFAULT_CONTROL_MAX_SIZE };
 }
 
+#if 0
 PCN_NOINLINE
 /// <summary>
 /// Gets the non contect.
@@ -50,6 +49,7 @@ void LongUI::Box::GetNonContect(RectF& rect) const noexcept {
     rect.right = margin.right + border.right + padding.right;
     rect.bottom = margin.bottom + border.bottom + padding.bottom;
 }
+#endif
 
 PCN_NOINLINE
 /// <summary>
@@ -121,17 +121,27 @@ void LongUI::Box::GetContentEdge(RectF& rect) const noexcept {
     rect.bottom -= this->padding.bottom;
 }
 
-PCN_NOINLINE
 /// <summary>
 /// Gets the size of the content.
 /// </summary>
 /// <returns></returns>
 auto LongUI::Box::GetContentSize() const noexcept -> Size2F {
-    RectF rect; this->GetNonContect(rect);
-    return{
-        size.width - rect.left - rect.right,
-        size.height - rect.top - rect.bottom
-    };
+    const auto nonc = GetNonContentSize();
+    return{ size.width - nonc.width, size.height - nonc.height };
+}
+
+PCN_NOINLINE
+/// <summary>
+/// get non-content size
+/// </summary>
+/// <returns></returns>
+auto LongUI::Box::GetNonContentSize() const noexcept -> Size2F {
+    Size2F size;
+    size.width = margin.left + border.left + padding.left;
+    size.width += margin.right + border.right + padding.right;
+    size.height = margin.top + border.top + padding.top;
+    size.height += margin.bottom + border.bottom + padding.bottom;
+    return size;
 }
 
 PCN_NOINLINE
@@ -171,11 +181,12 @@ LongUI::Style::Style() noexcept {
     align = Align_Stretcht;
     appearance = AttributeAppearance::Appearance_None;
     offset_tf = 0;
-    overflow_x = Overflow_Visible;
+    overflow_xex = Overflow_Visible;
     overflow_y = Overflow_Visible;
     tfunction = 0;
     flex = 0;
-    minsize = { INVALID_MINSIZE, INVALID_MINSIZE };
+    limited = { };
+    fitting = { };
     maxsize = { DEFAULT_CONTROL_MAX_SIZE, DEFAULT_CONTROL_MAX_SIZE };
 }
 
@@ -204,6 +215,7 @@ auto LongUI::AttrParser::Box(U8View view) noexcept -> AttributeBox {
     default: return Box_BorderBox;
     case 'p': return Box_PaddingBox;
     case 'c': return Box_ContentBox;
+    case 'm': return Box_MarginBox;
     }
 }
 
@@ -236,6 +248,22 @@ auto LongUI::AttrParser::Pack(U8View view) noexcept -> AttributePack {
     default: return Pack_Start;
     case 'c': return Pack_Center;
     case 'e': return Pack_End;
+    }
+}
+
+/// <summary>
+/// string view to crop enum
+/// </summary>
+/// <param name="view">the string view.</param>
+/// <returns></returns>
+auto LongUI::AttrParser::Crop(U8View view) noexcept -> AttributeCrop {
+    assert(view.end() > view.begin());
+    switch (*view.begin())
+    {
+    default: return Crop_None;
+    case 's': return Crop_Start;
+    case 'c': return Crop_Center;
+    case 'e': return Crop_End;
     }
 }
 

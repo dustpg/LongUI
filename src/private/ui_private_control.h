@@ -24,7 +24,7 @@ struct LongUI::UIControlPrivate {
     static auto GetBdRenderer(const UIControl& ctrl) noexcept->CUIRendererBorder*;
 #endif
     // refresh min size
-    static void RefreshMinSize(UIControl& ctrl) noexcept;
+    //static void RefreshMinSize(UIControl& ctrl) noexcept;
     // update world
     static void UpdateWorld(UIControl& ctrl) noexcept;
     // update world force
@@ -37,7 +37,7 @@ struct LongUI::UIControlPrivate {
     static auto DoMouseLeave(UIControl& ctrl, const Point2F& pos) noexcept->EventAccept;
     // ----------- INLINE ZONE ----------------
     // set_contect_minsize
-    static void SetConMinsize(UIControl& ctrl, Size2F s) noexcept { ctrl.set_contect_minsize(s); }
+    //static void SetConMinsize(UIControl& ctrl, Size2F s) noexcept { ctrl.set_contect_minsize(s); }
     // ref last end time capsule
     static auto&RefLastEnd(UIControl& ctrl) noexcept { return ctrl.m_pLastEnd; }
     // set attachment - fixed
@@ -55,12 +55,14 @@ struct LongUI::UIControlPrivate {
         assert(ctrl.is_inited() == false);
         ctrl.m_oStyle.appearance = a;
     }
+    // force set fixed attachment
+    static void FixedAttachment(UIControl& ctrl) noexcept { ctrl.m_state.attachment = Attachment_Fixed; }
     // force set appearance
     static void ForceAppearance(UIControl& ctrl, AttributeAppearance a) noexcept { ctrl.m_oStyle.appearance = a; }
     // set flex
     static void SetFlex(UIControl& ctrl, float flex) noexcept { ctrl.m_oStyle.flex = flex; }
     // set box minwidth
-    static void SetBoxMinWidth(UIControl& ctrl, float minw) noexcept { ctrl.m_oBox.minsize.width = minw; }
+    //static void SetBoxMinWidth(UIControl& ctrl, float minw) noexcept { ctrl.m_oBox.minsize.width = minw; }
     // set orient
     static void SetOrient(UIControl& ctrl, bool o) noexcept { ctrl.m_state.orient = o; }
     // is need rerelayout
@@ -73,8 +75,16 @@ struct LongUI::UIControlPrivate {
     static auto MarkInDirty(UIControl& ctrl) noexcept { return ctrl.m_state.in_dirty_list = true; }
     // dirty = false
     static auto ClearInDirty(UIControl& ctrl) noexcept { return ctrl.m_state.in_dirty_list = false; }
-    // get parent data
-    static auto GetParentData(const UIControl& ctrl) noexcept { return ctrl.m_uData4Parent; }
+    // get layout value as uint32_t
+    static auto GetLayoutValueU(const UIControl& ctrl) noexcept { return ctrl.m_uLayoutValue; }
+    // get layout value as float
+    static auto GetLayoutValueF(const UIControl& ctrl) noexcept { return reinterpret_cast<const float&>(ctrl.m_uLayoutValue); }
+    // set layout value as uint32_t
+    static void SetLayoutValueU(UIControl& ctrl, uint32_t data) noexcept { ctrl.m_uLayoutValue = data; }
+    // set layout value as float
+    static void SetLayoutValueF(UIControl& ctrl, float data) noexcept { reinterpret_cast<float&>(ctrl.m_uLayoutValue) = data; }
+    // ref layout value as float
+    static auto&RefLayoutValueF(UIControl& ctrl) noexcept { return reinterpret_cast<float&>(ctrl.m_uLayoutValue); }
     // ref style state
     static auto&RefStyleState(UIControl& ctrl) noexcept { return ctrl.m_oStyle.state; }
 #ifndef LUI_DISABLE_STYLE_SUPPORT
@@ -83,8 +93,6 @@ struct LongUI::UIControlPrivate {
     // ref style trigger
     static auto&RefStyleTrigger(UIControl& ctrl) noexcept { return ctrl.m_oStyle.trigger; }
 #endif
-    // set parent data
-    static auto SetParentData(UIControl& ctrl, uint32_t data) noexcept { return ctrl.m_uData4Parent = data; }
     // set gui event to parent
     static void SetGuiEvent2Parent(UIControl& ctrl) noexcept { ctrl.m_state.gui_event_to_parent = true; }
     // prev control
@@ -98,7 +106,7 @@ struct LongUI::UIControlPrivate {
     // next control
     static auto Next(UIControl* ctrl) noexcept { return ctrl->next; }
     // mark window minsize changed
-    static void MarkWindowMinsizeChanged(UIControl& ctrl) noexcept { ctrl.mark_window_minsize_changed(); }
+    //static void MarkWindowMinsizeChanged(UIControl& ctrl) noexcept { ctrl.mark_window_minsize_changed(); }
     // add child
     static void AddChild(UIControl& o, UIControl& c) noexcept { o.add_child(c); }
     // ref style

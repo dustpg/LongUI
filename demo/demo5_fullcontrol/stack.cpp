@@ -20,7 +20,7 @@ void InitViewport_Stack(LongUI::UIViewport& viewport) noexcept {
     uint32_t index = 0;
     for (auto& child : (*group)) {
         auto& radio = *longui_cast<UIRadio*>(&child);
-        radio.AddGuiEventListener(radio._onCommand(), [=](UIControl&) noexcept {
+        radio.AddGuiEventListener(radio._onCommand(), [=](const LongUI::GuiEventArg&) noexcept {
             deck->SetSelectedIndex(index);
             return Event_Accept;
         });

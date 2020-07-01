@@ -64,10 +64,10 @@ auto LongUI::UISpinButtons::DoMouseEvent(const MouseEventArg & e) noexcept -> Ev
         // TODO: 持续按下
         // 上
         if (m_pHovered == &m_oDecreaseButton && m_oDecreaseButton.IsEnabled())
-            this->FireEvent(_onDecrease());
+            this->FireSimpleEvent(_onDecrease());
         // 下
         else if (m_pHovered == &m_oIncreaseButton && m_oIncreaseButton.IsEnabled())
-            this->FireEvent(_onIncrease());
+            this->FireSimpleEvent(_onIncrease());
         break;
     }
     return Super::DoMouseEvent(e);

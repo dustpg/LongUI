@@ -118,8 +118,8 @@ private:
     }
 public:
     // run a section script for event
-    bool Evaluation(ScriptUI data, UIControl& c) noexcept override {
-        const auto v7 = ensure(c.GetWindow());
+    bool Evaluation(ScriptUI data, const GuiEventArg& arg) noexcept override {
+        const auto v7 = ensure(arg.current->GetWindow());
         if (!v7) return false;
         v7_val_t result = 0;
         const auto code = reinterpret_cast<const char*>(data.script);

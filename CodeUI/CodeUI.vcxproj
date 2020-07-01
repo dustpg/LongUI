@@ -177,6 +177,7 @@
     <ClCompile Include="..\src\control\gapi\ui_control_g.cpp" />
     <ClCompile Include="..\src\control\gapi\ui_label_g.cpp" />
     <ClCompile Include="..\src\control\gapi\ui_textfield_g.cpp" />
+    <ClCompile Include="..\src\control\ui_arrowscrollbox.cpp" />
     <ClCompile Include="..\src\control\ui_box.cpp" />
     <ClCompile Include="..\src\control\ui_button.cpp" />
     <ClCompile Include="..\src\control\ui_caption.cpp" />
@@ -302,6 +303,7 @@
     <ClInclude Include="..\include\container\pod_sharedarray.h" />
     <ClInclude Include="..\include\container\pod_vector.h" />
     <ClInclude Include="..\include\container\ui_string_vector.h" />
+    <ClInclude Include="..\include\control\ui_arrowscrollbox.h" />
     <ClInclude Include="..\include\control\ui_box.h" />
     <ClInclude Include="..\include\control\ui_button.h" />
     <ClInclude Include="..\include\control\ui_caption.h" />
@@ -454,7 +456,7 @@
     <ClInclude Include="..\include\util\ui_clipboard.h" />
     <ClInclude Include="..\include\util\ui_ctordtor.h" />
     <ClInclude Include="..\include\util\ui_fookgcc.h" />
-    <ClInclude Include="..\include\util\ui_lastsort.h" />
+    <ClInclude Include="..\include\util\ui_sort.h" />
     <ClInclude Include="..\include\util\ui_aniamtion.h" />
     <ClInclude Include="..\include\util\ui_color_system.h" />
     <ClInclude Include="..\include\util\ui_little_math.h" />

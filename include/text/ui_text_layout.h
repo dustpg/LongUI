@@ -11,6 +11,8 @@ namespace LongUI {
     struct ColorF;
     // text font
     struct TextFont;
+    // crop rule
+    enum AttributeCrop : uint8_t;
     // static text layout
     class CUITextLayout : public CUINoMo {
         // set text
@@ -37,6 +39,8 @@ namespace LongUI {
         auto GetSize() const noexcept->Size2F;
         // set underline
         void SetUnderline(uint32_t pos, uint32_t len, bool) noexcept;
+        // set cropping rule
+        void SetCropRule(AttributeCrop) noexcept;
     public:
         // ok
         bool IsOK() const noexcept { return !!m_text; }

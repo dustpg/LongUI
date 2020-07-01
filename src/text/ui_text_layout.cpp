@@ -180,3 +180,12 @@ auto LongUI::CUITextLayout::GetSize() const noexcept -> Size2F {
     }
     else return{ 0, 12.f };
 }
+
+/// <summary>
+/// 
+/// </summary>
+/// <param name="crop"></param>
+/// <returns></returns>
+void LongUI::CUITextLayout::SetCropRule(AttributeCrop crop) noexcept {
+    if (m_text && crop) UIManager.SetCropping(*m_text);
+}

@@ -134,7 +134,7 @@ void LongUI::UIViewport::resize_window(Size2F size) noexcept {
     m_szReal = size;
     size.width /= m_mtWorld._11;
     size.height /= m_mtWorld._22;
-    this->Resize(size);
+    this->ResizeBox(size);
     m_window.m_pMiniWorldChange = this;
 }
 

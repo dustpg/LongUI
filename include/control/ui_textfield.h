@@ -113,7 +113,7 @@ namespace LongUI {
         explicit UITextField(UIControl* parent = nullptr) noexcept : UITextField(UITextField::s_meta) { this->final_ctor(parent); }
     public:
         // fire event
-        auto FireEvent(GuiEvent event) noexcept->EventAccept override;
+        auto FireEvent(const GuiEventArg& event) noexcept->EventAccept override;
         // normal event
         auto DoEvent(UIControl*, const EventArg& e) noexcept->EventAccept override;
         // update this
@@ -171,6 +171,8 @@ namespace LongUI {
         void recreate_img_context(CEDTextCell& cell) noexcept;
         // recreate normal context
         void recreate_nom_context(CEDTextCell& cell) noexcept;
+        // refresh fitting size
+        void refresh_fitting() noexcept;
     protected:
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;

@@ -62,7 +62,7 @@ namespace LongUI {
         // do mouse event
         //auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
         // update
-        void Update(UpdateReason) noexcept override;
+        //void Update(UpdateReason) noexcept override;
         // render this control only, [Global rendering and Incremental rendering]
         //void Render() const noexcept override;
         // recreate/init device(gpu) resource
@@ -74,10 +74,8 @@ namespace LongUI {
         void add_child(UIControl& child) noexcept override;
         // relayout
         //void relayout() noexcept ;
-        // init tabbox
-        void init_tabbox() noexcept;
-        // refresh minsize
-        //void refresh_minsize() noexcept;
+        // refresh fitting
+        //void refresh_fitting() noexcept;
     protected:
         // tabs
         UITabs*                 m_pTabs = nullptr;

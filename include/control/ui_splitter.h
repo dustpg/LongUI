@@ -27,6 +27,7 @@
 #include "ui_control.h"
 //#include "../util/ui_double_click.h"
 #include <graphics/ui_cursor.h>
+#include "../event/ui_splitter_event.h"
 
 // ui namespace
 namespace LongUI {
@@ -69,6 +70,8 @@ namespace LongUI {
         CUICursor           m_hovered;
         // last clicked pos
         Point2F             m_ptLastPos = {};
+        // base splitter attribute
+        SplitterAttribute   m_attribute;
     private:
     };
     // get meta info for UISplitter

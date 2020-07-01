@@ -103,7 +103,7 @@ namespace LongUI {
         UITextField*            m_pTextField = nullptr;
     public:
         // trigger the event
-        auto FireEvent(GuiEvent event) noexcept->EventAccept override;
+        auto FireEvent(const GuiEventArg& event) noexcept->EventAccept override;
     protected:
 #endif
 #ifdef LUI_ACCESSIBLE

@@ -66,6 +66,8 @@ namespace LongUI {
 
 // ui-impl namespace
 namespace LongUI { namespace impl { 
+    // set cropping for text
+    void set_cropping(I::Text&) noexcept;
     /// <summary>
     /// args for save bitmap
     /// </summary>
@@ -424,6 +426,21 @@ struct LongUI::CUIResMgr::Private {
     FontArg                 defarg;
 };
 
+/// <summary>
+///  set cropping for text
+/// </summary>
+/// <param name=""></param>
+/// <returns></returns>
+void LongUI::CUIResMgr::SetCropping(I::Text& text) noexcept {
+    DWRITE_TRIMMING trim;
+    IDWriteInlineObject* object = nullptr;
+    const auto h1 = rm().dwritefactroy->CreateEllipsisTrimmingSign(&text, &object);
+    trim.granularity = DWRITE_TRIMMING_GRANULARITY_CHARACTER;
+    trim.delimiter = 0;
+    trim.delimiterCount = 0;
+    const auto h2 = text.SetTrimming(&trim, object);
+    LongUI::SafeRelease(object);
+}
 
 // ----------------------------------------------------------------------------
 // ---------------------------  Private Manager  ------------------------------

@@ -96,7 +96,7 @@ void LongUI::UICheckBox::change_indeterminate(bool ind) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UICheckBox::changed() noexcept {
-    this->FireEvent(this->_onCommand());
+    this->FireSimpleEvent(this->_onCommand());
     // TODO: ACCESSIBLE
 #ifndef LUI_ACCESSIBLE
 
@@ -213,10 +213,10 @@ auto LongUI::UICheckBox::DoEvent(
 /// </summary>
 /// <param name="event">The event.</param>
 /// <returns></returns>
-auto LongUI::UICheckBox::FireEvent(GuiEvent event) noexcept -> EventAccept {
+auto LongUI::UICheckBox::FireEvent(const GuiEventArg& event) noexcept -> EventAccept {
     // 由于焦点位置特殊, 针对焦点的处理 
     EventAccept code = Event_Ignore;
-    switch (event)
+    switch (event.GetType())
     {
     case LongUI::GuiEvent::Event_OnFocus:
         this->UpdateFocusRect();

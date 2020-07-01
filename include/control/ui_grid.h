@@ -29,7 +29,6 @@
 //#define LUI_NO_UIGRID
 
 #ifndef LUI_NO_UIGRID
-#include <utility>
 
 // ui namespace
 namespace LongUI {
@@ -53,7 +52,7 @@ namespace LongUI {
         explicit UIGrid(UIControl* parent = nullptr) noexcept : UIGrid(UIGrid::s_meta) { this->final_ctor(parent); }
     public:
         // do normal event
-        auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
+        //auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         // update
         void Update(UpdateReason reason) noexcept override;
     protected:
@@ -63,10 +62,15 @@ namespace LongUI {
         void add_child(UIControl&) noexcept override;
         // relayout this
         void relayout_this() noexcept;
-        // check minsize
-        auto check_minsize(float buf[]) noexcept ->std::pair<uint32_t, float>;
+        // refresh fitting
+        void refresh_fitting() noexcept;
         // is col mode
         inline bool is_col_mode() const noexcept;
+    public:
+        // get first 
+        auto GetFirst() const noexcept { return m_pFirst; }
+        // get second 
+        auto GetSecond() const noexcept { return m_pSecond; }
     private:
         // rows
         UIRows*                 m_pRows = nullptr;
@@ -76,6 +80,8 @@ namespace LongUI {
         UIControl*              m_pFirst = nullptr;
         // second
         UIControl*              m_pSecond = nullptr;
+        // first meta
+        //const MetaControl*      m_pFirstMeta = nullptr;
     };
     // get meta info for UIGrid
     LUI_DECLARE_METAINFO(UIGrid);

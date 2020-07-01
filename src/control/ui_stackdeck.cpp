@@ -15,11 +15,11 @@ namespace LongUI {
     // impl namespace
     namespace impl {
         // find greatest child-minsize/ right-buttom
-        auto greatest_minsize_rb(UIControl& ctrl) noexcept {
+        auto greatest_fitting_rb(UIControl& ctrl) noexcept {
             Size2F size = { 0.f, 0.f };
             for (auto& child : ctrl) {
                 const auto pos = child.GetPos();
-                const auto thism = child.GetMinSize();
+                const auto thism = child.GetBoxFittingSize();
                 const Size2F rb{ pos.x + thism.width, pos.y + thism.height };
                 size.width = std::max(size.width, rb.width);
                 size.height = std::max(size.height, rb.height);
@@ -139,15 +139,27 @@ LongUI::UIStack::UIStack(const MetaControl& meta) noexcept : Super(meta) {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIStack::Update(UpdateReason reason) noexcept {
-    // XXX: 要求重新布局
-    if (reason & (Reason_BasicRelayout & ~Reason_ChildLayoutChanged)) {
-        // 重新布局
+    // 要求重新计算
+    if (reason & Reason_BasicUpdateFitting)
+        this->refresh_fitting();
+    // 要求重新布局
+    if (reason & (Reason_BasicRelayout & ~Reason_ChildLayoutChanged))
         this->relayout_stack();
-    }
     // 其他的交给超类处理
     Super::Update(reason);
 }
 
+
+/// <summary>
+/// refresh fitting size
+/// </summary>
+/// <returns></returns>
+void LongUI::UIStack::refresh_fitting() noexcept {
+    const auto fitting = impl::greatest_fitting_rb(*this);
+    this->set_limited_width_lp(fitting.width);
+    this->set_limited_width_lp(fitting.height);
+    this->update_fitting_size(fitting);
+}
 
 /// <summary>
 /// Relayouts the stack.
@@ -155,26 +167,6 @@ void LongUI::UIStack::Update(UpdateReason reason) noexcept {
 /// <returns></returns>
 void LongUI::UIStack::relayout_stack() noexcept {
     for (auto& child : (*this)) 
-        this->resize_child(child, child.GetMinSize());
+        this->resize_child(child, child.GetBoxFittingSize());
 }
 
-
-/// <summary>
-/// Does the event.
-/// </summary>
-/// <param name="sender">The sender.</param>
-/// <param name="e">The e.</param>
-/// <returns></returns>
-auto LongUI::UIStack::DoEvent(UIControl* sender,
-    const EventArg& e) noexcept -> EventAccept {
-    switch (e.nevent)
-    {
-    case NoticeEvent::Event_RefreshBoxMinSize:
-        // 更新最小大小
-        this->set_contect_minsize(impl::greatest_minsize_rb(*this));
-        return Event_Accept;
-    default:
-        // 其他事件
-        return Super::DoEvent(sender, e);
-    }
-}

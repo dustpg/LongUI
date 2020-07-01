@@ -8,6 +8,7 @@
 #include <control/ui_menulist.h>
 #include <control/ui_menupopup.h>
 
+
 #include "customconfig.h"
 
 
@@ -82,7 +83,7 @@ void InitButton(
     const auto menu = longui_cast<LongUI::UIMenuList*>(list);
     assert(btn && menu && "BAD ACTION");
     btn->AddGuiEventListener(LongUI::UIButton::_onCommand(), 
-        [&cfg, menu](LongUI::UIControl&) noexcept {
+        [&cfg, menu](const LongUI::GuiEventArg&) noexcept {
         const auto index = menu->GetSelectedIndex();
         // index < 0 -> not selected
         if (index < 0) return LongUI::Event_Ignore;

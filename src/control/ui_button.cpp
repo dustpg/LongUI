@@ -37,7 +37,7 @@ namespace LongUI {
         template<typename T> static auto SetText(UIButton& cbox, T && text) noexcept {
             cbox.add_private_child();
             if (cbox.m_oLabel.SetText(std::forward<T>(text))) {
-                cbox.mark_window_minsize_changed();
+                if (cbox.m_pParent) cbox.m_pParent->NeedUpdate(Reason_ChildLayoutChanged);
 #ifdef LUI_ACCESSIBLE
                 LongUI::Accessible(cbox.m_pAccessible, Callback_PropertyChanged);
 #endif
@@ -260,16 +260,6 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
     // 初始化
     switch (e.nevent)
     {
-#ifndef NDEBUG
-    case NoticeEvent::Event_RefreshBoxMinSize:
-        this->refresh_min();
-        // XXX: 宽度过小?
-        //if (m_minScrollSize.width < float(MIN_BUTTON_WIDTH)) {
-        //    m_minScrollSize.width = float(MIN_BUTTON_WIDTH);
-        //    this->set_contect_minsize(m_minScrollSize);
-        //}
-        return Event_Accept;
-#endif
     case NoticeEvent::Event_DoAccessAction:
         // 访问行为
         this->SetAsDefaultAndFocus();
@@ -343,9 +333,9 @@ void LongUI::UIButton::UpdateFocusRect() const noexcept {
 /// Trigger this
 /// </summary>
 /// <returns></returns>
-auto LongUI::UIButton::FireEvent(GuiEvent event) noexcept -> EventAccept {
+auto LongUI::UIButton::FireEvent(const GuiEventArg& event) noexcept -> EventAccept {
     // 针对焦点的处理 
-    switch (event)
+    switch (event.GetType())
     {
     case LongUI::GuiEvent::Event_OnFocus:
         this->UpdateFocusRect();
@@ -376,7 +366,7 @@ void LongUI::UIButton::Click() noexcept {
         StyleState state;
     case BehaviorType::Type_Normal:
         // 普通按钮: 触发修改GUI事件
-        this->FireEvent(this->_onCommand());
+        this->FireSimpleEvent(this->_onCommand());
 #ifdef LUI_ACCESSIBLE
         LongUI::Accessible(m_pAccessible, LongUI::Callback_Invoked);
 #endif
@@ -386,7 +376,7 @@ void LongUI::UIButton::Click() noexcept {
         state = (m_oStyle.state ^ State_Checked) & State_Checked;
         this->StartAnimation({ State_Checked, state });
         // 触发修改GUI事件
-        this->FireEvent(this->_onCommand());
+        this->FireSimpleEvent(this->_onCommand());
 #ifdef LUI_ACCESSIBLE
         // TODO: ACCESSIBLE
 #endif
@@ -395,7 +385,7 @@ void LongUI::UIButton::Click() noexcept {
         // 是RADIO类型?
         if (!this->IsChecked()) {
             this->StartAnimation({ State_Checked, State_Checked });
-            this->FireEvent(_onCommand());
+            this->FireSimpleEvent(_onCommand());
             LongUI::DoImplicitGroupGuiArg(*this, m_pGroup);
 #ifdef LUI_ACCESSIBLE
             // TODO: ACCESSIBLE
@@ -409,7 +399,7 @@ void LongUI::UIButton::Click() noexcept {
             this->StartAnimation({ State_Checked, State_Checked });
             // 出现在左下角
             const auto edge = this->RefBox().GetBorderEdge();
-            const auto y = this->GetSize().height - edge.top;
+            const auto y = this->GetBoxHeight() - edge.top;
             const auto pos = this->MapToWindowEx({ edge.left, y });
             LongUI::PopupWindowFromViewport(
                 *this,

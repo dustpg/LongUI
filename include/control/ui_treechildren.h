@@ -44,9 +44,6 @@ namespace LongUI {
         // ctor
         explicit UITreeChildren(UIControl* parent = nullptr) noexcept : UITreeChildren(UITreeChildren::s_meta) { this->final_ctor(parent); }
     public:
-        // set level offset
-        void SetLevelOffset(float offset);
-    public:
         // do normal event
         //auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         //// do mouse event

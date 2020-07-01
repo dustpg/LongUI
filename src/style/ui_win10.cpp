@@ -41,6 +41,8 @@ auto LongUI::CUINativeStyleWindows10::NativeStyleDuration(const GetDurationArgs 
     case LongUI::Appearance_TabPanels:
     case LongUI::Appearance_ProgressBarH:
     case LongUI::Appearance_ProgressBarV:
+    case LongUI::Appearance_SplitterH:
+    case LongUI::Appearance_SplitterV:
     case LongUI::Appearance_StatusBarPanel:
     case LongUI::Appearance_ProgressChunkH:
     case LongUI::Appearance_ProgressChunkV:
@@ -122,6 +124,10 @@ void LongUI::CUINativeStyleWindows10::DrawNative(const NativeDrawArgs& args) noe
     case LongUI::Appearance_ScaleV:
         index = appearance - Appearance_ScaleH;
         return this->draw_slider_track(args, index & 1);
+    case LongUI::Appearance_SplitterH:
+    case LongUI::Appearance_SplitterV:
+        index = appearance - Appearance_ScaleH;
+        return this->draw_splitter(args, index & 1);
     case LongUI::Appearance_ScaleThumbH:
     case LongUI::Appearance_ScaleThumbV:
         return this->draw_slider_thumb(args);
@@ -351,7 +357,7 @@ void LongUI::CUINativeStyleWindows10::InitCtrl(UIControl& ctrl, AttributeAppeara
         //UIControlPrivate::RefBox(ctrl).margin = { 4, 2, 4, 2 };
         UIControlPrivate::RefBox(ctrl).padding = { 4, 1, ICON_WIDTH+2, 1 };
         // 包含文字, 不适合设置
-        //ctrl.SetStyleMinSize({ 0, MENUITEM_HEIGHT });
+        //ctrl.InitMinSize({ 0, MENUITEM_HEIGHT });
         break;
     case LongUI::Appearance_Menu:
         UIControlPrivate::RefStyle(ctrl).align = AttributeAlign::Align_Center;
@@ -360,20 +366,25 @@ void LongUI::CUINativeStyleWindows10::InitCtrl(UIControl& ctrl, AttributeAppeara
     case LongUI::Appearance_ProgressBarH:
         UIControlPrivate::RefBox(ctrl).margin = { 4, 2, 4, 1 };
         UIControlPrivate::RefBox(ctrl).border = { 1, 1, 1, 1 };
-        ctrl.SetStyleMinSize({ PROGRESS_MINWIDTH, SLIDER_THUMB_HH });
+        ctrl.InitMinSize({ PROGRESS_MINWIDTH, SLIDER_THUMB_HH });
+        break;
+    case LongUI::Appearance_SplitterH:
+    case LongUI::Appearance_SplitterV:
+        UIControlPrivate::RefBox(ctrl).padding = { 2, 2, 2, 2 };
         break;
     case LongUI::Appearance_ProgressBarV:
         UIControlPrivate::RefBox(ctrl).margin = { 4, 2, 4, 1 };
         UIControlPrivate::RefBox(ctrl).border = { 1, 1, 1, 1 };
-        ctrl.SetStyleMinSize({ SLIDER_THUMB_HH, PROGRESS_MINWIDTH });
+        ctrl.InitMinSize({ SLIDER_THUMB_HW, PROGRESS_MINWIDTH });
         break;
     case LongUI::Appearance_StatusBarPanel:
         UIControlPrivate::RefBox(ctrl).padding = { 10, 0, 10, 0 };
-        //ctrl.SetStyleMinSize({ 5, 5 });
+        //ctrl.InitMinSize({ 5, 5 });
         break;
     case LongUI::Appearance_Tab:
-        UIControlPrivate::RefStyle(ctrl).overflow_x = Overflow_Hidden;
-        UIControlPrivate::RefStyle(ctrl).overflow_y = Overflow_Hidden;
+
+        //UIControlPrivate::RefStyle(ctrl).overflow_xex = Overflow_Hidden;
+        //UIControlPrivate::RefStyle(ctrl).overflow_y = Overflow_Hidden;
         UIControlPrivate::RefBox(ctrl).border = { 1, 1, 1, 1 };
         UIControlPrivate::RefBox(ctrl).padding = { 0, 1, 0, 1 };
         break;
@@ -389,16 +400,16 @@ void LongUI::CUINativeStyleWindows10::InitCtrl(UIControl& ctrl, AttributeAppeara
     case LongUI::Appearance_Radio:
     case LongUI::Appearance_CheckBox:
         // 固定大小
-        ctrl.SetFixedSize({ CHECKBOX_ICON_SIZE, CHECKBOX_ICON_SIZE });
+        ctrl.InitSize({ CHECKBOX_ICON_SIZE, CHECKBOX_ICON_SIZE });
         break;
     case LongUI::Appearance_Resizer:
-        ctrl.SetFixedSize({ ARROW_SIZE, ARROW_SIZE });
+        ctrl.InitSize({ ARROW_SIZE, ARROW_SIZE });
         break;
     case LongUI::Appearance_MenuSeparator:
-        ctrl.SetStyleMinSize({ -1, MENUSEPARATOR_HEIGHT });
+        ctrl.InitMinSize({ 0, MENUSEPARATOR_HEIGHT });
         break;
     //case LongUI::Appearance_StatusBar:
-    //    ctrl.SetStyleMinSize({ -1, -1 });
+    //    ctrl.InitMinSize({ -1, -1 });
     //    break;
     case LongUI::Appearance_MenuArrow:
     case LongUI::Appearance_TreeTwisty:
@@ -407,33 +418,33 @@ void LongUI::CUINativeStyleWindows10::InitCtrl(UIControl& ctrl, AttributeAppeara
     case LongUI::Appearance_ScrollBarButtonRight:
     case LongUI::Appearance_ScrollBarButtonDown:
     case LongUI::Appearance_ScrollBarButtonLeft:
-        ctrl.SetFixedSize({ ARROW_SIZE, ARROW_SIZE });
+        ctrl.InitSize({ ARROW_SIZE, ARROW_SIZE });
         break;
     case Appearance_SpinnerUpButton:
     case Appearance_SpinnerDownButton:
-        ctrl.SetStyleMinSize({ ARROW_SPINNER, 0 });
+        ctrl.InitMinSize({ ARROW_SPINNER, 0 });
         break;
     case LongUI::Appearance_ScrollbarThumbH:
     case LongUI::Appearance_ScrollbarTrackH:
-        ctrl.SetStyleMinSize({ 0, ARROW_SIZE });
+        ctrl.InitMinSize({ 0, ARROW_SIZE });
         break;
     case LongUI::Appearance_ScrollbarThumbV:
     case LongUI::Appearance_ScrollbarTrackV:
-        ctrl.SetStyleMinSize({ ARROW_SIZE, 0 });
+        ctrl.InitMinSize({ ARROW_SIZE, 0 });
         break;
     case LongUI::Appearance_ScaleH:
     //case LongUI::Appearance_ProgressChunkH:
-        ctrl.SetStyleMinSize({ 0, SLIDER_THUMB_HH });
+        ctrl.InitMinSize({ 0, SLIDER_THUMB_HH });
         break;
     case LongUI::Appearance_ScaleV:
     //case LongUI::Appearance_ProgressChunkV:
-        ctrl.SetStyleMinSize({ SLIDER_THUMB_HH, 0 });
+        ctrl.InitMinSize({ SLIDER_THUMB_HH, 0 });
         break;
     case LongUI::Appearance_ScaleThumbH:
-        ctrl.SetFixedSize({ SLIDER_THUMB_HW, SLIDER_THUMB_HH });
+        ctrl.InitSize({ SLIDER_THUMB_HW, SLIDER_THUMB_HH });
         break;
     case LongUI::Appearance_ScaleThumbV:
-        ctrl.SetFixedSize({ SLIDER_THUMB_HH, SLIDER_THUMB_HW });
+        ctrl.InitSize({ SLIDER_THUMB_HH, SLIDER_THUMB_HW });
         break;
     }
 }
@@ -1359,7 +1370,36 @@ void LongUI::CUINativeStyleWindows10::draw_radio_only(
     );
 }
 
-
+/// <summary>
+/// draws the splitter
+/// </summary>
+/// <param name="args"></param>
+/// <param name="vertical"></param>
+/// <returns></returns>
+void LongUI::CUINativeStyleWindows10::draw_splitter(
+    const NativeDrawArgs & args, bool vertical) noexcept {
+    // 预备
+    const auto color = ColorF::FromRGBA_CT<0xbcbcbcff_rgba>();
+    auto& renderer = UIManager.Ref2DRenderer();
+    auto& brush = UIManager.RefCCBrush(color);
+    auto rect = args.border;
+    constexpr float width = 1.f;
+    rect.top += width * 0.5f;
+    rect.left += width * 0.5f;
+    rect.right -= width * 0.5f;
+    rect.bottom -= width * 0.5f;
+    // 渲染
+    //renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+    if (vertical) {
+        renderer.DrawLine({ rect.left, rect.top }, { rect.right, rect.top }, &brush, width);
+        renderer.DrawLine({ rect.left, rect.bottom }, { rect.right, rect.bottom }, &brush, width);
+    }
+    else {
+        renderer.DrawLine({ rect.left, rect.top }, { rect.left, rect.bottom }, &brush, width);
+        renderer.DrawLine({ rect.right, rect.top }, { rect.right, rect.bottom }, &brush, width);
+    }
+    //renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+}
 
 /// <summary>
 /// Draws the slider track.

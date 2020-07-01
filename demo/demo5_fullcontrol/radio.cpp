@@ -13,8 +13,8 @@ void InitViewport_Radio(LongUI::UIViewport& viewport) noexcept {
     auto& window = viewport.RefWindow();
     struct set_label_text {
         UILabel*    display = nullptr;
-        auto operator()(UIControl& ctrl) noexcept {
-            const auto radio = longui_cast<UIRadio*>(&ctrl);
+        auto operator()(const LongUI::GuiEventArg& arg) noexcept {
+            const auto radio = longui_cast<UIRadio*>(arg.current);
             display->SetText(radio->RefText());
             return Event_Accept;
         }

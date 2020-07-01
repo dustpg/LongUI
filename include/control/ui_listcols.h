@@ -50,8 +50,6 @@ namespace LongUI {
         explicit UIListCols(UIControl* parent = nullptr) noexcept : UIListCols(UIListCols::s_meta) { this->final_ctor(parent); }
         // will relayout?
         bool WillRelayout() const noexcept;
-        // match layout
-        void MatchLayout(UIControl&) noexcept;
     protected:
         // add child
         //void add_child(UIControl& child) noexcept override;

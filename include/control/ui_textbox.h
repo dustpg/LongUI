@@ -105,7 +105,7 @@ namespace LongUI {
         };
     public:
         // fire event
-        auto FireEvent(GuiEvent event) noexcept->EventAccept override;
+        auto FireEvent(const GuiEventArg& event) noexcept->EventAccept override;
         // normal event
         auto DoEvent(UIControl*, const EventArg& e) noexcept->EventAccept override;
         // update this
@@ -128,15 +128,15 @@ namespace LongUI {
         // need relayout
         auto is_need_relayout() const noexcept { return m_state.reason & Reason_BasicRelayout; }
         // event from textfield
-        auto event_from_textfield(GuiEvent) noexcept->EventAccept;
+        auto event_from_textfield(const GuiEventArg&) noexcept->EventAccept;
         // relayout textbox
         void relayout_textbox() noexcept;
         // do the wheel event
         auto do_wheel(int index, float wheel) noexcept->EventAccept;
         // make UISpinButtons
         void make_spin() noexcept;
-        // init minsize
-        void update_minsize() noexcept;
+        // refresh fitting size
+        void refresh_fitting() noexcept;
     public:
         // set text
         void SetText(CUIString&& text) noexcept;

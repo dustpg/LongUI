@@ -61,7 +61,7 @@ namespace LongUI {
         auto HandleOOM(size_t count, size_t size) noexcept ->CodeOOM override;
     public:
         // run a section script for event
-        bool Evaluation(ScriptUI, UIControl&) noexcept override;
+        bool Evaluation(ScriptUI, const GuiEventArg&) noexcept override;
         // alloc the script memory and copy into(may be compiled into byte code)
         auto AllocScript(U8View) noexcept->ScriptUI override;
         // free the script memory

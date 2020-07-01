@@ -39,6 +39,19 @@ void LongUI::UISpacer::Render() const noexcept {
 
 
 /// <summary>
+/// 设置 Spacer 数据
+/// </summary>
+/// <param name="size"></param>
+/// <param name="flex"></param>
+/// <returns></returns>
+void LongUI::UISpacer::SetSpacer(Size2F size, float flex) noexcept {
+    m_oStyle.flex = flex;
+    m_oStyle.limited = size;
+    constexpr uint8_t flags = uint8_t(4 << 2) | uint8_t(4 << 3);
+    reinterpret_cast<uint8_t&>(m_oStyle.overflow_xex) |= flags;
+}
+
+/// <summary>
 /// Initializes a new instance of the <see cref="UIMenuSeparator"/> class.
 /// </summary>
 /// <param name="meta">The meta.</param>

@@ -83,7 +83,7 @@ void LongUI::PopupWindowFromViewport(
     const auto this_window = hoster.GetWindow();
     assert(this_window);
     pointer = this_window->MapToScreenEx(pointer);
-    auto area = viewport.GetMinSize();
+    auto area = viewport.GetBoxFittingSize();
     impl::flip_mode mode = impl::mode_flip_n;
     // 讨论大小
     switch (type)

@@ -37,10 +37,12 @@ namespace LongUI {
     class CUIWindow;
     // manager
     class CUIManager;
+    // ui event
+    struct GuiEventArg;
     // signature
     template<typename signature> class CUIFunction;
     // Gui Event Listener
-    using GuiEventListener = CUIFunction<EventAccept(UIControl& host)>;
+    using GuiEventListener = CUIFunction<EventAccept(const GuiEventArg& host)>;
     // EventAccept |
     inline EventAccept operator|(EventAccept a, EventAccept b) noexcept {
         using event_t = unsigned char; 

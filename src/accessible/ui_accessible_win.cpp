@@ -383,7 +383,7 @@ auto LongUI::CUIAccessible::get_BoundingRectangle(
     if (!pRetVal) return E_INVALIDARG;
     CUIDataAutoLocker locker;
     if (m_control.IsVisibleEx()) {
-        const auto size = m_control.GetSize();
+        const auto size = m_control.GetBoxSize();
         RectF rect = { 0, 0, size.width, size.height };
         m_control.MapToWindow(rect);
         const auto wnd = m_control.GetWindow();

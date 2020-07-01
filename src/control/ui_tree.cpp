@@ -77,6 +77,10 @@ LongUI::UITree::UITree(const MetaControl& meta) noexcept : Super(meta) {
     m_pTree = this;
     // 默认为列表框
     m_oStyle.appearance = Appearance_ListBox;
+#ifdef LUI_ACCESSIBLE
+    // 默认逻辑对象为空
+    m_pAccCtrl = this;
+#endif
 }
 
 /// <summary>
@@ -84,6 +88,7 @@ LongUI::UITree::UITree(const MetaControl& meta) noexcept : Super(meta) {
 /// </summary>
 /// <returns></returns>
 void LongUI::UITree::Update(UpdateReason reason) noexcept {
+#if 0
     // 更新行高
     if (reason & Reason_ChildIndexChanged) {
         // 更新
@@ -106,8 +111,24 @@ void LongUI::UITree::Update(UpdateReason reason) noexcept {
         // 截断消息
         return UIControl::Update(reason);
     }
-    // 其他的交给超类处理
-    Super::Update(reason);
+    // 重新计算建议值
+    if (reason & Reason_BasicUpdateFitting) this->refresh_fitting();
+    // 重新布局
+    if (reason & Reason_BasicRelayout) this->relayout();
+#endif
+#ifndef NDEBUG
+    if (!std::strcmp(m_id.id, "tree1")) {
+        if (reason & Reason_BasicRelayout) {
+            int bk = 9;
+        }
+    }
+#endif
+    // 重新计算建议值
+    if (reason & Reason_BasicUpdateFitting) this->refresh_fitting(m_pCols);
+    // 重新布局
+    if (reason & Reason_BasicRelayout) this->relayout(m_pCols);
+    // 其他的交给超超类处理
+    UIControl::Update(reason);
 }
 
 
@@ -164,38 +185,6 @@ void LongUI::UITree::add_attribute(uint32_t key, U8View value) noexcept {
 //    // 初始化超类
 //    Super::initialize();
 //}
-
-/// <summary>
-/// Does the event.
-/// </summary>
-/// <param name="sender">The sender.</param>
-/// <param name="e">The e.</param>
-/// <returns></returns>
-auto LongUI::UITree::DoEvent(UIControl* sender,
-    const EventArg& e) noexcept -> EventAccept {
-    switch (e.nevent)
-    {
-    case NoticeEvent::Event_RefreshBoxMinSize:
-        // TREE 的MINSIZE 刷新
-    {
-        float height = 0.f;
-        // 加上内容
-        if (m_pCols)
-            height += m_pCols->GetMinSize().height;
-        // 判断DISPLAY ROWS
-        if (m_pChildren) {
-            const auto mh = m_pChildren->RefLineHeight();
-            height += mh * static_cast<float>(m_displayRow);
-        }
-        // 加上间距
-        this->set_contect_minsize({ 0, height });
-    }
-        return Event_Accept;
-    default:
-        // 其他事件
-        return Super::DoEvent(sender, e);
-    }
-}
 
 
 /// <summary>
@@ -486,20 +475,6 @@ bool LongUI::UITreeRow::ToggleNode() noexcept {
 }
 
 /// <summary>
-/// Sets the level offset.
-/// </summary>
-/// <param name="offset">The offset.</param>
-/// <returns></returns>
-void LongUI::UITreeRow::SetLevelOffset(float offset) noexcept {
-    m_fLevelOffset = offset;
-    //if (m_fLevelOffset != offset) {
-    //    m_fLevelOffset = offset;
-    //    this->NeedRelayout();
-    //}
-}
-
-
-/// <summary>
 /// init open data
 /// </summary>
 /// <param name="open">The open.</param>
@@ -565,11 +540,10 @@ LongUI::UITreeRow::UITreeRow(const MetaControl& meta) noexcept : Super(meta),
 /// </summary>
 /// <returns></returns>
 void LongUI::UITreeRow::Update(UpdateReason reason) noexcept {
-    // XXX: 要求重新布局
-    if (reason & Reason_BasicRelayout) {
-        // 重新布局
-        this->relayout();
-    }
+    // 重新计算建议值
+    if (reason & Reason_BasicUpdateFitting) this->refresh_fitting();
+    // 重新布局
+    if (reason & Reason_BasicRelayout) this->relayout();
     // 其他的交给超类处理
     Super::Update(reason);
 }
@@ -586,16 +560,13 @@ auto LongUI::UITreeRow::DoEvent(UIControl* sender, const EventArg& e) noexcept->
     case NoticeEvent::Event_UIEvent:
         // 点击了 twisty?
         if (sender == &m_oTwisty) {
-            switch (static_cast<const EventGuiArg&>(e).GetEvent())
+            switch (static_cast<const GuiEventArg&>(e).GetType())
             {
             case UIControl::_onClick():
                 this->ToggleNode();
                 break;
             }
         }
-        return Event_Accept;
-    case NoticeEvent::Event_RefreshBoxMinSize:
-        this->refresh_minsize();
         return Event_Accept;
     default:
         // 其他事件
@@ -661,20 +632,22 @@ auto LongUI::UITreeRow::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
 }
 
 /// <summary>
-/// Refreshes the minsize.
+/// Refreshes the fitting.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITreeRow::refresh_minsize() noexcept {
-    float width = m_fLevelOffset;
+void LongUI::UITreeRow::refresh_fitting() noexcept {
+    //float width = m_fLevelOffset;
     float height = 0.f;
     // 遍历
     for (auto& child : (*this)) {
-        const auto ms = child.GetMinSize();
-        width += ms.width;
+        const auto ms = child.GetBoxFittingSize();
+        //width += ms.width;
         height = std::max(height, ms.height);
     }
-    // 加上间距
-    this->set_contect_minsize({ width, height });
+    // 加上间距?
+
+    // 更新
+    this->update_fitting_size({ 0, height });
 }
 
 /// <summary>
@@ -682,26 +655,29 @@ void LongUI::UITreeRow::refresh_minsize() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UITreeRow::relayout() noexcept {
+    // TODO: 重新编写? MatchLayout
+    const auto item = longui_cast<UITreeItem*>(m_pParent);
+    const auto level_offset = item->CalTreeOffset();
     // 没有cols时调用
-    const auto when_no_cols = [this]() noexcept {
+    const auto when_no_cols = [=]() noexcept {
         const auto ctsize = this->RefBox().GetContentSize();
-        float xoffset = m_fLevelOffset;
+        float xoffset = level_offset;
         // 遍历有效子节点
         for (auto& child : (*this)) {
             // TODO: maxsize足够小应该居中放置
             child.SetPos({ xoffset, 0.f });
-            const auto min = child.GetMinSize();
+            const auto min = child.GetBoxFittingSize();
             this->resize_child(child, { min.width, ctsize.height });
             xoffset += min.width;
         }
     };
     // 存在cols时调用
-    const auto when_cols = [this, when_no_cols](UITreeCols* cols) noexcept {
+    const auto when_cols = [=](UITreeCols* cols) noexcept {
         const auto ctsize = this->RefBox().GetContentSize();
-        float xoffset = m_fLevelOffset;
+        float xoffset = level_offset;
         const auto set_child = [&xoffset, ctsize](UIControl& child) noexcept {
             child.SetPos({ xoffset, 0.f });
-            const auto min = child.GetMinSize();
+            const auto min = child.GetBoxFittingSize();
             UITreeRow::resize_child(child, { min.width, ctsize.height });
             xoffset += min.width;
         };
@@ -720,7 +696,7 @@ void LongUI::UITreeRow::relayout() noexcept {
             // 提前出局
             if (itr == this->end()) break;
             const auto pos = col.GetPos();
-            const auto size = col.GetSize();
+            const auto size = col.GetBoxSize();
             auto& child = *itr;
             child.SetPos({ pos.x + xoffset, pos.y });
             const auto width = size.width - xoffset;
@@ -813,7 +789,7 @@ void LongUI::UITreeItem::add_child(UIControl& child) noexcept {
         UITree::Private::same_tree(*m_pChildren, m_pTree);
 #ifdef LUI_ACCESSIBLE
         // 有children就使用
-        m_pAccCtrl = m_pChildren;
+        if (!m_pAccCtrl) m_pAccCtrl = m_pChildren;
 #endif
     }
     // 是TreeRow?
@@ -824,7 +800,7 @@ void LongUI::UITreeItem::add_child(UIControl& child) noexcept {
                 ? Appearance_TreeRowModeCell
                 : Appearance_ListItem
                 ;
-            UIControlPrivate::SetAppearance(*m_pRow, app);
+            UIControlPrivate::ForceAppearance(*m_pRow, app);
         }
     }
 #ifndef NDEBUG
@@ -848,16 +824,10 @@ void LongUI::UITreeItem::add_child(UIControl& child) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UITreeItem::Update(UpdateReason reason) noexcept {
-    // XXX: 要求重新布局
-    if (reason & Reason_BasicRelayout) {
-        // 重新布局
-        this->relayout_base(m_pRow);
-        // 偏移
-        if (m_pRow) {
-            //const auto mh = m_pRow->GetMinSize().height * 0.5f;
-            m_pRow->SetLevelOffset(m_fLevelOffset);
-        }
-    }
+    // 重新计算建议值
+    if (reason & Reason_BasicUpdateFitting) this->refresh_fitting(m_pRow);
+    // 重新布局
+    if (reason & Reason_BasicRelayout) this->relayout(m_pRow);
     // 其他的交给超类处理
     Super::Update(reason);
 }
@@ -956,24 +926,37 @@ void LongUI::UITreeItem::SelectCell(std::nullptr_t) noexcept {
     if (prev_sel) prev_sel->StartAnimation({ State_Selected, State_Non });
 }
 
+PCN_NOINLINE
+/// <summary>
+/// calculate offset
+/// </summary>
+/// <returns></returns>
+auto LongUI::UITreeItem::CalTreeOffset() const noexcept -> float {
+    if (this && m_pTree) {
+        const auto lvdis = static_cast<float>(this->GetLevel() - m_pTree->GetLevel());
+        return lvdis * m_pTree->level_offset * 0.5f;
+    }
+    return 0;
+}
+
 /// <summary>
 /// Does the event.
 /// </summary>
 /// <param name="sender">The sender.</param>
 /// <param name="e">The e.</param>
 /// <returns></returns>
-auto LongUI::UITreeItem::DoEvent(UIControl* sender,
-    const EventArg& e) noexcept -> EventAccept {
-    switch (e.nevent)
-    {
-    case NoticeEvent::Event_RefreshBoxMinSize:
-        this->refresh_minsize(m_pRow);
-        return Event_Accept;
-    default:
-        // 其他事件
-        return Super::DoEvent(sender, e);
-    }
-}
+//auto LongUI::UITreeItem::DoEvent(UIControl* sender,
+//    const EventArg& e) noexcept -> EventAccept {
+//    switch (e.nevent)
+//    {
+//    case NoticeEvent::Event_RefreshBoxMinSize:
+//        this->refresh_minsize(m_pRow);
+//        return Event_Accept;
+//    default:
+//        // 其他事件
+//        return Super::DoEvent(sender, e);
+//    }
+//}
 
 /// <summary>
 /// initialize UITreeItem
@@ -981,7 +964,12 @@ auto LongUI::UITreeItem::DoEvent(UIControl* sender,
 /// <returns></returns>
 void LongUI::UITreeItem::initialize() noexcept {
     // !!! 根节点必须为打开状态
-    if (m_pTree == this) m_bOpened = true;
+    if (m_pTree == this) {
+        m_bOpened = true;
+        // 默认是字体大小的一半
+        auto& v = m_pTree->level_offset;
+        if (v <= 0) v = UIManager.RefDefaultFont().size * 0.5f;
+    }
     // 将open信息传递给ROW
     if (m_pRow) m_pRow->InitOpen_Parent(m_bOpened);
     if (m_pChildren) m_pChildren->SetVisible(m_bOpened);
@@ -995,20 +983,18 @@ PCN_NOINLINE
 /// </summary>
 /// <param name="head">The head.</param>
 /// <returns></returns>
-void LongUI::UITreeItem::relayout_base(UIControl* head) noexcept {
+void LongUI::UITreeItem::relayout(UIControl* head) noexcept {
     // XXX: 获取左上角位置
     const auto lt = this->RefBox().GetContentPos();
-    float xofffset = m_fLevelOffset;
+    float xofffset = this->CalTreeOffset();
     float yoffset = lt.y;
     const auto ct = this->RefBox().GetContentSize();
     // 拥有头对象?
     if (head) {
         // 位置
         head->SetPos(lt);
-        // 层偏移量
-        //m_pRow->SetLevelOffset(m_fLevelOffset);
         // 大小
-        const auto height = head->GetMinSize().height;
+        const auto height = head->GetBoxFittingSize().height;
         this->resize_child(*head, { ct.width, height });
         // 调整children数据
         yoffset += height;
@@ -1017,37 +1003,32 @@ void LongUI::UITreeItem::relayout_base(UIControl* head) noexcept {
     }
     // 拥有子节点对象?
     if (m_pChildren && m_pChildren->IsVisible()) {
-        // 调整层级
-        m_pChildren->SetLevelOffset(xofffset);
         // 位置
         m_pChildren->SetPos({ lt.x, yoffset });
         // 大小: 作为树的直属TC则瓜分剩余的
         Size2F size = { ct.width , 0.f };
-        if (m_pTree == this) {
+        if (m_pTree == this)
             size.height = std::max(ct.height - yoffset, 0.f);
-        }
         else 
-            size.height = m_pChildren->GetMinSize().height;
-        const auto mh = m_pChildren->GetMinSize().height;
+            size.height = m_pChildren->GetBoxFittingSize().height;
+        //const auto mh = m_pChildren->GetBoxFittingSize().height;
         this->resize_child(*m_pChildren, size);
     }
 }
 
-PCN_NOINLINE
 /// <summary>
-/// Refreshes the minsize.
+/// Refreshes the fitting.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITreeItem::refresh_minsize(UIControl* head) noexcept {
-    // TODO: TREE 拥有独立的MINSIZE算法, 考虑更新算法
+void LongUI::UITreeItem::refresh_fitting(UIControl* head) noexcept {
+    // TODO: TREE 拥有独立的FITTING算法, 考虑更新算法
     float height = 0.f;
     // 加上内容
-    if (head)
-        height += head->GetMinSize().height;
+    if (head) height += head->GetBoxFittingSize().height;
     if (m_pChildren && m_pChildren->IsVisible())
-        height += m_pChildren->GetMinSize().height;
+        height += m_pChildren->GetBoxFittingSize().height;
     // 加上间距
-    this->set_contect_minsize({ 0, height });
+    this->update_fitting_size({ 0, height });
 }
 
 #ifdef LUI_ACCESSIBLE
@@ -1111,14 +1092,14 @@ LongUI::UITreeChildren::~UITreeChildren() noexcept {
 /// Sets the level offset.
 /// </summary>
 /// <param name="offset">The offset.</param>
-void LongUI::UITreeChildren::SetLevelOffset(float offset) {
-    for (auto& child : (*this)) {
-        // 子节点必须是UITreeItem(可能是滚动条)
-        if (const auto ptr = uisafe_cast<UITreeItem>(&child)) {
-            ptr->TreeLevelOffset(offset);
-        }
-    }
-}
+//void LongUI::UITreeChildren::SetLevelOffset(float offset) {
+//    for (auto& child : (*this)) {
+//        // 子节点必须是UITreeItem(可能是滚动条)
+//        if (const auto ptr = uisafe_cast<UITreeItem>(&child)) {
+//            ptr->TreeLevelOffset(offset);
+//        }
+//    }
+//}
 
 /// <summary>
 /// Initializes a new instance of the <see cref="UITreeChildren"/> class.
@@ -1151,8 +1132,7 @@ void LongUI::UITreeChildren::Update(UpdateReason reason) noexcept {
             }
         }
     }
-    // 布局
-    //if (reason & Reason_BasicRelayout) this->relayout_this();
+    // 超类处理
     return Super::Update(reason);
 }
 
@@ -1297,7 +1277,9 @@ auto LongUI::UITreeCols::DoEvent(UIControl* sender, const EventArg& e) noexcept-
 /// </summary>
 /// <returns></returns>
 void LongUI::UITreeCols::Update(UpdateReason reason) noexcept {
-    // XXX: 需要布局
+    // 需要尺寸
+    if (reason & Reason_BasicUpdateFitting) this->refresh_fitting();
+    // 需要布局
     if (reason & Reason_BasicRelayout) {
         this->relayout_h();
         // 优化: 不再需要时候再处理
@@ -1306,7 +1288,7 @@ void LongUI::UITreeCols::Update(UpdateReason reason) noexcept {
         return;
     }
     // 超类处理
-    Super::Update(reason);
+    UIScrollArea::Update(reason);
 }
 
 /// <summary>
@@ -1364,11 +1346,12 @@ LongUI::UITreeCell::~UITreeCell() noexcept {
 
 /// <summary>
 /// Initializes a new instance of the <see cref="UITreeCell"/> class.
+/// 树单元控件算是默认裁剪字符串的 <see cref="UILabel"/>
 /// </summary>
 /// <param name="meta">The meta.</param>
 LongUI::UITreeCell::UITreeCell(const MetaControl& meta) noexcept : Super(meta) {
-    // 暂时用ListItem?
-    //m_oStyle.appearance =  Appearance_app | Appearance_ListItem;
+    // 树单元默认裁剪字符串
+    m_crop = Crop_End;
 }
 
 /// <summary>

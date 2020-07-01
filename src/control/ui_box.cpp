@@ -2,6 +2,7 @@
 #include <control/ui_splitter.h>
 #include <core/ui_ctrlmeta.h>
 #include <event/ui_splitter_event.h>
+#include <util/ui_little_math.h>
 
 #include <algorithm>
 #include <cassert>
@@ -22,7 +23,6 @@ namespace LongUI {
 
 // ui::impl namespace
 namespace LongUI { namespace impl {
-    PCN_NOINLINE
     /// <summary>
     /// Gets the align factor.
     /// </summary>
@@ -31,11 +31,11 @@ namespace LongUI { namespace impl {
     auto get_align_factor(AttributeAlign align) noexcept {
         switch (align)
         {
-        case LongUI::Align_Stretcht:
-            return -1.0f;
         default: assert(!"error");
-            [[fallthrough]];
         case LongUI::Align_Baseline:
+            // 不打算实现基线对齐
+            [[fallthrough]];
+        case LongUI::Align_Stretcht:
             [[fallthrough]];
         case LongUI::Align_Start:
             return 0.0f;
@@ -66,7 +66,6 @@ LongUI::UIVBoxLayout::UIVBoxLayout(const MetaControl& meta) noexcept : Super(met
     m_state.orient = Orient_Vertical;
 }
 
-
 PCN_NOINLINE
 /// <summary>
 /// Relayouts the vbox
@@ -77,78 +76,115 @@ void LongUI::UIBoxLayout::relayout_v() noexcept {
     if (!std::strcmp(name_dbg, "scrollarea::vscrollbar")) {
         int bbk = 9;
     }
+    if (!std::strcmp(m_id.id, "a")) {
+        int bbk = 9;
+    }
 #endif
     // - 获取剩余长度
     const auto get_remain_length = [this](Size2F sb) noexcept {
-        return sb.height - m_minScrollSize.height;
+        return sb.height - m_szRealFitting.height;
+    };
+    // - 获取侧轴剩余长度
+    const auto get_remain_axis = [this](Size2F sb) noexcept {
+        return std::max(sb.width, m_minScrollSize.width);
     };
     // - 位置下移
     const auto pos_move_next = [](Point2F& pos, Size2F size) noexcept {
         pos.y += size.height;
     };
-    // - 添加弹性
-    const auto add_flex = [](Size2F& size, float length) noexcept {
-        size.height += length;
-    };
     // - 调整对齐
-    const auto adjust_align = [](Size2F& size, Size2F maxs, float f) noexcept {
-        // 仅仅调整位置
-        if (f >= 0.0f) {
-            return Point2F{ (maxs.width - size.width) * f, 0.f };
-        }
-        // 仅仅调整大小
-        else {
-            if (maxs.width > size.width) size.width = maxs.width;
-            return Point2F{ 0.f, 0.f };
-        }
+    const auto adjust_align = [](Size2F size, float maxs, float f) noexcept {
+        // 调整位置
+        return Point2F{ (maxs - size.width) * f, 0.f };
     };
-    // 0. 计算预备数据
-    const float align_factor = impl::get_align_factor(m_oStyle.align);
-    // 1. 遍历子控件, 将有效可变权重加起来
-    const float flex_sum = this->SumChildrenFlex();
-    // 2. 加入SB布局
+    // - 获取标准尺寸
+    const auto get_stdsize = [](UIControl& child, float maxs, AttributeAlign a) noexcept {
+        auto& style = child.RefStyle();
+        Size2F size;
+        size.width = style.fitting.width;
+        size.height = UIControlPrivate::GetLayoutValueF(child);
+        const auto exsize = child.GetBoxExSize();
+        if (a == AttributeAlign::Align_Stretcht) {
+            size.width = maxs - exsize.width;
+            size.width = detail::clamp(size.width, style.limited.width, style.maxsize.width);
+        }
+        size.width += exsize.width;
+        size.height += exsize.height;
+        return size;
+    };
+    // - 获取建议尺寸
+    const auto get_fiting_size = [](UIControl& child) noexcept {
+        return child.RefStyle().fitting.height;
+    };
+    // - 钳制尺寸
+    const auto clamp_size = [](UIControl& child, float v) noexcept {
+        return detail::clamp(v, 
+            child.RefStyle().limited.height, 
+            child.RefStyle().maxsize.height
+        );
+    };
+    // - 设置PACK位置
+    const auto setup_packing = [](Point2F pt, float v) noexcept {
+        pt.y += v; return pt;
+    };
+    // ------------------------------------------------------------------------
+    //                                分界线
+    // ------------------------------------------------------------------------
+    // 加入SB布局
     const auto remaining = this->layout_scroll_bar();
-    // 需要重新布局
-    if (this->is_need_relayout())  return;
-    // 3. 计算每权重长度
-    const float len_in_unit = flex_sum > 0.f ?
-        std::max(get_remain_length(remaining), 0.f) / flex_sum : 0.f;
-    Point2F pos = this->get_layout_position();
-    // pi. 计算pack位置
-    if (len_in_unit == 0.f) {
-        const float fa = [this]() noexcept {
-            const auto base = static_cast<float>(m_oStyle.pack) * 0.5f;
-            return m_state.direction ? 1.f - base : base;
-        }();
-        pos.y += get_remain_length(remaining) * fa;
+    // 需要重新布局 本次没有必要再计算了
+    if (this->is_need_relayout()) return;
+    // 初始化数据
+    float flex_sum = 0.f;
+    auto remain_len = get_remain_length(remaining);
+    const auto remian_axis = get_remain_axis(remaining);
+    for (auto & child : (*this)) if (child.IsVaildInLayout()) {
+        flex_sum += child.RefStyle().flex;
+        UIControlPrivate::SetLayoutValueF(child, get_fiting_size(child));
     }
-    // 4. 遍历控件
+    // 由于可能浮点误差这里硬编码为: 动画30Hz中1变化可以接受
+    constexpr float deviation = 1.f / 30.f;
+    while (flex_sum > deviation) {
+        bool break_this = true;
+        const auto unit = remain_len / flex_sum;
+        for (auto & child : (*this)) if (child.IsVaildInLayout()) {
+            const auto flex = child.RefStyle().flex;
+            const auto v = UIControlPrivate::GetLayoutValueF(child);
+            const auto p = flex * unit;
+            const auto n = clamp_size(child, v + p);
+            if (n != v) {
+                break_this = false;
+                remain_len -= n - v;
+                flex_sum -= flex;
+                UIControlPrivate::SetLayoutValueF(child, n);
+            }
+        }
+        if (break_this) break;
+    }
+    // 计算pack位置
+    const float fa = [this]() noexcept {
+        const auto base = static_cast<float>(m_oStyle.pack) * 0.5f;
+        return m_state.direction ? 1.f - base : base;
+    }();
+    Point2F pos = this->get_layout_position();
+    pos = setup_packing(pos, remain_len * fa);
+    // 计算align位置
+    const auto style_align = m_oStyle.align;
+    const float safe_factor = impl::get_align_factor(style_align);
+    // 最终遍历
     const auto sp = this->make_sp_traversal();
     for (auto itr = sp.begin; itr != sp.end; itr = LongUI::SpNext(itr, sp.next)) {
         auto& child = *itr;
-    //}
-    //for (auto& child : *this) {
-#ifndef NDEBUG
-        //if (!std::strcmp(child.name_dbg, "scrollbar::slider")) {
-        //    int bbk = 9;
-        //}
-#endif
         // 有效才处理
-        if (child.IsVaildInLayout()) {
-            // 先考虑使用最小尺寸
-            auto size = child.GetMinSize();
-            // 对应方向分别使用弹性布局
-            add_flex(size, child.RefStyle().flex * len_in_unit);
-            // 调整对齐
-            const auto opos = adjust_align(size, remaining, align_factor);
-            // 但是不能超过本身限制
-            size.width = std::min(child.GetMaxSize().width, size.width);
-            size.height = std::min(child.GetMaxSize().height, size.height);
-            // 调整位置大小
-            child.SetPos(pos + opos); this->resize_child(child, size);
-            // 移动到下一个位置
-            pos_move_next(pos, size);
-        }
+        if (!child.IsVaildInLayout()) continue;
+        // 获取标准大小
+        const auto size = get_stdsize(child, remian_axis, style_align);
+        // 调整对齐
+        const auto opos = adjust_align(size, remian_axis, safe_factor);
+        // 调整位置大小
+        child.SetPos(pos + opos); this->resize_child(child, size);
+        // 移动到下一个位置
+        pos_move_next(pos, size);
     }
 }
 
@@ -159,7 +195,6 @@ PCN_NOINLINE
 /// </summary>
 /// <returns></returns>
 void LongUI::UIBoxLayout::relayout_h() noexcept {
-
 #ifndef NDEBUG
     if (!std::strcmp(m_id.id, "editable_combobox")) {
         int bbk = 9;
@@ -167,70 +202,104 @@ void LongUI::UIBoxLayout::relayout_h() noexcept {
 #endif
     // - 获取剩余长度
     const auto get_remain_length = [this](Size2F sb) noexcept {
-        return sb.width - m_minScrollSize.width;
+        return sb.width - m_szRealFitting.width;
     };
     // - 位置下移
     const auto pos_move_next = [](Point2F& pos, Size2F size) noexcept {
         pos.x += size.width;
     };
-    // - 添加弹性
-    const auto add_flex = [](Size2F& size, float length) noexcept {
-        size.width += length;
-    };
     // - 调整对齐
-    const auto adjust_align = [](Size2F& size, Size2F maxs, float f) noexcept {
-        // 仅仅调整位置
-        if (f >= 0.0f) {
-            return Point2F{ 0.f, (maxs.height - size.height) * f };
-        }
-        // 仅仅调整大小
-        else {
-            if (maxs.height > size.height) size.height = maxs.height;
-            return Point2F{ 0.f, 0.f };
-        }
+    const auto adjust_align = [](Size2F size, Size2F maxs, float f) noexcept {
+        // 调整位置
+        return Point2F{ 0.f, (maxs.height - size.height) * f };
     };
-    // 0. 计算预备数据
-    const float align_factor = impl::get_align_factor(m_oStyle.align);
-    // 1. 遍历子控件, 将有效可变权重加起来
-    const float flex_sum = this->SumChildrenFlex();
-    // 2. 加入SB布局
+    // 获取标准大小
+    const auto get_stdsize = [](UIControl& child, Size2F maxs, AttributeAlign a) noexcept {
+        auto& style = child.RefStyle();
+        Size2F size;
+        size.width = UIControlPrivate::GetLayoutValueF(child);
+        size.height = style.fitting.height;
+        const auto exsize = child.GetBoxExSize();
+        if (a == AttributeAlign::Align_Stretcht) {
+            size.height = maxs.height - exsize.height;
+            size.height = detail::clamp(size.height, style.limited.height, style.maxsize.height);
+        }
+        size.width += exsize.width;
+        size.height += exsize.height;
+        return size;
+    };
+    // 获取建议尺寸
+    const auto get_fiting_size = [](UIControl& child) noexcept {
+        return child.RefStyle().fitting.width;
+    };
+    // 钳制尺寸
+    const auto clamp_size = [](UIControl& child, float v) noexcept {
+        return detail::clamp(v, 
+            child.RefStyle().limited.width, 
+            child.RefStyle().maxsize.width
+        );
+    };
+    // 设置PACK位置
+    const auto setup_packing = [](Point2F pt, float v) noexcept {
+        pt.x += v; return pt;
+    };
+    // ------------------------------------------------------------------------
+    //                                分界线　
+    // ------------------------------------------------------------------------
+    // 加入SB布局
     const auto remaining = this->layout_scroll_bar();
-    // 需要重新布局的话就没有必要继续算了
+    // 需要重新布局 本次没有必要再计算了
     if (this->is_need_relayout()) return;
-    // 3. 计算每权重长度
-    const float len_in_unit = flex_sum > 0 ?
-        std::max(get_remain_length(remaining), 0.f) / flex_sum : 0;
-    Point2F pos = this->get_layout_position();
-    // pi. 计算pack位置
-    if (len_in_unit == 0) {
-        const float fa = [this]() noexcept {
-            const auto base = static_cast<float>(m_oStyle.pack) * 0.5f;
-            return m_state.direction ? 1.f - base : base;
-        }();
-        pos.x += get_remain_length(remaining) * fa;
+    // 初始化数据
+    float flex_sum = 0.f;
+    auto remain_len = get_remain_length(remaining);
+    for (auto & child : (*this)) if (child.IsVaildInLayout()) {
+        flex_sum += child.RefStyle().flex;
+        UIControlPrivate::SetLayoutValueF(child, get_fiting_size(child));
     }
-    // 4. 遍历控件
+    // 由于可能浮点误差这里硬编码为: 动画30Hz中1变化可以接受
+    constexpr float deviation = 1.f / 30.f;
+    while (flex_sum > deviation) {
+        bool break_this = true;
+        const auto unit = remain_len / flex_sum;
+        for (auto & child : (*this)) if (child.IsVaildInLayout()) {
+            const auto flex = child.RefStyle().flex;
+            const auto v = UIControlPrivate::GetLayoutValueF(child);
+            const auto p = flex * unit;
+            const auto n = clamp_size(child, v + p);
+            if (n != v) {
+                break_this = false;
+                remain_len -= n - v;
+                flex_sum -= flex;
+                UIControlPrivate::SetLayoutValueF(child, n);
+            }
+        }
+        if (break_this) break;
+    }
+    // 计算pack位置
+    const float fa = [this]() noexcept {
+        const auto base = static_cast<float>(m_oStyle.pack) * 0.5f;
+        return m_state.direction ? 1.f - base : base;
+    }();
+    Point2F pos = this->get_layout_position();
+    pos = setup_packing(pos, remain_len * fa);
+    // 计算align位置
+    const auto style_align = m_oStyle.align;
+    const float safe_factor = impl::get_align_factor(style_align);
+    // 最终遍历
     const auto sp = this->make_sp_traversal();
     for (auto itr = sp.begin; itr != sp.end; itr = LongUI::SpNext(itr, sp.next)) {
         auto& child = *itr;
-    //}
-    //for (auto& child : *this) {
         // 有效才处理
-        if (child.IsVaildInLayout()) {
-            // 先考虑使用最小尺寸
-            auto size = child.GetMinSize();
-            // 对应方向分别使用弹性布局
-            add_flex(size, child.RefStyle().flex * len_in_unit);
-            // 调整对齐
-            const auto opos = adjust_align(size, remaining, align_factor);
-            // 但是不能超过本身限制
-            size.width = std::min(child.GetMaxSize().width, size.width);
-            size.height = std::min(child.GetMaxSize().height, size.height);
-            // 调整位置大小
-            child.SetPos(pos + opos); this->resize_child(child, size);
-            // 移动到下一个位置
-            pos_move_next(pos, size);
-        }
+        if (!child.IsVaildInLayout()) continue;
+        // 获取标准大小
+        const auto size = get_stdsize(child, remaining, style_align);
+        // 调整对齐
+        const auto opos = adjust_align(size, remaining, safe_factor);
+        // 调整位置大小
+        child.SetPos(pos + opos); this->resize_child(child, size);
+        // 移动到下一个位置
+        pos_move_next(pos, size);
     }
 }
 
@@ -251,6 +320,7 @@ void LongUI::UIBoxLayout::Update(UpdateReason reason) noexcept {
           |___E(1)          样大小, 其余设为0
 
     */
+    if (reason & Reason_BasicUpdateFitting) this->refresh_fitting();
     if (reason & Reason_BasicRelayout) this->relayout_this();
     return Super::Update(reason);
 }
@@ -281,48 +351,63 @@ void LongUI::UIBoxLayout::relayout_this() noexcept {
     m_state.orient == Orient_Horizontal ? this->relayout_h() : this->relayout_v();
 }
 
-
 // ui::impl
 namespace LongUI { namespace impl {
-    PCN_NOINLINE
     /// <summary>
-    /// sum children minsize - H
+    /// get children boxfitting : hor mode
     /// </summary>
     /// <param name="ctrl"></param>
+    /// <param name="min"></param>
+    /// <param name="fit"></param>
     /// <returns></returns>
-    auto sum_children_minsize_h(UIControl& ctrl) noexcept -> Size2F {
-        Size2F minsize = {};
+    void children_boxfitting_hor(UIControl& ctrl, Size2F& min, Size2F& fit) noexcept {
+        Size2F m = { }, f = { };
         // 遍历控件
         for (auto& child : ctrl) {
-            // 可见即可
-            if (child.IsVaildInLayout()) {
-                const auto ms = child.GetMinSize();
-                // 水平布局
-                minsize.width += ms.width;
-                minsize.height = std::max(minsize.height, ms.height);
-            }
+            if (!child.IsVaildInLayout()) continue;
+            const auto exsize = child.GetBoxExSize();
+            // 最小值
+            // 允许缩放 -> 最小宽度 否则 -> 建议宽度
+            // 不管     -> 最小高度
+            m.width += exsize.width;
+            m.width += child.RefStyle().flex
+                ? child.RefStyle().limited.width
+                : child.RefStyle().fitting.width
+                ;
+            m.height = std::max(m.height, child.RefStyle().limited.height + exsize.height);
+            // 建议值
+            f.width += exsize.width + child.RefStyle().fitting.width;
+            f.height = std::max(f.height, child.RefStyle().fitting.height + exsize.height);
         }
-        return minsize;
+        min = m; fit = f;
     }
-    PCN_NOINLINE
     /// <summary>
-    /// sum children minsize - V
+    /// get children boxfitting : ver mode
     /// </summary>
     /// <param name="ctrl"></param>
+    /// <param name="min"></param>
+    /// <param name="fit"></param>
     /// <returns></returns>
-    auto sum_children_minsize_v(UIControl& ctrl) noexcept -> Size2F {
-        Size2F minsize = {};
+    void children_boxfitting_ver(UIControl& ctrl, Size2F& min, Size2F& fit) noexcept {
+        Size2F m = {}, f = {};
         // 遍历控件
         for (auto& child : ctrl) {
-            // 可见即可
-            if (child.IsVaildInLayout()) {
-                const auto ms = child.GetMinSize();
-                // 垂直布局
-                minsize.height += ms.height;
-                minsize.width = std::max(minsize.width, ms.width);
-            }
+            if (!child.IsVaildInLayout()) continue;
+            const auto exsize = child.GetBoxExSize();
+            // 最小值
+            // 不管     -> 最小宽度
+            // 允许缩放 -> 最小高度 否则 -> 建议高度
+            m.width = std::max(m.width, child.RefStyle().limited.width + exsize.width);
+            m.height += exsize.height;
+            m.height += child.RefStyle().flex
+                ? child.RefStyle().limited.height
+                : child.RefStyle().fitting.height
+                ;
+            // 建议值
+            f.width = std::max(f.width, child.RefStyle().fitting.width + exsize.width);
+            f.height += exsize.height + child.RefStyle().fitting.height;
         }
-        return minsize;
+        min = m; fit = f;
     }
 }}
 
@@ -330,22 +415,35 @@ namespace LongUI { namespace impl {
 /// Refreshes the minimum.
 /// </summary>
 /// <returns></returns>
-void LongUI::UIBoxLayout::refresh_min() noexcept {
+void LongUI::UIBoxLayout::refresh_fitting() noexcept {
 #ifndef NDEBUG
+    if (!std::strcmp(m_id.id, "b")) {
+        int bbk = 9;
+    }
     if (!std::strcmp(name_dbg, "scrollarea::vscrollbar")) {
         int bbk = 9;
     }
 #endif
-    Size2F minsize ;
-    if (m_state.orient == Orient_Horizontal)
-        minsize = impl::sum_children_minsize_h(*this);
+    if (m_state.orient == Orient_Horizontal) 
+        impl::children_boxfitting_hor(*this, m_minScrollSize, m_szRealFitting);
     else 
-        minsize = impl::sum_children_minsize_v(*this);
+        impl::children_boxfitting_ver(*this, m_minScrollSize, m_szRealFitting);
+    Size2F limited = m_minScrollSize;
+    Size2F fitting = m_szRealFitting;
+#ifdef LUI_BOXSIZING_BORDER_BOX
+    const auto bpw = m_oBox.border.left + m_oBox.border.right
+        + m_oBox.padding.left + m_oBox.padding.right;
+    const auto bph = m_oBox.border.top + m_oBox.border.bottom
+        + m_oBox.padding.top + m_oBox.padding.bottom;
+    limited.width += bpw; limited.height += bph;
+    fitting.width += bpw; fitting.height += bph;
+#endif
     // 更新值
-    m_minScrollSize = minsize;
-    //if (!(m_oStyle.overflow_x & 1)) minsize.width = 0;
-    //if (!(m_oStyle.overflow_y & 1)) minsize.height = 0;
-    this->set_contect_minsize(minsize);
+    if (m_oStyle.overflow_xex & 1)
+        this->set_limited_width_lp(limited.width);
+    if (m_oStyle.overflow_y & 1)
+        this->set_limited_height_lp(limited.height);
+    this->update_fitting_size(fitting);
 }
 
 /// <summary>
@@ -354,17 +452,11 @@ void LongUI::UIBoxLayout::refresh_min() noexcept {
 /// <param name="e">The e.</param>
 /// <returns></returns>
 auto LongUI::UIBoxLayout::DoEvent(UIControl* sender, const EventArg& e) noexcept -> EventAccept {
-    // ---------------- 事件处理分支
     switch (e.nevent)
     {
-    case NoticeEvent::Event_RefreshBoxMinSize:
-        this->refresh_min();
-        return Event_Accept;
     case NoticeEvent::Event_Splitter:
-        this->move_splitter(*longui_cast<UISplitter*>(sender), [&e]() noexcept {
-            const auto& ev = static_cast<const EventSplitterArg&>(e);
-            return Point2F{ ev.offset_x, ev.offset_y };
-        }());
+        assert(sender && "BAD ACTION");
+        this->move_splitter(*sender, e);
         return Event_Accept;
     }
     return Super::DoEvent(sender, e);
@@ -375,31 +467,34 @@ auto LongUI::UIBoxLayout::DoEvent(UIControl* sender, const EventArg& e) noexcept
 /// <summary>
 /// Moves the splitter.
 /// </summary>
-/// <param name="splitter">The splitter.</param>
-/// <param name="offset">The offset.</param>
+/// <param name="splitter">The splitter object.</param>
+/// <param name="e">The event.</param>
 /// <returns></returns>
-void LongUI::UIBoxLayout::move_splitter(UISplitter& splitter, Point2F offset) noexcept {
-    assert(splitter.GetParent() == this);
-    // 不能是第一个
-    if (splitter.IsFirstChild()) return;
-    // 最后
-    auto& p = UIControlPrivate::Prev(splitter);
-    const auto index = this->GetOrient() == Orient_Horizontal ? 0 : 1;
-    const auto o = index[&offset.x];
-    // 计算大小
-    auto szp = p.GetSize(); index[&szp.width] += o;
-    if (index[&szp.width] <= index[&p.RefBox().minsize.width]) return;
-    // 不是最后一个?
-    if (!splitter.IsLastChild()) {
-        // 修改后面的
-        auto& n = UIControlPrivate::Next(splitter);
-        auto szn = n.GetSize(); index[&szn.width] -= o;
-        // 不够?
-        if (index[&szn.width] <= index[&n.RefBox().minsize.width]) return;
-        n.SetStyleSize(szn);
-    }
-    // 重置
-    p.SetStyleSize(szp);
+void LongUI::UIBoxLayout::move_splitter(UIControl& splitter, const EventArg& e) noexcept {
+    //const auto& ev = static_cast<const EventSplitterArg&>(e);
+    //const auto attribute = ev.attribute;
+    //const Point2F offset{ ev.offset_x, ev.offset_y };
+    //assert(splitter.GetParent() == this);
+    //// 不能是第一个
+    //if (splitter.IsFirstChild()) return;
+    //// 最后
+    //auto& p = UIControlPrivate::Prev(splitter);
+    //const auto index = this->GetOrient() == Orient_Horizontal ? 0 : 1;
+    //const auto o = index[&offset.x];
+    //// 计算大小
+    //auto szp = p.GetSize(); index[&szp.width] += o;
+    //if (index[&szp.width] <= index[&p.RefBox().minsize.width]) return;
+    //// 不是最后一个?
+    //if (!splitter.IsLastChild()) {
+    //    // 修改后面的
+    //    auto& n = UIControlPrivate::Next(splitter);
+    //    auto szn = n.GetSize(); index[&szn.width] -= o;
+    //    // 不够?
+    //    if (index[&szn.width] <= index[&n.RefBox().minsize.width]) return;
+    //    n.SetStyleSize(szn);
+    //}
+    //// 重置
+    //p.SetStyleSize(szp);
 }
 
 

@@ -37,6 +37,7 @@
       <row>
         <button label="stack" id="stack"/>
         <button label="splitter" id="splitter"/>
+        <button label="controls" id="controls"/>
       </row>
     </rows>
   </grid>
