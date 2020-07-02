@@ -37,6 +37,7 @@
 #include "../../RichED/ed_txtplat.h"
 // TextBC
 //#include <../TextBC/bc_txtplat.h>
+#include "../thread/ui_locker.h"
 
 // cursor
 #include <graphics/ui_cursor.h>
@@ -159,6 +160,10 @@ namespace LongUI {
         // update the rendering positon
         void UpdateRenderPostion() noexcept;
     protected:
+        // lock this
+        void lock() const noexcept;
+        // unlock this
+        void unlock() const noexcept;
         // draw selection
         void draw_selection(I::Renderer2D&) const noexcept;
         // draw img context
@@ -178,8 +183,8 @@ namespace LongUI {
         void add_attribute(uint32_t key, U8View value) noexcept override;
         // initialize
         void initialize() noexcept override;
-        // need update
-        void need_update() noexcept;
+        // text need update
+        void text_need_update() noexcept;
         // try trigger change event
         bool try_trigger_change_event() noexcept;
         // mark change event could be triggered
@@ -221,6 +226,8 @@ namespace LongUI {
         ColorF                  m_colorSelBg;
         // caret color
         ColorF                  m_colorCaret;
+        // text editor locker
+        CUILocker               m_locker;
         // prev estimated size
         RichED::Size            m_szPrevEst = { 0 };
         // hovered curor

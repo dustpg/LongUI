@@ -169,22 +169,6 @@ void LongUI::UIScale::SetMax(float max_value) noexcept {
     this->NeedUpdate(Reason_ChildLayoutChanged);
 }
 
-/// <summary>
-/// Does the event.
-/// </summary>
-/// <param name="sender">The sender.</param>
-/// <param name="e">The e.</param>
-/// <returns></returns>
-//auto LongUI::UIScale::DoEvent(UIControl * sender,
-//                          const EventArg & e) noexcept -> EventAccept {
-//    // 初始化
-//    if (e.nevent == NoticeEvent::Event_Initialize) {
-//        this->init_slider();
-//    }
-//    // 超类处理
-//    return Super::DoEvent(sender, e);
-//}
-
 
 /// <summary>
 /// Does the event.

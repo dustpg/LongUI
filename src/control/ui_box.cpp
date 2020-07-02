@@ -74,10 +74,13 @@ PCN_NOINLINE
 void LongUI::UIBoxLayout::relayout_v() noexcept {
 #ifndef NDEBUG
     if (!std::strcmp(name_dbg, "scrollarea::vscrollbar")) {
-        int bbk = 9;
+        int bk = 9;
     }
     if (!std::strcmp(m_id.id, "a")) {
-        int bbk = 9;
+        int bk = 9;
+    }
+    if (this->GetLevel() == 2) {
+        int bk = 9;
     }
 #endif
     // - 获取剩余长度
@@ -197,7 +200,10 @@ PCN_NOINLINE
 void LongUI::UIBoxLayout::relayout_h() noexcept {
 #ifndef NDEBUG
     if (!std::strcmp(m_id.id, "editable_combobox")) {
-        int bbk = 9;
+        int bk = 9;
+    }
+    if (this->IsTopLevel()) {
+        int bk = 9;
     }
 #endif
     // - 获取剩余长度
@@ -418,10 +424,10 @@ namespace LongUI { namespace impl {
 void LongUI::UIBoxLayout::refresh_fitting() noexcept {
 #ifndef NDEBUG
     if (!std::strcmp(m_id.id, "b")) {
-        int bbk = 9;
+        int bk = 9;
     }
     if (!std::strcmp(name_dbg, "scrollarea::vscrollbar")) {
-        int bbk = 9;
+        int bk = 9;
     }
 #endif
     if (m_state.orient == Orient_Horizontal) 

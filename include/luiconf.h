@@ -56,10 +56,13 @@
 #define LUI_ACCESSIBLE
 #endif
 
+
 // Constant Setting
 namespace LongUI {
     // int Constant
     enum EnumUIConstant : long {
+        // native window icon id            : for native window icon
+        WindowIconName = 1,        
         // dirty rect count                 : for optimization
         DIRTY_RECT_COUNT = 16,
         // transparent window buffer unit   : for optimization
@@ -118,6 +121,7 @@ namespace LongUI {
         MAX_CONTROL_TREE_DEPTH = 256,
         // LongUI Max Control Class Count
         MAX_CONTROL_TYPE_COUNT = 256,
+        
     };
     // attribute [pseudo] namespace
     struct Attribute {
@@ -127,8 +131,6 @@ namespace LongUI {
         static constexpr const wchar_t* WindowClassNameN = L"Windows.UI.LongUI.DirectWindow";
         // default popup window class name zhuangbilty
         static constexpr const wchar_t* WindowClassNameP = L"Windows.UI.LongUI.PopupWindow";
-        // default window icon name
-        static constexpr const wchar_t* WindowIconName = (const wchar_t*)1;
         // bug dump file path, set nullptr to disable dump-file
         static constexpr const char16_t*BugDumpFilePath = u"longui-v0.2.2.dmp";
     };

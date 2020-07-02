@@ -58,7 +58,9 @@ namespace LongUI {
         auto GetLayoutDirection() const noexcept ->AttributeDir { return AttributeDir(m_state.direction); }
     protected:
         // layout the scroll bar
-        auto layout_scroll_bar(/*Size2F cs*/) noexcept->Size2F;
+        auto layout_scroll_bar(Point2F& offset) noexcept->Size2F;
+        // layout the scroll bar
+        auto layout_scroll_bar() noexcept { return layout_scroll_bar(m_ptChildOffset); };
         // synchronize the scroll bar
         void sync_scroll_bar(Point2F& offset) noexcept;
         // get layout position

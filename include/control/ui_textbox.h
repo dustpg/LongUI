@@ -130,7 +130,7 @@ namespace LongUI {
         // event from textfield
         auto event_from_textfield(const GuiEventArg&) noexcept->EventAccept;
         // relayout textbox
-        void relayout_textbox() noexcept;
+        void relayout() noexcept;
         // do the wheel event
         auto do_wheel(int index, float wheel) noexcept->EventAccept;
         // make UISpinButtons

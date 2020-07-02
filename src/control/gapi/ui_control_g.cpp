@@ -71,7 +71,6 @@ bool LongUI::UIControl::native_style_render() const noexcept {
     // 存在动画
     if (this->exist_basic_animation()) {
         // XXX: [优化]
-        CUIDataAutoLocker locker;
         const auto basic = UIManager.FindBasicAnimation(*this);
         assert(basic && "BAD ACTION");
         if (basic) {
@@ -152,8 +151,7 @@ void LongUI::UIControl::apply_world_transform() const noexcept {
 namespace LongUI { namespace detail {
     // both visible?
     inline bool both_visible(AttributeOverflow x, AttributeOverflow y) noexcept {
-        return x == Overflow_Visible && y == Overflow_Visible;
-        //return ((x << 4) | y) == ((Overflow_Visible << 4) | Overflow_Visible);
+        return (x & y) == Overflow_Visible;
     }
 }}
 
@@ -163,6 +161,11 @@ namespace LongUI { namespace detail {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIControl::apply_clip_rect() const noexcept {
+#ifndef NDEBUG
+    if (!std::strcmp(m_id.id, "textbox1")) {
+        int bk = 9;
+    }
+#endif
     // 检查overflow属性
     const auto overflow_x = static_cast<AttributeOverflow>(this->RefStyle().overflow_xex & 3);
     const auto overflow_y = this->RefStyle().overflow_y;
@@ -172,11 +175,8 @@ void LongUI::UIControl::apply_clip_rect() const noexcept {
     const float max_size = DEFAULT_CONTROL_MAX_SIZE;
     RectF rect = { 0, 0, max_size, max_size };
     const auto size = this->GetBoxSize();
-    if (overflow_x != Overflow_Visible)
-        rect.right = size.width;
-    if (overflow_y != Overflow_Visible)
-        rect.bottom = size.height;
-
+    if (overflow_x != Overflow_Visible) rect.right = size.width;
+    if (overflow_y != Overflow_Visible) rect.bottom = size.height;
     const auto mode = D2D1_ANTIALIAS_MODE_PER_PRIMITIVE;
     painter.PushAxisAlignedClip(auto_cast(&rect), mode);
 }

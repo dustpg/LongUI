@@ -391,6 +391,7 @@ void LongUI::CUIControlControl::ControlDisattached(UIControl& ctrl) noexcept {
         CUIDataAutoLocker locker;
         // 0. 动画引用
         if (ctrl.exist_basic_animation()) {
+            CUIRenderAutoLocker rlocker;
             const auto b = cc().basic_anima.begin();
             const auto e = cc().basic_anima.end();
             for (auto itr = b; itr != e; ++itr) {
@@ -944,6 +945,8 @@ void LongUI::CUIControlControl::normal_update() noexcept {
 /// <param name="delta">The delta.</param>
 /// <returns></returns>
 void LongUI::CUIControlControl::update_basic_animation(uint32_t delta)noexcept {
+    // 本函数在渲染线程调用，不用锁?
+    //CUIRenderAutoLocker locker;
     // 动画为空
     auto& animations = cc().basic_anima;
     if (animations.empty()) return;
@@ -1070,6 +1073,8 @@ void LongUI::CUIControlControl::StartBasicAnimation(UIControl& ctrl, StyleStateC
     const auto dur = naive_style.GetDuration({ type, native_type });
     // 没有动画
     if (!dur) { ctrl.change_state(type); return; }
+    // 需要渲染锁
+    CUIRenderAutoLocker locker;
     // TODO: 整理代码, 比如先保证vector有效性
     auto& anima = cc().basic_anima;
     using cab_t = ControlAnimationBasic * ;

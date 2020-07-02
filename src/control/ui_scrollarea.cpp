@@ -206,7 +206,7 @@ void LongUI::UIScrollArea::sync_scroll_bar(Point2F& offset) noexcept {
         vok ? m_pScrollBarVer->GetBoxWidth() : 0.f,
         hok ? m_pScrollBarHor->GetBoxHeight() : 0.f
     };
-    const auto& min_scroll = m_oStyle.fitting;
+    const auto& min_scroll = m_minScrollSize;
     // 水平滚动条
     if (hok) {
         m_pScrollBarHor->SetIncrement(this->line_size.width);
@@ -325,11 +325,12 @@ auto LongUI::UIScrollArea::layout_scrollbar(bool notenough, bool index) noexcept
 }
 
 
+PCN_NOINLINE
 /// <summary>
 /// Layouts the size of the content.
 /// </summary>
 /// <returns></returns>
-auto LongUI::UIScrollArea::layout_scroll_bar(/*Size2F content_size_ex*/) noexcept -> Size2F {
+auto LongUI::UIScrollArea::layout_scroll_bar(Point2F& offset) noexcept -> Size2F {
     // TODO: 修改
     const auto is_need_relayout = [this]() noexcept {
         constexpr UpdateReason relayout_reason
@@ -349,45 +350,48 @@ auto LongUI::UIScrollArea::layout_scroll_bar(/*Size2F content_size_ex*/) noexcep
     const auto overflow_y = this->RefStyle().overflow_y;
     // 不存在的
     if (1 & overflow_xex & overflow_y) return content_size;
-    // 内容显示
     const auto scroll = m_minScrollSize; // m_oStyle.fitting;
-    // 需要显示VSB
-    const bool vsbdisplay = content_size.width > MDW &&
-        scroll.height > content_size.height;
-    // 需要显示HSB
-    const bool hsbdisplay = content_size.height > MDW &&
-        scroll.width > content_size.width;
-    // 获取VSB长度
-    const auto vsbar = this->layout_scrollbar(vsbdisplay, 1);
-    // 获取HSB长度
-    const auto hsbar = this->layout_scrollbar(hsbdisplay, 0);
+    auto real_size = content_size;
+    float vsbar, hsbar;
+    // 遍历两次
+    for (int i = 0; i != 2; ++i) {
+        // 需要显示VSB
+        const bool vsbdisplay = real_size.width > MDW &&
+            scroll.height > real_size.height;
+        // 需要显示HSB
+        const bool hsbdisplay = real_size.height > MDW &&
+            scroll.width > real_size.width;
+        // 获取VSB长度
+        vsbar = this->layout_scrollbar(vsbdisplay, 1);
+        // 获取HSB长度
+        hsbar = this->layout_scrollbar(hsbdisplay, 0);
+        real_size.width = content_size.width - vsbar;
+        real_size.height = content_size.height - hsbar;
+    }
     // 需要再次布局
-    if (is_need_relayout()) return content_size;
+    if (is_need_relayout()) return real_size;
     // 设置VSB位置: 正向-右侧 反向-左侧
     if (vsbar > 0.f) {
-        resize_child(*m_pScrollBarVer, { vsbar, content_size.height - hsbar });
+        resize_child(*m_pScrollBarVer, { vsbar, real_size.height });
         Point2F pos = this->RefBox().GetContentPos();
         const bool normaldir = m_state.direction == Dir_Normal;
-        if (normaldir) pos.x += content_size.width - vsbar;
+        if (normaldir) pos.x += real_size.width;
         m_pScrollBarVer->SetPos(pos);
         m_pScrollBarVer->SetVisible(true);
     }
     // 设置HSB位置: 正向-下侧 反向-上侧
     if (hsbar > 0.f) {
-        resize_child(*m_pScrollBarHor, { content_size.width - vsbar, hsbar });
+        resize_child(*m_pScrollBarHor, { real_size.width , hsbar });
         Point2F pos = this->RefBox().GetContentPos();
         const bool normaldir = m_state.direction == Dir_Normal;
-        if (normaldir) pos.y += content_size.height - hsbar;
+        if (normaldir) pos.y += real_size.height;
         m_pScrollBarHor->SetPos(pos);
         m_pScrollBarHor->SetVisible(true);
     }
     // 同步SB显示
-    this->sync_scroll_bar(luiref m_ptChildOffset);
+    this->sync_scroll_bar(luiref offset);
     // 返回剩余大小
-    Size2F rv;
-    rv.width = content_size.width - vsbar;
-    rv.height = content_size.height - hsbar;
-    return rv;
+    return real_size;
 }
 
 /// <summary>

@@ -471,8 +471,7 @@ auto LongUI::UIMenuList::DoMouseEvent(const MouseEventArg& e) noexcept -> EventA
     {
     case LongUI::MouseEvent::Event_LButtonDown:
 #ifndef LUI_NO_MENULIST_EDITABLE
-        if (m_pTextField)
-            return Super::DoMouseEvent(e);
+        if (m_pTextField) return Super::DoMouseEvent(e);
 #endif
         this->ShowPopup();
         [[fallthrough]];
@@ -526,14 +525,6 @@ auto LongUI::UIMenuList::DoEvent(UIControl * sender,
     const EventArg & e) noexcept -> EventAccept {
     switch (e.nevent)
     {
-#ifndef LUI_NO_MENULIST_EDITABLE
-    //case NoticeEvent::Event_RefreshBoxMinSize:
-        //if (m_pTextField) {
-        //    this->set_contect_minsize({0, 30});
-        //    return Event_Accept;
-        //}
-        //return Super::DoEvent(sender, e);
-#endif
     case NoticeEvent::Event_PopupBegin:
     case NoticeEvent::Event_PopupEnd:
         // 关闭了弹出窗口

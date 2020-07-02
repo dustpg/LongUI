@@ -581,11 +581,7 @@ auto RichED::CEDTextDocument::Update() noexcept -> ValuedChanged {
         m_szEstimatedCmp = m_szEstimated;
 #ifndef NDEBUG
         if (m_bUpdateDbg) {
-            this->platform.DebugOutput(
-                "view update more than once before rendering, "
-                "may cause performance issues. "
-                "ignore this message if you don't known", true
-            );
+            this->platform.DebugOutput("view update more than once before rendering.", true);
         }
         m_bUpdateDbg = true;
         this->platform.DebugOutput("<BeforeRender>", false);

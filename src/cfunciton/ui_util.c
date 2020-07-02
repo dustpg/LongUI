@@ -18,3 +18,7 @@ void longui_error_beep() {
 void longui_open_href(const char* href) {
     ShellExecuteA(NULL, NULL, href, NULL, NULL, SW_NORMAL);
 }
+
+size_t lui_get_current_tid() {
+    return GetCurrentThreadId();
+}

@@ -59,7 +59,6 @@ namespace LongUI {
 
 
 
-
         // text-font changed
         Reason_TextFontChanged
             = Reason_TextFontDisplayChanged

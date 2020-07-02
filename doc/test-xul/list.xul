@@ -42,7 +42,7 @@ function setCount(listID,textID)
    <hbox>
     <groupbox flex="1">
     <caption label="states" />
-    <listbox rows="5">
+    <listbox rows="5" id="test5">
       <listitem label="Normal" />
       <listitem label="Selected" selected="true" />
       <listitem label="Disabled" disabled="true" />

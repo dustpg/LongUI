@@ -389,9 +389,13 @@ void LongUI::CUINativeStyleWindows10::InitCtrl(UIControl& ctrl, AttributeAppeara
         UIControlPrivate::RefBox(ctrl).padding = { 0, 1, 0, 1 };
         break;
     case LongUI::Appearance_TabPanels:
-        UIControlPrivate::RefBox(ctrl).margin = { 1, 1, 1, 1 };
-        UIControlPrivate::RefBox(ctrl).border = { 1, 1, 1, 1 };
+        UIControlPrivate::RefBox(ctrl).margin = { 1, 0, 1, 1 };
+        UIControlPrivate::RefBox(ctrl).border = { 1, 0, 1, 1 };
         UIControlPrivate::RefBox(ctrl).padding = { 8, 8, 8, 8 };
+        break;
+    case LongUI::Appearance_Tabs:
+        //UIControlPrivate::RefBox(ctrl).margin = { 1, 1, 1, 0 };
+        UIControlPrivate::RefBox(ctrl).border = { 1, 1, 1, 0 };
         break;
     case LongUI::Appearance_TextField:
         UIControlPrivate::RefBox(ctrl).margin = { 4, 2, 4, 2 };
@@ -1087,12 +1091,12 @@ void LongUI::CUINativeStyleWindows10::draw_tabs(const NativeDrawArgs & args) noe
     rect.right -= width * 0.5f;
     rect.bottom -= width * 0.5f;
     // 渲染
-    //renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+    renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
     if (false) renderer.DrawLine({ rect.left, rect.top }, { rect.right, rect.top }, &brush, width);
     if (false) renderer.DrawLine({ rect.right, rect.top }, { rect.right, rect.bottom }, &brush, width);
     if (true) renderer.DrawLine({ rect.left, rect.bottom }, { rect.right, rect.bottom }, &brush, width);
     if (false) renderer.DrawLine({ rect.left, rect.top }, { rect.left, rect.bottom }, &brush, width);
-    //renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+    renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
 }
 
 /// <summary>
@@ -1528,12 +1532,11 @@ PCN_NOINLINE
 /// </summary>
 /// <param name="args">The arguments.</param>
 /// <returns></returns>
-void LongUI::CUINativeStyleWindows10::draw_tab(
-    const NativeDrawArgs& args) noexcept {
+void LongUI::CUINativeStyleWindows10::draw_tab(const NativeDrawArgs& args) noexcept {
     // 调整矩形位置(未选中的下压缩2单位)
     auto rect = args.border;
     // 这个位置以target为标准
-    if (!args.to & State_Selected) rect.top += 2.f;
+    if (!(args.to & State_Selected)) rect.top += 2.f;
     // 获取颜色标准
     const auto get_tab_color = [](StyleState state, ColorF& fc) noexcept {
         uint32_t color;
@@ -1558,7 +1561,7 @@ void LongUI::CUINativeStyleWindows10::draw_tab(
     // 混合颜色
     const auto bgcolor = LongUI::Mix(bgcolor1, bgcolor2, args.progress);
     // 调整位置
-    const auto draw_bottom = !(args.to & State_Selected);
+    //const auto draw_bottom = !(args.to & State_Selected);
     //const auto draw_left = args.to.selected || !args.to.after_seltab;
     //const auto draw_left = args.to & State_Selected;
     const auto draw_left = (args.to ^ State_TAST) & (State_Selected | State_TAST);
@@ -1566,7 +1569,7 @@ void LongUI::CUINativeStyleWindows10::draw_tab(
     rect.top += 1.f;
     if (draw_left) rect.left += 1.f;
     if (draw_right) rect.right -= 1.f;
-    if (draw_bottom) rect.bottom -= 1.f;
+    //if (draw_bottom) rect.bottom -= 1.f;
     // 背景色彩
     auto& bursh1 = UIManager.RefCCBrush(bgcolor);
     renderer.FillRectangle(auto_cast(rect), &bursh1);

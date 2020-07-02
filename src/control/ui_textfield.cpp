@@ -78,11 +78,11 @@ void LongUI::UITextField::Update(UpdateReason reason) noexcept {
     Super::Update(reason);
     // 检查到大小修改
     if (reason & Reason_SizeChanged) {
-        this->private_resize(this->RefBox().GetContentSize());
-        this->need_update();
-        return;
+        this->private_resize(m_oBox.GetContentSize());
+        this->text_need_update();
     }
-    // 私有
+    // 下次再说
+    if (m_state.in_update_list) return;
     this->private_update();
 }
 
@@ -155,6 +155,11 @@ void LongUI::UITextField::initialize() noexcept {
     // 初始化
     this->init_private();
     this->clear_change_could_trigger();
+    // 以(1, 1)初始化
+    Size2F init_size;
+    if (m_oBox.size.height < 0) init_size = { 1, 1 };
+    else init_size = m_oBox.GetContentSize();
+    this->private_resize(init_size);
     // 默认插入符号颜色是背景色的反色
 #ifndef LUI_DISABLE_STYLE_SUPPORT
     if (const auto obj = UIControlPrivate::GetBgRenderer(*this)) {
@@ -196,12 +201,31 @@ auto LongUI::UITextField::DoEvent(UIControl * sender,
 
 
 /// <summary>
+/// lock this
+/// </summary>
+/// <returns></returns>
+void LongUI::UITextField::lock() const noexcept {
+    //UIManager.RenderLock();
+    const_cast<CUILocker&>(m_locker).Lock();
+};
+
+/// <summary>
+/// unlock this
+/// </summary>
+/// <returns></returns>
+void LongUI::UITextField::unlock() const noexcept {
+    //UIManager.RenderUnlock();
+    const_cast<CUILocker&>(m_locker).Unlock();
+};
+
+/// <summary>
 /// Does the input event.
 /// </summary>
 /// <param name="e">The e.</param>
 /// <returns></returns>
 auto LongUI::UITextField::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
     bool op_ok = true;
+    this->lock();
     switch (e.event)
     {
     case InputEvent::Event_Char:
@@ -225,6 +249,7 @@ auto LongUI::UITextField::DoInputEvent(InputEventArg e) noexcept -> EventAccept 
         break;
 #endif
     }
+    this->unlock();
     // XXX: 其他方式?
     if (!op_ok) ::longui_error_beep();
     return Event_Accept;
@@ -333,6 +358,7 @@ auto LongUI::UITextField::DoMouseEvent(const MouseEventArg& e) noexcept->EventAc
     pos.x += this->render_positon.x;
     pos.y += this->render_positon.y;
     bool op_ok = true;
+    this->lock();
     switch (e.type)
     {
     case LongUI::MouseEvent::Event_MouseWheelV:
@@ -369,6 +395,7 @@ auto LongUI::UITextField::DoMouseEvent(const MouseEventArg& e) noexcept->EventAc
     default:
         break;
     }
+    this->unlock();
     // XXX: 其他方式?
     if (!op_ok) ::longui_error_beep();
     return Super::DoMouseEvent(e);

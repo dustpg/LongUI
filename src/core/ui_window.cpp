@@ -2179,7 +2179,9 @@ void LongUI::CUIWindow::Private::RegisterWindowClass() noexcept {
     wcex.hbrBackground = nullptr;
     wcex.lpszMenuName = nullptr;
     wcex.lpszClassName = Attribute::WindowClassNameN;
-    wcex.hIcon = ::LoadIconW(ins, Attribute::WindowIconName);
+    const size_t icon_name_id = WindowIconName;
+    const auto icon_name = reinterpret_cast<const wchar_t*>(icon_name_id);
+    wcex.hIcon = ::LoadIconW(ins, icon_name);
     ::RegisterClassExW(&wcex);
     // 注册弹出窗口类
     wcex.style = CS_DROPSHADOW;

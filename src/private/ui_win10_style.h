@@ -79,7 +79,7 @@ namespace LongUI {
             // slider thumb h-w
             SLIDER_THUMB_HW = 10,
             // slider thumb h-h
-            SLIDER_THUMB_HH = 10,
+            SLIDER_THUMB_HH = 18,
             // SLIDER TRACK hor-half-height
             SLIDER_TRACK_HHH = 2,
             // ProgressBar min width

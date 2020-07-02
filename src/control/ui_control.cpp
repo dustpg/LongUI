@@ -203,6 +203,7 @@ bool LongUI::UIControl::ResizeBox(Size2F size) noexcept {
 void LongUI::UIControl::InitMinSize(Size2F size) noexcept {
     m_oStyle.fitting = size;
     m_oStyle.limited = size;
+
     constexpr uint8_t flags = uint8_t(4 << 0) | uint8_t(4 << 1) | uint8_t(4 << 2) | uint8_t(4 << 3);
     reinterpret_cast<uint8_t&>(m_oStyle.overflow_xex) |= flags;
 }
@@ -214,6 +215,7 @@ void LongUI::UIControl::InitMinSize(Size2F size) noexcept {
 /// <returns></returns>
 void LongUI::UIControl::InitSize(Size2F size) noexcept {
     m_oStyle.fitting = size;
+    m_oStyle.maxsize = size;
     constexpr uint8_t flags = uint8_t(4 << 0) | uint8_t(4 << 1);
     reinterpret_cast<uint8_t&>(m_oStyle.overflow_xex) |= flags;
 }
@@ -404,7 +406,7 @@ void LongUI::UIControl::init() noexcept {
     // 初始化大小
     if (m_oBox.size.width == static_cast<float>(INVALID_CONTROL_SIZE)) {
         m_oBox.size = { DEFAULT_CONTROL_WIDTH, DEFAULT_CONTROL_HEIGHT };
-        //this->Resize({ DEFAULT_CONTROL_WIDTH, DEFAULT_CONTROL_HEIGHT });
+        //this->ResizeBox({ DEFAULT_CONTROL_WIDTH, DEFAULT_CONTROL_HEIGHT });
     }
     // 设置初始化状态
     this->setup_init_state();
@@ -1446,9 +1448,7 @@ void LongUI::UIControl::SetVisible(bool visible) noexcept {
         if (!m_pParent) return;
         this->Invalidate();
         if (m_pWindow && !visible) m_pWindow->DoControlInvisible(*this);
-        // XXX: 优化其他情况
-
-        // 布局相关
+        // 提醒父节点
         if (m_state.attachment == Attachment_Fixed) {
 
         }

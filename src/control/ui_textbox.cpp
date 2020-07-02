@@ -108,9 +108,11 @@ void LongUI::UITextBox::Update(UpdateReason reason) noexcept {
         m_oTextField.Update(r);
         this->refresh_fitting();
     }
+    // 计算尺寸
+    if (reason & Reason_BasicUpdateFitting) 
+        m_minScrollSize = m_oTextField.GetBoxFittingSize();
     // 重新布局
-    if (reason & Reason_BasicRelayout)
-        this->relayout_textbox();
+    if (reason & Reason_BasicRelayout) this->relayout();
     // 超类处理
     Super::Update(reason);
 }
@@ -119,10 +121,9 @@ void LongUI::UITextBox::Update(UpdateReason reason) noexcept {
 /// relayout this
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::relayout_textbox() noexcept {
-    m_minScrollSize = m_oTextField.GetBoxFittingSize();
+void LongUI::UITextBox::relayout() noexcept {
     // 针对滚动条
-    auto remaining = this->layout_scroll_bar();
+    auto remaining = this->layout_scroll_bar(luiref m_oTextField.render_positon);
     // 需要重新布局
     if (this->is_need_relayout()) return;
     auto pos = this->get_layout_position();
@@ -134,6 +135,7 @@ void LongUI::UITextBox::relayout_textbox() noexcept {
         remaining.width = std::max(remaining.width - min.width, 1.f);
         m_pSpinButtons->SetPos({ pos.x + remaining.width, pos.y });
     }
+    // 计算中心控件
     this->resize_child(m_oTextField, remaining);
     m_oTextField.SetPos(pos);
     this->resize_child(m_oPlaceHolder, remaining);
@@ -210,6 +212,7 @@ auto LongUI::UITextBox::DoEvent(UIControl * sender, const EventArg & e) noexcept
 /// <returns></returns>
 void LongUI::UITextBox::initialize() noexcept {
     this->SetValueAsDouble(0, true);
+    this->refresh_fitting();
     // 初始化 超类
     Super::initialize();
 }
@@ -301,10 +304,10 @@ void LongUI::UITextBox::refresh_fitting() noexcept {
     auto& tf = m_oTextField.RefTextFont();
     const auto fs = tf.font.size;
     const auto line_height = LongUI::GetLineHeight(tf.font);
-    //const auto rect = m_oTextField.RefBox().GetNonContect();
+    const auto exsize = m_oTextField.GetBoxExSize();
     const Size2F base_size = { 
-        cols * fs * 0.5f /*+ rect.left + rect.right*/,
-        rows * line_height /*+ rect.top + rect.bottom*/
+        cols * fs * 0.5f + exsize.width,
+        rows * line_height + exsize.height 
     };
     this->set_limited_width_lp(base_size.width);
     this->set_limited_height_lp(base_size.height);

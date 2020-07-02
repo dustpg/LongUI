@@ -119,8 +119,15 @@ namespace LongUI {
         auto GetDeltaTime() const noexcept { return m_fDeltaTime; }
         // get app run time in ms
         //auto GetAppTimeTick() const noexcept { return m_dwTimeTick - m_cStartTick; }
+#ifdef NDEBUG
         // lock data
         void DataLock() noexcept { m_uiDataLocker.Lock(); }
+#else
+        // in rendering debug data
+        size_t          dbg_rendering = 0;
+        // lock data
+        void DataLock() noexcept;
+#endif
         // unlock data
         void DataUnlock() noexcept { m_uiDataLocker.Unlock(); }
         // lock rendering

@@ -204,7 +204,7 @@ bool LongUI::UITextField::private_char(char32_t ch, uint16_t seq) noexcept {
         return buffer + 1;
     };
     // 输入完毕
-    if (!seq) this->need_update();
+    if (!seq) this->text_need_update();
     // 使用IME输入
     if (seq || pimpl()->ime_input) {
         const auto buf = reinterpret_cast<char16_t*>(&UIManager.ime_common_buf);
@@ -384,9 +384,11 @@ void LongUI::UITextField::private_update() noexcept {
         // 估计大小修改
         if (values & (RichED::Changed_EstimatedWidth | RichED::Changed_EstimatedHeight)) {
             // TODO: 为了避免因为滚动条多次刷新, 缩小要小于字体大小才算
-            //const auto esize = pimpl()->document().GetEstimatedSize();
-            //this->set_contect_minsize({ esize.width, esize.height });
-            //m_pParent->NeedUpdate(Reason_ChildLayoutChanged);
+            const auto esize = pimpl()->document().GetEstimatedSize();
+            const auto target = m_oStyle.fitting.height;
+            const auto font = m_tfBuffer.font.size;
+            if (esize.height < target && esize.height + font > target);
+            else this->update_fitting_size({ esize.width, esize.height });
         }
     }
 }
@@ -407,7 +409,7 @@ void LongUI::UITextField::private_resize(Size2F size) noexcept {
 /// textbox need update
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextField::need_update() noexcept {
+void LongUI::UITextField::text_need_update() noexcept {
     this->NeedUpdate(Reason_NonChanged);
 }
 
@@ -435,7 +437,7 @@ void LongUI::UITextField::private_tf_changed(bool layout) noexcept {
     if (layout) {
         // 刷新
         this->refresh_fitting();
-        this->need_update();
+        this->text_need_update();
         // 非富文本模式强制重置
         if (!(m_flag & RichED::Flag_RichText))
             doc.ForceResetAllRiched();
@@ -450,7 +452,7 @@ void LongUI::UITextField::private_tf_changed(bool layout) noexcept {
 /// <param name="shift">if set to <c>true</c> [shift].</param>
 /// <returns></returns>
 bool LongUI::UITextField::private_mouse_down(Point2F pos, bool shift) noexcept {
-    this->need_update();
+    this->text_need_update();
     auto& doc = pimpl()->document();
     const auto lt = this->RefBox().GetContentPos();
     //doc.OnLButtonDown({ pos.x - lt.x, pos.y - lt.y }, shift);
@@ -477,7 +479,7 @@ bool LongUI::UITextField::private_mouse_up(Point2F pos) noexcept {
 /// <param name="pos">The position.</param>
 /// <returns></returns>
 bool LongUI::UITextField::private_mouse_move(Point2F pos) noexcept {
-    this->need_update();
+    this->text_need_update();
     auto& doc = pimpl()->document();
     const auto lt = this->RefBox().GetContentPos();
     //doc.OnLButtonHold({ pos.x - lt.x, pos.y - lt.y });
@@ -532,7 +534,7 @@ void LongUI::UITextField::private_down() noexcept {
 /// <returns></returns>
 bool LongUI::UITextField::private_keydown(uint32_t key) noexcept {
     bool error_code = true;
-    this->need_update();
+    this->text_need_update();
     auto& doc = pimpl()->document();
     const auto ctrl = CUIInputKM::GetKeyState(CUIInputKM::KB_CONTROL);
     const auto shift = CUIInputKM::GetKeyState(CUIInputKM::KB_SHIFT);
@@ -596,7 +598,7 @@ bool LongUI::UITextField::private_keydown(uint32_t key) noexcept {
 /// </summary>
 /// <returns></returns>
 bool LongUI::UITextField::GuiSelectAll() noexcept {
-    this->need_update();
+    this->text_need_update();
     auto& doc = pimpl()->document();
     return doc.GuiSelectAll();
 }
@@ -606,7 +608,7 @@ bool LongUI::UITextField::GuiSelectAll() noexcept {
 /// </summary>
 /// <returns></returns>
 bool LongUI::UITextField::GuiUndo() noexcept {
-    this->need_update();
+    this->text_need_update();
     auto& doc = pimpl()->document();
     return doc.GuiUndo();
 }
@@ -617,7 +619,7 @@ bool LongUI::UITextField::GuiUndo() noexcept {
 /// </summary>
 /// <returns></returns>
 bool LongUI::UITextField::GuiRedo() noexcept {
-    this->need_update();
+    this->text_need_update();
     auto& doc = pimpl()->document();
     return doc.GuiRedo();
 }
@@ -629,7 +631,7 @@ PCN_NOINLINE
 /// <param name="cut">if set to <c>true</c> [cut].</param>
 /// <returns></returns>
 bool LongUI::UITextField::GuiCopyCut(bool cut) noexcept {
-    this->need_update();
+    this->text_need_update();
     auto& doc = pimpl()->document();
     // 获取选中文本
     CUIString text;
@@ -652,7 +654,7 @@ PCN_NOINLINE
 /// </summary>
 /// <returns></returns>
 bool LongUI::UITextField::GuiPaste() noexcept {
-    this->need_update();
+    this->text_need_update();
     auto& doc = pimpl()->document();
     CUIString text;
     LongUI::PasteTextToClipboard(text);
@@ -740,6 +742,8 @@ bool LongUI::UITextField::CanUndo() const noexcept {
 }
 #endif
 
+#include <atomic>
+
 /// <summary>
 /// Renders this instance.
 /// </summary>
@@ -750,6 +754,10 @@ void LongUI::UITextField::Render() const noexcept {
     const_cast<UITextField*>(this)->dbg_counter = 0;
 #endif // !NDEBUG
     auto& ctx = UIManager.Ref2DRenderer();
+    // 设置剪切区域
+    const auto sz = this->GetBoxSize();
+    const auto mode = D2D1_ANTIALIAS_MODE_PER_PRIMITIVE;
+    ctx.PushAxisAlignedClip({ 0, 0, sz.width, sz.height }, mode);
     // 设置渲染偏移
     const auto lt = this->RefBox().GetContentPos();
     Matrix3X2F matrix;
@@ -758,20 +766,16 @@ void LongUI::UITextField::Render() const noexcept {
     matrix._31 += (lt.x - render_positon.x) * matrix._11;
     matrix._32 += (lt.y - render_positon.y) * matrix._22;
     ctx.SetTransform(&auto_cast(matrix));
-    // 设置剪切区域
-    //const auto sz = this->RefBox().GetContentSize();
-    //const auto mode = D2D1_ANTIALIAS_MODE_PER_PRIMITIVE;
-    //ctx.PushAxisAlignedClip({ 0, 0, sz.width, sz.height }, mode);
-    // TODO: 是移动到渲染线程加UI锁?
-    //       还是移动到UI线程加渲染锁?
-    //       还是用一个自己的锁?
-    {
-        CUIDataAutoLocker locker;
-        this->draw_selection(ctx);
-        fpimpl()->document().Render(&ctx);
-    }
+
+    // TODO: 需要锁? 将数据挂起来在渲染线程处理?
+    // TODO: 需要普通锁? 由于概率低时间短可以考虑使用自旋锁?
+    this->lock();
+    this->draw_selection(ctx);
+    fpimpl()->document().Render(&ctx);
+    this->unlock();
+
     // 弹出剪切区域
-    //ctx.PopAxisAlignedClip();
+    ctx.PopAxisAlignedClip();
 }
 
 
@@ -780,6 +784,7 @@ void LongUI::UITextField::Render() const noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UITextField::private_set_text() noexcept {
+    // HINT: 本函数总在渲染线程调用, 无需上锁
     const auto text = pimpl()->text_cached.view();
     //pimpl()->document().SetText({ text.begin(), text.end() });
     // 删除全部再添加 XXX: ???
@@ -1075,7 +1080,7 @@ void LongUI::UITextField::DebugOutput(const char* txt, bool high) noexcept {
 void LongUI::UITextField::UpdateRenderPostion() noexcept {
     const auto pt = this->render_positon;
     pimpl()->document().MoveViewportAbs({ pt.x, pt.y });
-    this->need_update();
+    this->text_need_update();
     this->show_caret();
 }
 

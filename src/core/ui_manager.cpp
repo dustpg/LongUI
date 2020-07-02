@@ -164,6 +164,20 @@ namespace LongUI {
 #endif
 
 
+#ifndef NDEBUG
+extern "C" size_t lui_get_current_tid() noexcept;
+/// <summary>
+/// lock the data locker
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIManager::DataLock() noexcept {
+    // 不能在渲染线程渲染起见调用本函数
+    const auto tid = ::lui_get_current_tid();
+    assert(dbg_rendering != tid && "can not lock data-locker during rendering on rendering thread");
+    m_uiDataLocker.Lock();
+}
+#endif
+
 /// <summary>
 /// do one frame
 /// </summary>
@@ -223,6 +237,10 @@ void LongUI::CUIManager::OneFrame() noexcept {
     this_()->before_render_windows(this_()->begin(), this_()->end());
     // 记录时间胶囊
     const auto has_tc = this_()->has_time_capsule();
+#ifndef NDEBUG
+    // 标记状态
+    UIManager.dbg_rendering = ::lui_get_current_tid();
+#endif
     // 结束数据更新
     this_()->DataUnlock();
 #ifndef NDEBUG
@@ -236,6 +254,10 @@ void LongUI::CUIManager::OneFrame() noexcept {
     // 渲染所有窗口
     this_()->RenderLock();
     const auto hr = this_()->render_windows(this_()->begin(), this_()->end());
+#ifndef NDEBUG
+    // 标记状态
+    UIManager.dbg_rendering = 0;
+#endif
     // 渲染完毕, 解除渲染锁
     this_()->RenderUnlock();
     // 时间胶囊S2阶段 - 等待时间胶囊执行完毕
@@ -304,6 +326,8 @@ void LongUI::CUIManager::NeedRecreate() noexcept {
     CUIDataAutoLocker locker;
     m_flagRecreate = true;
 }
+
+
 
 /// <summary>
 /// Exits this instance.

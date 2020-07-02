@@ -10,7 +10,7 @@
     flex="1" style="font-size:30px" id="textbox1" 
     placeholder="Hello, world!" 
     oninput="console.log('oninput')"
-     onchange="console.log('onchange')"
+    onchange="console.log('onchange')"
     increment="0.01" decimalplaces="7" multiline="true"  />
 <button label="Check it out" id="button"/>
 <!-- <textbox flex="1"  rows="2" cols="70" lui:cache="true"  type="number"
