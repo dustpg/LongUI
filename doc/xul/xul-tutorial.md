@@ -1,7 +1,7 @@
 # Introduction
 
  - This XUL tutorial was originally created by [Neil Deakin](http://www.xulplanet.com/ndeakin/). LongUI organized this document without authorized because of Mozilla marked XUL as "obsolete content".
- - XULチュートリアルのオリジナルは、 [Neil Deakin](http://www.xulplanet.com/ndeakin/)が作成しました。MozillaがXULを “廃れたコンテンツ” にマーし、LongUI が無許可でこのドキュメントを整理しました。
+ - XULチュートリアルのオリジナルは、 [Neil Deakin](http://www.xulplanet.com/ndeakin/)が作成しました。MozillaがXULを “廃れたコンテンツ” にマークし、LongUI が無許可でこのドキュメントを整理しました。
  - 这份XUL的教程是源自 [Neil Deakin](http://www.xulplanet.com/ndeakin/) 之手。因为Mozilla将XUL标记为"过时"，所以LongUI擅自重新整理了该文档。
 
 # The Box Model
@@ -24,7 +24,7 @@
  - [Grids](./grids.en.md)
  - [スタックとデッキ](./stacks-and-decks.jp.md)
  - [グリッド](./grids.jp.md)
- - [Stacks and Decks](./stacks-and-decks.zh.md)
+ - [栈与层](./stacks-and-decks.zh.md)
  - [表格](./grids.zh.md)
 
 # Toolbars and Menus
