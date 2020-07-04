@@ -14,10 +14,8 @@ void InitViewport_Scale(LongUI::UIViewport& viewport) noexcept {
     const auto progress = longui_cast<UIScale*>(window.FindControl("slider"));
     progress->AddGuiEventListener(
         UIScale::_onChange(), [=](const LongUI::GuiEventArg&) noexcept {
-        const auto value = progress->GetValue();
-        CUIString text;
-        text.format(u"%f", value);
-        display->SetText(std::move(text));
+        const auto text = CUIString::FromDouble(progress->GetValue(), 0, 2, '.');
+        display->SetText(text.view());
         return Event_Accept;
     });
     // force trigger

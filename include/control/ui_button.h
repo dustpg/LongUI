@@ -40,8 +40,6 @@ namespace LongUI {
     class UIButton : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
-        // private impl
-        struct Private;
     public:
         // class meta
         static const  MetaControl   s_meta;
@@ -60,10 +58,12 @@ namespace LongUI {
         void Click() noexcept;
         // set image source
         void SetImageSource(U8View src) noexcept;
-        // get text
-        auto GetText() const noexcept ->const char16_t*;
-        // ref text- string object
-        auto RefText() const noexcept -> const CUIString&;
+        // get text [RECOMMENDED] 
+        auto GetTextView() const noexcept { return m_oLabel.GetTextView(); }
+        // get text [UNRECOMMENDED] 
+        auto GetText() const noexcept { return m_oLabel.GetText(); }
+        // ref text - string object
+        auto&RefText() const noexcept { return m_oLabel.RefText(); }
         // set text
         void SetText(const CUIString& text) noexcept;
         // set text
@@ -98,6 +98,8 @@ namespace LongUI {
         void set_label_flex(float f) noexcept;
         // add private child
         void add_private_child() noexcept;
+        // after text changed
+        void after_text_changed() noexcept;
 #ifdef LUI_ACCESSIBLE
     protected:
         // accessible event

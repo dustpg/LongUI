@@ -234,6 +234,7 @@ void LongUI::UITree::SelectItem(UITreeItem& item, bool exadd, UITreeCell* cell) 
 }
 
 
+
 /// <summary>
 /// Selects to.
 /// </summary>
@@ -934,9 +935,44 @@ PCN_NOINLINE
 auto LongUI::UITreeItem::CalTreeOffset() const noexcept -> float {
     if (this && m_pTree) {
         const auto lvdis = static_cast<float>(this->GetLevel() - m_pTree->GetLevel());
-        return lvdis * m_pTree->level_offset * 0.5f;
+        return (lvdis - 2) * m_pTree->level_offset * 0.5f;
     }
     return 0;
+}
+
+
+PCN_NOINLINE
+/// <summary>
+/// add item
+/// </summary>
+/// <returns></returns>
+auto LongUI::UITreeItem::AddItem() noexcept->UITreeItem* {
+    if (!m_pChildren) new(std::nothrow) UITreeChildren(this);
+    if (m_pChildren) return new(std::nothrow) UITreeItem(m_pChildren);
+    return nullptr;
+}
+
+
+PCN_NOINLINE
+/// <summary>
+/// add item
+/// </summary>
+/// <returns></returns>
+auto LongUI::UITreeItem::AddCell() noexcept->UITreeCell* {
+    if (!m_pRow) new(std::nothrow) UITreeRow(this);
+    if (m_pRow) return new(std::nothrow) UITreeCell(m_pRow);
+    return nullptr;
+}
+
+/// <summary>
+/// easy add cells
+/// </summary>
+/// <param name="labels"></param>
+/// <param name="count"></param>
+/// <returns></returns>
+void LongUI::UITreeItem::EzAddCells(const U16View labels[], uint32_t count) noexcept {
+    for (uint32_t i = 0; i != count; ++i) 
+        if (const auto c = this->AddCell()) c->SetText(labels[i]);
 }
 
 /// <summary>
@@ -966,9 +1002,9 @@ void LongUI::UITreeItem::initialize() noexcept {
     // !!! 根节点必须为打开状态
     if (m_pTree == this) {
         m_bOpened = true;
-        // 默认是字体大小的一半
+        // 默认是字体大小
         auto& v = m_pTree->level_offset;
-        if (v <= 0) v = UIManager.RefDefaultFont().size * 0.5f;
+        if (v <= 0) v = UIManager.RefDefaultFont().size;
     }
     // 将open信息传递给ROW
     if (m_pRow) m_pRow->InitOpen_Parent(m_bOpened);

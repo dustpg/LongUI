@@ -499,29 +499,7 @@ void LongUI::UIListBox::ItemRemoved(UIListItem& item) noexcept {
 namespace LongUI {
     // UIListItem类 元信息
     LUI_CONTROL_META_INFO(UIListItem, "listitem");
-    // UIListItem类 私有实现
-    struct UIListItem::Private {
-        // 设置新的字符串
-        template<typename T> static auto SetText(UIListItem& obj, T && text) noexcept {
-            obj.add_private_child();
-            if (obj.m_oLabel.SetText(std::forward<T>(text))) {
-#ifdef LUI_ACCESSIBLE
-                // TODO: ACCESSIBLE
-                //LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
-#endif
-            }
-        }
-    };
 }
-
-/// <summary>
-/// Gets the text.
-/// </summary>
-/// <returns></returns>
-auto LongUI::UIListItem::GetText() const noexcept -> const char16_t* {
-    return m_oLabel.GetText();
-}
-
 
 /// <summary>
 /// set checked
@@ -543,20 +521,10 @@ void LongUI::UIListItem::SetChecked(bool checked) noexcept {
 /// </summary>
 /// <returns></returns>
 auto LongUI::UIListItem::GetIndex() const noexcept -> uint32_t {
-    if (const auto list = m_pListBox) {
+    if (const auto list = m_pListBox) 
         return list->GetItemIndex(*this);
-    }
     return 0;
 }
-
-/// <summary>
-/// Gets the text string.
-/// </summary>
-/// <returns></returns>
-auto LongUI::UIListItem::RefText() const noexcept -> const CUIString&{
-    return m_oLabel.RefText();
-}
-
 
 /// <summary>
 /// Initializes a new instance of the <see cref="UIListItem" /> class.
@@ -629,22 +597,17 @@ void LongUI::UIListItem::relayout() noexcept {
 }
 
 
-/// <summary>
-/// Sets the text.
-/// </summary>
-/// <param name="text">The text.</param>
-/// <returns></returns>
-void LongUI::UIListItem::SetText(const CUIString& text) noexcept {
-    return this->SetText(text.view());
-}
 
 /// <summary>
-/// Sets the text.
+/// called after text changed
 /// </summary>
-/// <param name="text">The text.</param>
 /// <returns></returns>
-void LongUI::UIListItem::SetText(U16View text) noexcept {
-    Private::SetText(*this, text);
+inline void LongUI::UIListItem::after_text_changed() noexcept {
+    //if (m_pParent) m_pParent->NeedUpdate(Reason_ChildLayoutChanged);
+#ifdef LUI_ACCESSIBLE
+    // TODO: Accessible
+    //LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
+#endif
 }
 
 /// <summary>
@@ -653,7 +616,26 @@ void LongUI::UIListItem::SetText(U16View text) noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIListItem::SetText(CUIString&& text) noexcept {
-    Private::SetText(*this, std::move(text));
+    if (m_oLabel.SetText(std::move(text))) this->after_text_changed();
+}
+
+/// <summary>
+/// Sets the text.
+/// </summary>
+/// <param name="text">The text.</param>
+/// <returns></returns>
+void LongUI::UIListItem::SetText(U16View text) noexcept {
+    if (m_oLabel.SetText(text)) this->after_text_changed();
+}
+
+
+/// <summary>
+/// Sets the text.
+/// </summary>
+/// <param name="text">The text.</param>
+/// <returns></returns>
+void LongUI::UIListItem::SetText(const CUIString& text) noexcept {
+    this->SetText(text.view());
 }
 
 
@@ -963,18 +945,6 @@ void LongUI::UIListHead::relayout() noexcept {
 namespace LongUI {
     // UIListHeader类 元信息
     LUI_CONTROL_META_INFO(UIListHeader, "listheader");
-    // UILabel类 私有实现
-    struct UIListHeader::Private {
-        // 设置新的字符串
-        template<typename T> static auto SetText(UIListHeader& obj, T && text) noexcept {
-            if (obj.m_oLabel.SetText(std::forward<T>(text))) {
-#ifdef LUI_ACCESSIBLE
-                // TODO: ACCESSIBLE
-                //LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
-#endif
-            }
-        }
-    };
 }
 
 
@@ -1040,14 +1010,16 @@ void LongUI::UIListHeader::add_attribute(uint32_t key, U8View value) noexcept {
     }
 }
 
-
 /// <summary>
-/// Sets the text.
+/// called after text changed
 /// </summary>
-/// <param name="text">The text.</param>
 /// <returns></returns>
-void LongUI::UIListHeader::SetText(CUIString&& text) noexcept {
-    Private::SetText(*this, std::move(text));
+inline void LongUI::UIListHeader::after_text_changed() noexcept {
+    //if (m_pParent) m_pParent->NeedUpdate(Reason_ChildLayoutChanged);
+#ifdef LUI_ACCESSIBLE
+    // TODO: Accessible
+    //LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
+#endif
 }
 
 /// <summary>
@@ -1055,8 +1027,8 @@ void LongUI::UIListHeader::SetText(CUIString&& text) noexcept {
 /// </summary>
 /// <param name="text">The text.</param>
 /// <returns></returns>
-void LongUI::UIListHeader::SetText(const CUIString & text) noexcept {
-    return this->SetText(text.view());
+void LongUI::UIListHeader::SetText(CUIString&& text) noexcept {
+    if (m_oLabel.SetText(std::move(text))) this->after_text_changed();
 }
 
 /// <summary>
@@ -1065,5 +1037,15 @@ void LongUI::UIListHeader::SetText(const CUIString & text) noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIListHeader::SetText(U16View text) noexcept {
-    return Private::SetText(*this, text);
+    if (m_oLabel.SetText(text)) this->after_text_changed();
+}
+
+
+/// <summary>
+/// Sets the text.
+/// </summary>
+/// <param name="text">The text.</param>
+/// <returns></returns>
+void LongUI::UIListHeader::SetText(const CUIString& text) noexcept {
+    this->SetText(text.view());
 }

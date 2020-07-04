@@ -38,8 +38,6 @@ namespace LongUI {
     class UICheckBox : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
-        // private impl
-        struct Private;
     public:
         // on commnad event
         static constexpr auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }
@@ -56,10 +54,12 @@ namespace LongUI {
         auto IsIndeterminate() const noexcept { return m_oStyle.state & State_Indeterminate; }
         // toggle this
         void Toggle() noexcept { return this->SetChecked(!this->IsChecked()); }
-        // get text
-        auto GetText() const noexcept ->const char16_t*;
-        // ref text- string object
-        auto RefText() const noexcept -> const CUIString&;
+        // get text [RECOMMENDED] 
+        auto GetTextView() const noexcept { return m_oLabel.GetTextView(); }
+        // get text [UNRECOMMENDED] 
+        auto GetText() const noexcept { return m_oLabel.GetText(); }
+        // ref text - string object
+        auto&RefText() const noexcept { return m_oLabel.RefText(); }
         // set text
         void SetText(const CUIString& text) noexcept;
         // set text
@@ -98,6 +98,8 @@ namespace LongUI {
         void change_indeterminate(bool) noexcept;
         // change state
         void changed() noexcept;
+        // after text changed
+        void after_text_changed() noexcept;
     private: // private control impl
         // private image
         UIImage                 m_oImage;

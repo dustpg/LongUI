@@ -79,6 +79,21 @@ void LongUI::UISplitter::initialize() noexcept {
     Super::initialize();
 }
 
+
+/// <summary>
+/// update this
+/// </summary>
+/// <param name="reason"></param>
+/// <returns></returns>
+//void LongUI::UISplitter::Update(UpdateReason reason) noexcept {
+//    if (reason & Reason_SizeChanged) {
+//        const auto size = m_oBox.size;
+//        int bk = 9;
+//    }
+//    Super::Update(reason);
+//}
+
+
 /// <summary>
 /// Does the mouse event.
 /// </summary>

@@ -37,8 +37,6 @@ namespace LongUI {
     class UIMenuItem : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
-        // private impl
-        struct Private;
     protected:
         // ctor
         UIMenuItem(const MetaControl& ) noexcept;
@@ -50,10 +48,12 @@ namespace LongUI {
         void SetChecked(bool checked) noexcept;
         // is checked?
         auto IsChecked() const noexcept { return m_oStyle.state & State_Checked; }
-        // get text
-        auto GetText() const noexcept->const char16_t*;
-        // get text object
-        auto RefText() const noexcept->const CUIString&;
+        // get text [RECOMMENDED] 
+        auto GetTextView() const noexcept { return m_oLabel.GetTextView(); }
+        // get text [UNRECOMMENDED] 
+        auto GetText() const noexcept { return m_oLabel.GetText(); }
+        // ref text - string object
+        auto&RefText() const noexcept { return m_oLabel.RefText(); }
         // set text
         void SetText(CUIString&&) noexcept;
         // set text
@@ -87,6 +87,8 @@ namespace LongUI {
         void do_radio() noexcept;
         // add acceltext
         void add_acceltext(U8View) noexcept;
+        // after text changed
+        void after_text_changed() noexcept;
     private: // private control impl
         // private image
         UIImage             m_oImage;

@@ -11,29 +11,14 @@
 #include <accessible/ui_accessible_type.h>
 #endif
 
+// open href
+extern "C" void longui_open_href(const char* ref) noexcept;
+
 // ui namespace
 namespace LongUI {
     // UILabel类 元信息
     LUI_CONTROL_META_INFO(UILabel, "label");
-    // UILabel类 私有实现
-    struct UILabel::Private {
-        // 设置新的文本
-        template<typename T> static auto SetText(UILabel& cbox, T && text) noexcept {
-            // 相同自然不需要
-            if (cbox.m_string == text) return false;
-            cbox.m_string = std::forward<T>(text);
-            cbox.NeedUpdate(Reason_ValueTextChanged);
-#ifdef LUI_ACCESSIBLE
-            // TODO: ACCESSIBLE
-#endif
-            return true;
-        }
-    };
 }
-
-// open href
-extern "C" void longui_open_href(const char* ref) noexcept;
-
 
 /// <summary>
 /// Initializes a new instance of the <see cref="UILabel" /> class.
@@ -78,7 +63,7 @@ void  LongUI::UILabel::Update(UpdateReason reason) noexcept {
     // 文本布局 修改了
     if (reason & Reason_TextFontLayoutChanged) this->reset_font();
     // 文本修改了
-    if (reason & Reason_ValueTextChanged) this->on_text_changed();
+    if (reason & Reason_ValueTextChanged) this->update_text_changed();
     // 检查到大小修改
     if (reason & Reason_SizeChanged) 
         m_text.Resize(this->RefBox().GetContentSize());
@@ -222,10 +207,10 @@ namespace LongUI { namespace detail{
 }}
 
 /// <summary>
-/// Ons the text changed.
+/// update the text changed.
 /// </summary>
 /// <returns></returns>
-void LongUI::UILabel::on_text_changed() noexcept {
+void LongUI::UILabel::update_text_changed() noexcept {
     // 检查访问键
     this->setup_access_key();
     // 需要额外的字符
@@ -236,41 +221,70 @@ void LongUI::UILabel::on_text_changed() noexcept {
     auto hr = m_text.SetText(m_string.c_str(), m_string.length());
     m_string.erase(base_len);
     // 设置字体
-    this->after_set_text();
+    this->refresh_fitting();
     // 需要渲染
     this->Invalidate();
     // TODO: hr错误处理
     assert(hr);
 }
 
+
+
+/// <summary>
+/// after text changed
+/// </summary>
+/// <returns></returns>
+inline void LongUI::UILabel::after_text_changed() noexcept {
+    this->NeedUpdate(Reason_ValueTextChanged);
+#ifdef LUI_ACCESSIBLE
+    // TODO: ACCESSIBLE
+#endif
+}
+
+
+PCN_NOINLINE
 /// <summary>
 /// Sets the text.
 /// </summary>
 /// <param name="text">The text.</param>
 /// <returns></returns>
 bool LongUI::UILabel::SetText(CUIString&& text) noexcept {
-    return Private::SetText(*this, std::move(text));
+    if (m_string == text) return false;
+#ifndef NDEBUG
+    if (m_string.size()) {
+        LUIDebug(Hint) 
+            << 
+            "SetText(CUIString&&) is unrecommended "
+            "for multiple-calling" 
+            << endl;
+    }
+#endif
+    m_string = std::move(text);
+    this->after_text_changed();
+    return true;
 }
 
+PCN_NOINLINE
 /// <summary>
 /// Sets the text.
 /// </summary>
 /// <param name="text">The text.</param>
 /// <returns></returns>
 bool LongUI::UILabel::SetText(U16View text) noexcept {
-    return Private::SetText(*this, text);
+    if (m_string == text) return false;
+    m_string = text;
+    this->after_text_changed();
+    return true;
 }
-
 
 /// <summary>
 /// Sets the text.
 /// </summary>
 /// <param name="text">The text.</param>
 /// <returns></returns>
-bool LongUI::UILabel::SetText(const CUIString & text) noexcept {
+bool LongUI::UILabel::SetText(const CUIString& text) noexcept {
     return this->SetText(text.view());
 }
-
 
 
 /// <summary>
@@ -283,16 +297,16 @@ void LongUI::UILabel::reset_font() noexcept {
     // 设置初始化数据
     m_text.SetFont(m_tfBuffer, m_string.c_str(), m_string.length());
     // 设置基本属性
-    this->after_set_text();
+    this->refresh_fitting();
 
 }
 
 PCN_NOINLINE
 /// <summary>
-/// Afters the set text.
+/// Afters the set text - refresh fitting value.
 /// </summary>
 /// <returns></returns>
-void LongUI::UILabel::after_set_text() noexcept {
+void LongUI::UILabel::refresh_fitting() noexcept {
     const auto size = m_text.GetSize();
     const Size2F ceil_size{ std::ceil(size.width) , std::ceil(size.height) };
     if (LongUI::IsSameInGuiLevel(m_oStyle.fitting, ceil_size)) return;

@@ -15,14 +15,6 @@
 namespace LongUI {
     // UICheckBox类 元信息
     LUI_CONTROL_META_INFO(UICheckBox, "checkbox");
-    // UICheckBox私有实现
-    struct UICheckBox::Private {
-        // 设置新的文本
-        template<typename T> static auto SetText(UICheckBox& cbox, T && text) noexcept {
-            cbox.m_oLabel.SetText(std::forward<T>(text));
-            // TODO: Accessible
-        }
-    };
 }
 
 PCN_NOINLINE
@@ -308,19 +300,15 @@ auto LongUI::UICheckBox::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
 }
 
 /// <summary>
-/// Gets the text.
+/// called after text changed
 /// </summary>
 /// <returns></returns>
-auto LongUI::UICheckBox::GetText() const noexcept -> const char16_t* {
-    return m_oLabel.GetText();
-}
-
-/// <summary>
-/// Gets the text string.
-/// </summary>
-/// <returns></returns>
-auto LongUI::UICheckBox::RefText() const noexcept -> const CUIString& {
-    return m_oLabel.RefText();
+inline void LongUI::UICheckBox::after_text_changed() noexcept {
+    //if (m_pParent) m_pParent->NeedUpdate(Reason_ChildLayoutChanged);
+#ifdef LUI_ACCESSIBLE
+    // TODO: Accessible
+    //LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
+#endif
 }
 
 /// <summary>
@@ -329,7 +317,7 @@ auto LongUI::UICheckBox::RefText() const noexcept -> const CUIString& {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UICheckBox::SetText(CUIString&& text) noexcept {
-    Private::SetText(*this, std::move(text));
+    if (m_oLabel.SetText(std::move(text))) this->after_text_changed();
 }
 
 /// <summary>
@@ -347,6 +335,6 @@ void LongUI::UICheckBox::SetText(const CUIString& text) noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UICheckBox::SetText(U16View text) noexcept {
-    Private::SetText(*this, text);
+    if (m_oLabel.SetText(text)) this->after_text_changed();
 }
 

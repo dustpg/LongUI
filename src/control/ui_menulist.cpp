@@ -33,34 +33,6 @@ namespace LongUI {
     LUI_CONTROL_META_INFO(UIMenuItem, "menuitem");
     // UIMenuPopup类 元信息
     LUI_CONTROL_META_INFO(UIMenuPopup, "menupopup");
-    // UIMenuItem类 私有实现
-    struct UIMenuItem::Private {
-        // 设置新的字符串
-        template<typename T> static auto SetText(UIMenuItem& obj, T && text) noexcept {
-            if (obj.m_oLabel.SetText(std::forward<T>(text))) {
-#ifdef LUI_ACCESSIBLE
-                // TODO: ACCESSIBLE
-                //LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
-#endif
-            }
-        }
-    };
-    // UIMenuList类 私有实现
-    struct UIMenuList::Private {
-        // 设置新的字符串
-        template<typename T> static auto SetText(UIMenuList& obj, T && text) noexcept {
-#ifndef LUI_NO_MENULIST_EDITABLE
-            if (obj.m_pTextField) {
-                obj.m_pTextField->SetText(std::forward<T>(text));
-            }
-            else
-#endif
-                if (!obj.m_oLabel.SetText(std::forward<T>(text))) return;
-#ifdef LUI_ACCESSIBLE
-            LongUI::Accessible(obj.m_pAccessible, Callback_PropertyChanged);
-#endif
-        }
-    };
 }
 
 // --------------------------- UIMenuItem  ---------------------
@@ -104,47 +76,44 @@ LongUI::UIMenuItem::~UIMenuItem() noexcept {
 }
 
 /// <summary>
-/// Sets the text.
+/// called after text changed
 /// </summary>
-/// <param name="str">The string.</param>
 /// <returns></returns>
-void LongUI::UIMenuItem::SetText(CUIString&& str) noexcept {
-    Private::SetText(*this, std::move(str));
+inline void LongUI::UIMenuItem::after_text_changed() noexcept {
+#ifdef LUI_ACCESSIBLE
+    // TODO: Accessible
+    //LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
+#endif
 }
 
 /// <summary>
 /// Sets the text.
 /// </summary>
-/// <param name="view">The view.</param>
+/// <param name="text">The text.</param>
 /// <returns></returns>
-void LongUI::UIMenuItem::SetText(U16View view) noexcept {
-    Private::SetText(*this, view);
+void LongUI::UIMenuItem::SetText(CUIString&& text) noexcept {
+    if (m_oLabel.SetText(std::move(text))) this->after_text_changed();
 }
 
 /// <summary>
 /// Sets the text.
 /// </summary>
-/// <param name="view">The view.</param>
+/// <param name="text">The text.</param>
+/// <returns></returns>
+void LongUI::UIMenuItem::SetText(U16View text) noexcept {
+    if (m_oLabel.SetText(text)) this->after_text_changed();
+}
+
+
+/// <summary>
+/// Sets the text.
+/// </summary>
+/// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIMenuItem::SetText(const CUIString& text) noexcept {
-    return this->SetText(text.view());
+    this->SetText(text.view());
 }
 
-/// <summary>
-/// Gets the text.
-/// </summary>
-/// <returns></returns>
-auto LongUI::UIMenuItem::GetText() const noexcept -> const char16_t * {
-    return m_oLabel.GetText();
-}
-
-/// <summary>
-/// Gets the text string.
-/// </summary>
-/// <returns></returns>
-auto LongUI::UIMenuItem::RefText() const noexcept -> const CUIString &{
-    return m_oLabel.RefText();
-}
 
 
 /// <summary>
@@ -375,8 +344,16 @@ auto LongUI::UIMenuItem::DoMouseEvent(const MouseEventArg & e) noexcept -> Event
 // --------------------------- UIMenuList  ---------------------
 
 
-
-
+/// <summary>
+/// get text view
+/// </summary>
+/// <returns></returns>
+auto LongUI::UIMenuList::GetTextView() const noexcept -> U16View {
+#ifndef LUI_NO_MENULIST_EDITABLE
+    if (m_pTextField) return m_pTextField->RequestText().view();
+#endif
+    return m_oLabel.GetTextView();
+}
 
 /// <summary>
 /// Gets the text.
@@ -573,12 +550,30 @@ void LongUI::UIMenuList::on_selected_changed() noexcept {
 
 
 /// <summary>
+/// called after text changed
+/// </summary>
+/// <returns></returns>
+inline void LongUI::UIMenuList::after_text_changed() noexcept {
+#ifdef LUI_ACCESSIBLE
+    // TODO: Accessible
+    LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
+#endif
+}
+
+/// <summary>
 /// Sets the text.
 /// </summary>
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIMenuList::SetText(CUIString&& text) noexcept {
-    Private::SetText(*this, std::move(text));
+    bool changed;
+#ifndef LUI_NO_MENULIST_EDITABLE
+    if (m_pTextField) 
+        changed = m_pTextField->SetText(std::move(text));
+    else
+#endif
+        changed = m_oLabel.SetText(std::move(text));
+    if (changed) this->after_text_changed();
 }
 
 /// <summary>
@@ -587,7 +582,14 @@ void LongUI::UIMenuList::SetText(CUIString&& text) noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIMenuList::SetText(U16View text) noexcept {
-    Private::SetText(*this, text);
+    bool changed;
+#ifndef LUI_NO_MENULIST_EDITABLE
+    if (m_pTextField)
+        changed = m_pTextField->SetText(text);
+    else
+#endif
+        changed = m_oLabel.SetText(text);
+    if (changed) this->after_text_changed();
 }
 
 /// <summary>

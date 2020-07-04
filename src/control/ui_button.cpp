@@ -31,39 +31,7 @@
 namespace LongUI {
     // UIButton类 元信息
     LUI_CONTROL_META_INFO(UIButton, "button");
-    // UIButton私有实现
-    struct UIButton::Private {
-        // 设置新的文本
-        template<typename T> static auto SetText(UIButton& cbox, T && text) noexcept {
-            cbox.add_private_child();
-            if (cbox.m_oLabel.SetText(std::forward<T>(text))) {
-                if (cbox.m_pParent) cbox.m_pParent->NeedUpdate(Reason_ChildLayoutChanged);
-#ifdef LUI_ACCESSIBLE
-                LongUI::Accessible(cbox.m_pAccessible, Callback_PropertyChanged);
-#endif
-            }
-        }
-    };
 }
-
-
-/// <summary>
-/// Gets the text.
-/// </summary>
-/// <returns></returns>
-auto LongUI::UIButton::GetText() const noexcept -> const char16_t* {
-    return m_oLabel.GetText();
-}
-
-/// <summary>
-/// Gets the text string.
-/// </summary>
-/// <returns></returns>
-auto LongUI::UIButton::RefText() const noexcept -> const CUIString&{
-    // TODO: 拥有自定义label情况?
-    return m_oLabel.RefText();
-}
-
 
 /// <summary>
 /// Initializes a new instance of the <see cref="UIButton" /> class.
@@ -134,16 +102,6 @@ void LongUI::UIButton::set_label_flex(float f) noexcept {
     UIControlPrivate::SetFlex(m_oLabel, f);
 }
 
-/// <summary>
-/// Sets the text.
-/// </summary>
-/// <param name="text">The text.</param>
-/// <returns></returns>
-void LongUI::UIButton::SetText(const CUIString& text) noexcept {
-    this->SetText(text.view());
-}
-
-
 
 /// <summary>
 /// Does the mouse event.
@@ -189,7 +147,16 @@ auto LongUI::UIButton::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
     return Super::DoInputEvent(e);
 }
 
-
+/// <summary>
+/// called after text changed
+/// </summary>
+/// <returns></returns>
+inline void LongUI::UIButton::after_text_changed() noexcept {
+    //if (m_pParent) m_pParent->NeedUpdate(Reason_ChildLayoutChanged);
+#ifdef LUI_ACCESSIBLE
+    LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
+#endif
+}
 
 /// <summary>
 /// Sets the text.
@@ -197,7 +164,7 @@ auto LongUI::UIButton::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIButton::SetText(CUIString&& text) noexcept {
-    Private::SetText(*this, std::move(text));
+    if (m_oLabel.SetText(std::move(text))) this->after_text_changed();
 }
 
 /// <summary>
@@ -206,7 +173,18 @@ void LongUI::UIButton::SetText(CUIString&& text) noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIButton::SetText(U16View text) noexcept {
-    Private::SetText(*this, text);
+    if (m_oLabel.SetText(text)) this->after_text_changed();
+}
+
+
+/// <summary>
+/// Sets the text.
+/// </summary>
+/// <param name="text">The text.</param>
+/// <returns></returns>
+void LongUI::UIButton::SetText(const CUIString& text) noexcept {
+    this->SetText(text.view());
+    // TODO: 拥有自定义label情况?
 }
 
 /// <summary>

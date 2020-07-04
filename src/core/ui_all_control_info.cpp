@@ -88,6 +88,10 @@ namespace LongUI {
     const MetaControl* const DefaultControlInfo[] = {
         // 一般控件
         &UIControl::s_meta,
+#ifndef DEBUG
+        // 滚动视图
+        &UIScrollArea::s_meta,
+#endif
 
         // Rich List Item - 富列表项目
         &UIRichListItem::s_meta,

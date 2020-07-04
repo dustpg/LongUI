@@ -63,17 +63,6 @@ namespace LongUI {
         bool                                created = false;
         // cached
         bool                                cached = false;
-        // 设置新的字符串
-        template<typename T> static auto SetText(UITextField& tbox, T && text) noexcept {
-            auto& cached = tbox.pimpl()->text_cached;
-            if (cached == text) return false;
-            cached = std::forward<T>(text);
-            tbox.NeedUpdate(Reason_ValueTextChanged);
-#ifdef LUI_ACCESSIBLE
-            // TODO: ACCESSIBLE
-#endif
-            return true;
-        }
     };
     /// <summary>
     /// Privates the text box.
@@ -796,32 +785,56 @@ void LongUI::UITextField::private_set_text() noexcept {
 }
 
 /// <summary>
-/// Sets the text.
+/// called after text changed
 /// </summary>
-/// <param name="text">The text.</param>
 /// <returns></returns>
-void LongUI::UITextField::SetText(CUIString&& text) noexcept {
-    Private::SetText(*this, std::move(text));
+inline void LongUI::UITextField::after_text_changed() noexcept {
+    this->NeedUpdate(Reason_ValueTextChanged);
+#ifdef LUI_ACCESSIBLE
+    // TODO: ACCESSIBLE
+#endif
 }
 
+PCN_NOINLINE
 /// <summary>
 /// Sets the text.
 /// </summary>
 /// <param name="text">The text.</param>
 /// <returns></returns>
-void LongUI::UITextField::SetText(const CUIString & text) noexcept {
-    return this->SetText(text.view());
+bool LongUI::UITextField::SetText(CUIString&& text) noexcept {
+    auto& cached = pimpl()->text_cached;
+    if (cached == text) return false;
+#ifndef NDEBUG
+    // if (cached)
+#endif
+    cached = std::move(text);
+    this->after_text_changed();
+    return true;
 }
 
+
+PCN_NOINLINE
 /// <summary>
 /// Sets the text.
 /// </summary>
 /// <param name="view">The view.</param>
 /// <returns></returns>
-void LongUI::UITextField::SetText(U16View view) noexcept {
-    Private::SetText(*this, view);
+bool LongUI::UITextField::SetText(U16View view) noexcept {
+    auto& cached = pimpl()->text_cached;
+    if (cached == view) return false;
+    cached = view;
+    this->after_text_changed();
+    return true;
 }
 
+/// <summary>
+/// Sets the text.
+/// </summary>
+/// <param name="text">The text.</param>
+/// <returns></returns>
+bool LongUI::UITextField::SetText(const CUIString & text) noexcept {
+    return this->SetText(text.view());
+}
 
 /// <summary>
 /// Requests the text.

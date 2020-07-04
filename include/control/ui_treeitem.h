@@ -84,6 +84,13 @@ namespace LongUI {
         // calculate offset [NULL this pointer safe]
         auto CalTreeOffset() const noexcept -> float;
     public:
+        // add a child item
+        auto AddItem() noexcept->UITreeItem*;
+        // add a cell for this
+        auto AddCell() noexcept->UITreeCell*;
+        // easy - add cells for this 
+        void EzAddCells(const U16View labels[], uint32_t count) noexcept;
+    public:
         // do normal event
         //auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         // do mouse event

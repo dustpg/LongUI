@@ -40,8 +40,6 @@ namespace LongUI {
     class UIRadio : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
-        // private impl
-        struct Private;
     public:
         // on commnad event
         static constexpr auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }
@@ -54,10 +52,12 @@ namespace LongUI {
         void SetSelected(bool sel) noexcept { this->SetChecked(sel); }
         // set image source
         void SetImageSource(U8View src) noexcept;
-        // get text
-        auto GetText() const noexcept ->const char16_t*;
-        // get text- string object
-        auto RefText() const noexcept -> const CUIString&;
+        // get text [RECOMMENDED] 
+        auto GetTextView() const noexcept { return m_oLabel.GetTextView(); }
+        // get text [UNRECOMMENDED] 
+        auto GetText() const noexcept { return m_oLabel.GetText(); }
+        // ref text - string object
+        auto&RefText() const noexcept { return m_oLabel.RefText(); }
         // set text
         void SetText(const CUIString& text) noexcept;
         // set text
@@ -80,6 +80,8 @@ namespace LongUI {
         auto DoEvent(UIControl* sender, const EventArg& arg) noexcept->EventAccept override;
         // do mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
+        // do input event
+        auto DoInputEvent(InputEventArg e) noexcept->EventAccept;
 #ifdef LUI_DRAW_FOCUS_RECT
         // Update Focus Rect
         void UpdateFocusRect() const noexcept;
@@ -87,6 +89,8 @@ namespace LongUI {
         auto FireEvent(const GuiEventArg& event) noexcept->EventAccept override;
 #endif
     protected:
+        // after text changed
+        void after_text_changed() noexcept;
         // initialize
         void initialize() noexcept override;
         // add attribute

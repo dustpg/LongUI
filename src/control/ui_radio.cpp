@@ -1,6 +1,7 @@
 ﻿// Gui
 #include <core/ui_unsafe.h>
 #include <core/ui_window.h>
+#include <input/ui_kminput.h>
 #include <core/ui_ctrlmeta.h>
 #include <control/ui_radio.h>
 #include <debugger/ui_debug.h>
@@ -16,16 +17,6 @@ namespace LongUI {
     LUI_CONTROL_META_INFO(UIRadio, "radio");
     // UIRadioGroup类 元信息
     LUI_CONTROL_META_INFO(UIRadioGroup, "radiogroup");
-    // UIRadio类 私有实现
-    struct UIRadio::Private {
-        // 设置新的字符串
-        template<typename T> static auto SetText(UIRadio& cbox, T && text) noexcept {
-            cbox.m_oLabel.SetText(std::forward<T>(text));
-#ifdef LUI_ACCESSIBLE
-            // TODO: ACCESSIBLE
-#endif
-        }
-    };
 }
 
 /// <summary>
@@ -209,6 +200,25 @@ auto LongUI::UIRadio::DoMouseEvent(const MouseEventArg & e) noexcept -> EventAcc
     }
 }
 
+/// <summary>
+/// input event
+/// </summary>
+/// <param name="e"></param>
+/// <returns></returns>
+auto LongUI::UIRadio::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
+    switch (e.event)
+    {
+    case InputEvent::Event_KeyUp:
+        switch (static_cast<CUIInputKM::KB>(e.character))
+        {
+        case CUIInputKM::KB_SPACE:
+            this->SetChecked(true);
+            break;
+        }
+    }
+    return Super::DoInputEvent(e);
+}
+
 
 /// <summary>
 /// Adds the attribute.
@@ -283,13 +293,15 @@ void LongUI::UIRadio::SetImageSource(U8View src) noexcept {
 }
 
 /// <summary>
-/// Sets the text.
+/// called after text changed
 /// </summary>
-/// <param name="str">The string.</param>
-/// <param name="len">The length.</param>
 /// <returns></returns>
-void LongUI::UIRadio::SetText(CUIString&& text) noexcept {
-    Private::SetText(*this, std::move(text));
+inline void LongUI::UIRadio::after_text_changed() noexcept {
+    //if (m_pParent) m_pParent->NeedUpdate(Reason_ChildLayoutChanged);
+#ifdef LUI_ACCESSIBLE
+    // TODO: Accessible
+    //LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
+#endif
 }
 
 /// <summary>
@@ -297,10 +309,9 @@ void LongUI::UIRadio::SetText(CUIString&& text) noexcept {
 /// </summary>
 /// <param name="text">The text.</param>
 /// <returns></returns>
-void LongUI::UIRadio::SetText(const CUIString& text) noexcept {
-    return this->SetText(text.view());
+void LongUI::UIRadio::SetText(CUIString&& text) noexcept {
+    if (m_oLabel.SetText(std::move(text))) this->after_text_changed();
 }
-
 
 /// <summary>
 /// Sets the text.
@@ -308,24 +319,19 @@ void LongUI::UIRadio::SetText(const CUIString& text) noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIRadio::SetText(U16View text) noexcept {
-    Private::SetText(*this, text);
+    if (m_oLabel.SetText(text)) this->after_text_changed();
 }
 
-/// <summary>
-/// Gets the text.
-/// </summary>
-/// <returns></returns>
-auto LongUI::UIRadio::GetText() const noexcept -> const char16_t* {
-    return m_oLabel.GetText();
-}
 
 /// <summary>
-/// Gets the text string.
+/// Sets the text.
 /// </summary>
+/// <param name="text">The text.</param>
 /// <returns></returns>
-auto LongUI::UIRadio::RefText() const noexcept -> const CUIString&{
-    return m_oLabel.RefText();
+void LongUI::UIRadio::SetText(const CUIString& text) noexcept {
+    this->SetText(text.view());
 }
+
 
 // ----------------------------------------------------------------------------
 //                             UIRadioGroup

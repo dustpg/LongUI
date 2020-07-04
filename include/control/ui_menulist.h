@@ -42,8 +42,6 @@ namespace LongUI {
     class UIMenuList : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
-        // private impl
-        struct Private;
     public:
         // command selected changed
         static constexpr auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }
@@ -64,9 +62,11 @@ namespace LongUI {
         auto GetPopupObj() const noexcept { return m_pMenuPopup; }
         // show popup
         void ShowPopup() noexcept;
-        // get text
-        auto GetText() const noexcept ->const char16_t*;
-        // get text- string object
+        // get text [RECOMMENDED] 
+        auto GetTextView() const noexcept-> U16View;
+        // get text [UNRECOMMENDED] 
+        auto GetText() const noexcept->const char16_t*;
+        // ref text- string object
         auto RefText() const noexcept -> const CUIString&;
         // set text
         void SetText(const CUIString& text) noexcept;
@@ -94,6 +94,8 @@ namespace LongUI {
         void initialize() noexcept override;
         // add child
         void add_child(UIControl& child) noexcept override;
+        // after text changed
+        void after_text_changed() noexcept;
 #ifndef LUI_NO_MENULIST_EDITABLE
         // add ad
         void add_attribute(uint32_t key, U8View value) noexcept override;

@@ -371,6 +371,9 @@ void LongUI::CUINativeStyleWindows10::InitCtrl(UIControl& ctrl, AttributeAppeara
     case LongUI::Appearance_SplitterH:
     case LongUI::Appearance_SplitterV:
         UIControlPrivate::RefBox(ctrl).padding = { 2, 2, 2, 2 };
+#ifdef LUI_BOXSIZING_BORDER_BOX
+        ctrl.InitMinSize({ 4, 4 });
+#endif
         break;
     case LongUI::Appearance_ProgressBarV:
         UIControlPrivate::RefBox(ctrl).margin = { 4, 2, 4, 1 };

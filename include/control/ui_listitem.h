@@ -64,10 +64,12 @@ namespace LongUI {
     public:
         // get index
         auto GetIndex() const noexcept->uint32_t;
-        // get text
-        auto GetText() const noexcept ->const char16_t*;
-        // get text- string object
-        auto RefText() const noexcept -> const CUIString&;
+        // get text [RECOMMENDED] 
+        auto GetTextView() const noexcept { return m_oLabel.GetTextView(); }
+        // get text [UNRECOMMENDED] 
+        auto GetText() const noexcept { return m_oLabel.GetText(); }
+        // ref text - string object
+        auto&RefText() const noexcept { return m_oLabel.RefText(); }
         // set text
         void SetText(const CUIString& text) noexcept;
         // set text
@@ -92,6 +94,8 @@ namespace LongUI {
         void initialize() noexcept override;
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
+        // after text changed
+        void after_text_changed() noexcept;
 #ifdef LUI_ACCESSIBLE
     protected:
         // accessible event

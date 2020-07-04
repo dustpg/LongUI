@@ -37,8 +37,6 @@ namespace LongUI {
     class UIListHeader : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
-        // private impl
-        struct Private;
     public:
         // class meta
         static const  MetaControl   s_meta;
@@ -53,10 +51,12 @@ namespace LongUI {
         // clicked event
         //static inline constexpr auto _clicked() noexcept { return GuiEvent::Event_Click; }
     public:
-        // get text
-        //auto GetText() const noexcept ->const wchar_t*;
-        //// get text- string object
-        //auto RefTextString() const noexcept -> const CUIString&;
+        // get text [RECOMMENDED] 
+        auto GetTextView() const noexcept { return m_oLabel.GetTextView(); }
+        // get text [UNRECOMMENDED] 
+        auto GetText() const noexcept { return m_oLabel.GetText(); }
+        // ref text - string object
+        auto&RefText() const noexcept { return m_oLabel.RefText(); }
         // set text
         void SetText(const CUIString& text) noexcept;
         // set text
@@ -77,6 +77,8 @@ namespace LongUI {
         //void add_child(UIControl&) noexcept override;
         // add private child
         //void add_private_child() noexcept;
+        // after text changed
+        void after_text_changed() noexcept;
 #ifdef LUI_ACCESSIBLE
     protected:
         // accessible event

@@ -17,8 +17,6 @@ namespace LongUI {
     class UILabel : public UIControl {
         // super class
         using Super = UIControl;
-        // private impl
-        struct Private;
     protected:
         // ctor
         UILabel(const MetaControl&) noexcept;
@@ -47,10 +45,10 @@ namespace LongUI {
         // accessible api
         auto accessible(const AccessibleEventArg& args) noexcept->EventAccept override;
 #endif
-        // after set text
-        void after_set_text() noexcept;
+        // refresh fitting
+        void refresh_fitting() noexcept;
         // on text changed
-        void on_text_changed() noexcept;
+        void update_text_changed() noexcept;
         // init label
         void reset_font() noexcept;
         // setup access key
@@ -61,10 +59,12 @@ namespace LongUI {
             && m_oStyle.matched.empty()
 #endif
             ; }
+        // after text changed
+        void after_text_changed() noexcept;
     public:
-        // get text
+        // get text [RECOMMENDED] 
         auto GetTextView() const noexcept { return m_string.view(); }
-        // get text
+        // get text [UNRECOMMENDED] 
         auto GetText() const noexcept { return m_string.c_str(); }
         // ref text- string object
         auto&RefText() const noexcept { return m_string; }
@@ -76,6 +76,7 @@ namespace LongUI {
         bool SetText(U16View text) noexcept;
         // init crop value
         void InitCrop(AttributeCrop c) noexcept { m_crop = c; }
+    public:
         // set default minsize
         //void SetAsDefaultMinsize() noexcept;
         // as same tf to another label

@@ -35,7 +35,7 @@ namespace Demo {
     /// <returns></returns>
     void CustomConfig::GetLocaleName(char16_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept {
         // this interface for font-famil name
-        // e.g. KaiTi for 'en-US', ¿¬Ìå for 'zh-CN'
+        // e.g. KaiTi for 'en-US', æ¥·ä½“ for 'zh-CN'
 
 
         // empty for local name

@@ -195,13 +195,15 @@ namespace LongUI {
         bool is_change_could_trigger() const noexcept;
         // show caret
         void show_caret() noexcept;
+        // after text changed
+        void after_text_changed() noexcept;
     public:
-        // set text
-        void SetText(CUIString&& text) noexcept;
-        // set text
-        void SetText(const CUIString& text) noexcept;
-        // set text
-        void SetText(U16View view) noexcept;
+        // set text, return true if text changed
+        bool SetText(CUIString&& text) noexcept;
+        // set text, return true if text changed
+        bool SetText(const CUIString& text) noexcept;
+        // set text, return true if text changed
+        bool SetText(U16View view) noexcept;
         // request text, not const method
         auto RequestText() noexcept -> const CUIString&;
         // ref textfont
