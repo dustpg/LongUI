@@ -104,3 +104,12 @@ template<> auto LongUI::PodStringView<char16_t>::ToInt32()const noexcept ->int32
     return ui_function_view_atoi_le(chfirstle, chsecond, sizeof(wchar_t));
 }
 
+/// <summary>
+/// range assert
+/// </summary>
+/// <param name=""></param>
+/// <param name=""></param>
+/// <returns></returns>
+void LongUI::detail::range_assert(uint32_t a, uint32_t b) noexcept {
+    assert(a < b && "a must less than b");
+}

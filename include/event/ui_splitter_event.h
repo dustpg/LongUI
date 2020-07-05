@@ -23,8 +23,8 @@ namespace LongUI {
         // Attribute Splitter
         SplitterAttribute   attribute;
         // ctor
-        EventSplitterArg(float x, float y) noexcept:
-            offset_x(x), offset_y(y) {
+        EventSplitterArg(float x, float y, SplitterAttribute a) noexcept:
+            offset_x(x), offset_y(y), attribute(a) {
             nevent = NoticeEvent::Event_Splitter;
             derived = 0;
         }

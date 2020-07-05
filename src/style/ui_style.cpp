@@ -209,8 +209,7 @@ LongUI::Style::~Style() noexcept {
 /// <param name="view">The view.</param>
 /// <returns></returns>
 auto LongUI::AttrParser::Box(U8View view) noexcept -> AttributeBox {
-    assert(view.end() > view.begin());
-    switch (*view.begin())
+    switch (view[0])
     {
     default: return Box_BorderBox;
     case 'p': return Box_PaddingBox;
@@ -220,18 +219,47 @@ auto LongUI::AttrParser::Box(U8View view) noexcept -> AttributeBox {
 }
 
 /// <summary>
+/// resize
+/// </summary>
+/// <param name=""></param>
+/// <returns></returns>
+auto LongUI::AttrParser::Resize(U8View view) noexcept -> AttributeResize {
+    switch (view[0])
+    {
+    case 'c': return Resize_Closest;
+    case 'g': return Resize_Grow;
+    default: return view[1] == 'a' ?
+        Resize_Farthest : Resize_Flex;
+    }
+}
+
+/// <summary>
+/// resize
+/// </summary>
+/// <param name=""></param>
+/// <returns></returns>
+auto LongUI::AttrParser::Collapse(U8View view) noexcept -> AttributeCollapse {
+    switch (view[0])
+    {
+    case 'a': return Resizea_After;
+    case 'n': return Resizea_None;
+    default: return view[1] == 'e' ?
+        Resizea_Before : Resizea_Both;
+    }
+}
+
+/// <summary>
 /// Aligns the specified view.
 /// </summary>
 /// <param name="view">The view.</param>
 /// <returns></returns>
 auto LongUI::AttrParser::Align(U8View view) noexcept -> AttributeAlign {
-    assert(view.end() > view.begin());
-    switch (*view.begin())
+    switch (view[0])
     {
     case 'c': return Align_Center;
     case 'e': return Align_End;
     case 'b': return Align_Baseline;
-    default: return view.begin()[2] == 'r' ?
+    default: return view[2] == 'r' ?
         Align_Stretcht : Align_Start;
     }
 }
@@ -242,8 +270,7 @@ auto LongUI::AttrParser::Align(U8View view) noexcept -> AttributeAlign {
 /// <param name="view">The view.</param>
 /// <returns></returns>
 auto LongUI::AttrParser::Pack(U8View view) noexcept -> AttributePack {
-    assert(view.end() > view.begin());
-    switch (*view.begin())
+    switch (view[0])
     {
     default: return Pack_Start;
     case 'c': return Pack_Center;
@@ -257,8 +284,7 @@ auto LongUI::AttrParser::Pack(U8View view) noexcept -> AttributePack {
 /// <param name="view">the string view.</param>
 /// <returns></returns>
 auto LongUI::AttrParser::Crop(U8View view) noexcept -> AttributeCrop {
-    assert(view.end() > view.begin());
-    switch (*view.begin())
+    switch (view[0])
     {
     default: return Crop_None;
     case 's': return Crop_Start;
@@ -273,8 +299,7 @@ auto LongUI::AttrParser::Crop(U8View view) noexcept -> AttributeCrop {
 /// <param name="">The .</param>
 /// <returns></returns>
 auto LongUI::AttrParser::Seltype(U8View view) noexcept -> AttributeSeltype {
-    assert(view.end() > view.begin());
-    switch (*view.begin())
+    switch (view[0])
     {
     default: return Seltype_Single;
     case 'm': return Seltype_Multiple;
@@ -289,8 +314,7 @@ auto LongUI::AttrParser::Seltype(U8View view) noexcept -> AttributeSeltype {
 /// <param name="view">The view.</param>
 /// <returns></returns>
 auto LongUI::AttrParser::Overflow(U8View view) noexcept -> AttributeOverflow {
-    assert(view.end() > view.begin());
-    switch (*view.begin())
+    switch (view[0])
     {
     default: return Overflow_Visible;
     case 'a': return Overflow_Auto;
@@ -305,7 +329,7 @@ auto LongUI::AttrParser::Overflow(U8View view) noexcept -> AttributeOverflow {
 /// <param name="view">The view.</param>
 /// <returns></returns>
 auto LongUI::AttrParser::Appearance(U8View view) noexcept -> AttributeAppearance {
-    assert(view.end() > view.begin());
+    view[0];
     // TODO: NOTIMPL
     return Appearance_None;
 }
@@ -425,8 +449,7 @@ auto LongUI::AttrParser::Repeat2(U8View v1, U8View v2) noexcept -> AttributeRepe
 /// <param name="view">The view.</param>
 /// <returns></returns>
 auto LongUI::TFAttrParser::Style(U8View view) noexcept->AttributeFontStyle {
-    assert(view.end() > view.begin());
-    switch (*view.begin())
+    switch (view[0])
     {
     default: return Style_Normal;
     case 'o': return Style_Oblique;
@@ -440,8 +463,7 @@ auto LongUI::TFAttrParser::Style(U8View view) noexcept->AttributeFontStyle {
 /// <param name="view">The view.</param>
 /// <returns></returns>
 auto LongUI::TFAttrParser::Weight(U8View view)noexcept->AttributeFontWeight {
-    assert(view.end() > view.begin());
-    switch (const auto ch = *view.begin())
+    switch (const auto ch = view[0])
     {
     default: 
         if (ch >= '0' && ch <= '9') {
@@ -462,7 +484,7 @@ auto LongUI::TFAttrParser::Weight(U8View view)noexcept->AttributeFontWeight {
 /// <param name="view">The view.</param>
 /// <returns></returns>
 auto LongUI::TFAttrParser::TextAlign(U8View view) noexcept -> AttributeTextAlign {
-    switch (*view.begin())
+    switch (view[0])
     {
     default: return TAlign_Start;
     case 'r': return TAlign_Right;

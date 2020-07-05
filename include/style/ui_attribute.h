@@ -331,8 +331,12 @@ namespace LongUI {
         static auto Crop(U8View) noexcept->AttributeCrop;
         // view to align
         static auto Align(U8View) noexcept->AttributeAlign;
+        // view to resize
+        static auto Resize(U8View) noexcept->AttributeResize;
         // view to seltype
         static auto Seltype(U8View) noexcept->AttributeSeltype;
+        // view to collapse
+        static auto Collapse(U8View) noexcept->AttributeCollapse;
         // view to overflow
         static auto Overflow(U8View) noexcept->AttributeOverflow;
         // view to appearance

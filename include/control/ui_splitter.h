@@ -64,6 +64,8 @@ namespace LongUI {
     protected:
         // initialize
         void initialize() noexcept override;
+        // add attribute to this
+        void add_attribute(uint32_t key, U8View) noexcept override;
         // change cursor
         void change_cursor() noexcept;
         // hovered curor

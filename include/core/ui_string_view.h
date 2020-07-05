@@ -24,6 +24,8 @@ namespace LongUI {
         auto name_rgb32(const char* a, const char* b, char c) noexcept->uint32_t;
         // name to rgba32
         auto color_rgba32(const char* a, const char* b, char c) noexcept->uint32_t;
+        // range assert
+        void range_assert(uint32_t, uint32_t) noexcept;
     }
     // string view
     template<typename T> struct PodStringView {
@@ -61,6 +63,13 @@ namespace LongUI {
         }
         // operator!=
         bool operator!=(const PodStringView x) const noexcept { return !((*this) == x); }
+#ifdef NDEBUG
+        // operator[]
+        auto operator[](uint32_t i) const noexcept { return first[i]; }
+#else
+        // operator[]
+        auto operator[](uint32_t i) const noexcept { detail::range_assert(i, size()); return first[i]; }
+#endif
         // to bool
         bool ToBool() noexcept { return *begin() == 't'; }
         // to int32_t
@@ -79,21 +88,13 @@ namespace LongUI {
     // split string with substring
     auto SplitStr(PodStringView<char>&, PodStringView<char>) noexcept->PodStringView<char>;
     // find last dir
-    auto FindLastDir(PodStringView<char>) noexcept ->PodStringView<char>;
+    auto FindLastDir(PodStringView<char>) noexcept->PodStringView<char>;
     // _sv
-    inline PodStringView<char> operator ""_sv(const char* str, size_t len) noexcept {
-        return{ str , str + len };
-    }
+    inline PodStringView<char> operator ""_sv(const char* str, size_t len) noexcept { return{ str , str + len }; }
     // _sv
-    inline PodStringView<wchar_t> operator ""_sv(const wchar_t* str, size_t len) noexcept {
-        return{ str , str + len };
-    }
+    inline PodStringView<wchar_t> operator ""_sv(const wchar_t* str, size_t len) noexcept { return{ str , str + len }; }
     // _sv
-    inline PodStringView<char16_t> operator ""_sv(const char16_t* str, size_t len) noexcept {
-        return{ str , str + len };
-    }
+    inline PodStringView<char16_t> operator ""_sv(const char16_t* str, size_t len) noexcept { return{ str , str + len }; }
     // _sv
-    inline PodStringView<char32_t> operator ""_sv(const char32_t* str, size_t len) noexcept {
-        return{ str , str + len };
-    }
+    inline PodStringView<char32_t> operator ""_sv(const char32_t* str, size_t len) noexcept { return{ str , str + len }; }
 }

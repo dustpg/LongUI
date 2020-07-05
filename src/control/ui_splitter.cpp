@@ -81,6 +81,36 @@ void LongUI::UISplitter::initialize() noexcept {
 
 
 /// <summary>
+/// add xml attribute for this
+/// </summary>
+/// <param name="key"></param>
+/// <param name="value"></param>
+/// <returns></returns>
+void LongUI::UISplitter::add_attribute(uint32_t key, U8View value) noexcept {
+    constexpr auto BKDR_COLLAPSE        = 0x16808cf1_ui32;
+    constexpr auto BKDR_RESIZEAFTER     = 0xa6a1fb98_ui32;
+    constexpr auto BKDR_RESIZEBEFORE    = 0x2cfcb42f_ui32;
+    switch (key)
+    {
+    case BKDR_COLLAPSE:
+        // collapse
+        m_attribute.collapse = AttrParser::Collapse(value);
+        break;
+    case BKDR_RESIZEAFTER:
+        // resizeafter
+        m_attribute.resizeafter = AttrParser::Resize(value);
+        break;
+    case BKDR_RESIZEBEFORE:
+        // resizebefore
+        m_attribute.resizebefore = AttrParser::Resize(value);
+        break;
+    default:
+        // 超类处理
+        return Super::add_attribute(key, value);
+    }
+}
+
+/// <summary>
 /// update this
 /// </summary>
 /// <param name="reason"></param>
@@ -123,7 +153,7 @@ auto LongUI::UISplitter::DoMouseEvent(const MouseEventArg & e) noexcept -> Event
             m_ptLastPos = pt_parent;
             // 父节点发送事件
             assert(m_pParent && "no parent?!");
-            m_pParent->DoEvent(this, EventSplitterArg{ ox, oy });
+            m_pParent->DoEvent(this, EventSplitterArg(ox, oy, m_attribute));
         }
         break;
     case MouseEvent::Event_LButtonDown:
