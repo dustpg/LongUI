@@ -462,6 +462,7 @@ auto LongUI::UIBoxLayout::DoEvent(UIControl* sender, const EventArg& e) noexcept
     {
     case NoticeEvent::Event_Splitter:
         assert(sender && "BAD ACTION");
+        assert(sender->GetParent() == this);
         this->move_splitter(*sender, e);
         return Event_Accept;
     }
@@ -477,18 +478,22 @@ auto LongUI::UIBoxLayout::DoEvent(UIControl* sender, const EventArg& e) noexcept
 /// <param name="e">The event.</param>
 /// <returns></returns>
 void LongUI::UIBoxLayout::move_splitter(UIControl& splitter, const EventArg& e) noexcept {
-    //const auto& ev = static_cast<const EventSplitterArg&>(e);
-    //const auto attribute = ev.attribute;
-    //const Point2F offset{ ev.offset_x, ev.offset_y };
-    //assert(splitter.GetParent() == this);
-    //// 不能是第一个
-    //if (splitter.IsFirstChild()) return;
-    //// 最后
-    //auto& p = UIControlPrivate::Prev(splitter);
-    //const auto index = this->GetOrient() == Orient_Horizontal ? 0 : 1;
-    //const auto o = index[&offset.x];
-    //// 计算大小
-    //auto szp = p.GetSize(); index[&szp.width] += o;
+    const auto& ev = static_cast<const EventSplitterArg&>(e);
+    const auto attribute = ev.attribute;
+
+    auto ctrl_before = &splitter;
+    auto ctrl_after = &splitter;
+    const auto sp = this->make_sp_traversal();
+
+    const auto adjsut_size = [](UIControl& ctrl, Size2F size) noexcept {
+
+    };
+    // 横向
+    if (this->GetOrient() == Orient_Horizontal) {
+        auto offset = ev.offset_x;
+    }
+    // 计算大小
+    //auto szp = p.GetBoxSize(); index[&szp.width] += o;
     //if (index[&szp.width] <= index[&p.RefBox().minsize.width]) return;
     //// 不是最后一个?
     //if (!splitter.IsLastChild()) {
