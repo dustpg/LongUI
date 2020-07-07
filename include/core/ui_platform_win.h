@@ -24,13 +24,15 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef LUI_NO_DROPDRAG
-#include "ui_dropdrag_impl.h"
+#include "../util/ui_ostype.h"
+#include "../dropdrag/ui_dropdrag_impl.h"
+#include <cstdint>
 
 namespace LongUI {
-    // window drop taget
-    class CUIWndDropTarget final : public I::DropTarget {
-    public:
+    // longui platform for windows
+#ifndef LUI_NO_DROPDRAG
+    class CUIPlatformWin final : public I::DropTarget {
+    public: // IUnkown
         // add ref-count
         ULONG UNICALL AddRef() noexcept { return 2; };
         // release ref-count
@@ -46,7 +48,23 @@ namespace LongUI {
         HRESULT UNICALL DragLeave(void)  noexcept override;
         // drop
         HRESULT UNICALL Drop(IDataObject*, DWORD, POINTL, DWORD*) noexcept override;
+#else
+    class CUIPlatformWin final {
+        // unused pointer
+        void*           m_unused;
+#endif
+    public:
+        // ctor
+        CUIPlatformWin() noexcept;
+        // dtor
+        ~CUIPlatformWin() noexcept;
+    public:
+        // init for this
+        HWND Init(HWND, uint16_t flag) noexcept;
     private:
+        // register class
+        void register_class() noexcept;
+        // hwnd for this
+
     };
 }
-#endif

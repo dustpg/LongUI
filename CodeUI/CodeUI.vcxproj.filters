@@ -144,9 +144,6 @@
     <Filter Include="header\dragdrop">
       <UniqueIdentifier>{8576c350-2b9c-4360-bb62-8ec66c2a4259}</UniqueIdentifier>
     </Filter>
-    <Filter Include="source\dragdrop">
-      <UniqueIdentifier>{9753f1cd-7491-4103-a087-159e9973a1cb}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\cfunciton\ui_colorsystem.c">
@@ -491,11 +488,11 @@
     <ClCompile Include="..\src\control\ui_grid.cpp">
       <Filter>source\control</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\dragdrop\ui_dragdrop.cpp">
-      <Filter>source\dragdrop</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\control\ui_arrowscrollbox.cpp">
       <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\ui_platform_win.cpp">
+      <Filter>source\core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1107,9 +1104,6 @@
     <ClInclude Include="..\include\dropdrag\ui_dropdrag_decl.h">
       <Filter>header\dragdrop</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\dropdrag\ui_droptarget.h">
-      <Filter>header\dragdrop</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\dropdrag\ui_dropdrag_impl.h">
       <Filter>header\dragdrop</Filter>
     </ClInclude>
@@ -1118,6 +1112,9 @@
     </ClInclude>
     <ClInclude Include="..\include\control\ui_arrowscrollbox.h">
       <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\core\ui_platform_win.h">
+      <Filter>header\core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

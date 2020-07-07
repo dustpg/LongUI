@@ -17,8 +17,7 @@
 #include <core/ui_popup_window.h>
 #include <util/ui_color_system.h>
 #include <graphics/ui_graphics_decl.h>
-// Drop Drag
-#include <dropdrag/ui_droptarget.h>
+#include <core/ui_platform_win.h>
 // private
 #include "../private/ui_private_control.h"
 
@@ -315,13 +314,8 @@ namespace LongUI {
             return &window->RefViewport();
         }
     public:
-#ifdef LUI_NO_DROPDRAG
-        // drop target place holder
-        void*               drop_target[1];
-#else
-        // drop target for window
-        CUIWndDropTarget    drop_target;
-#endif
+        // platform
+        CUIPlatformWin  platform;
     public:
         // swap chian
         I::Swapchan*    swapchan = nullptr;
@@ -2146,7 +2140,7 @@ HWND LongUI::CUIWindow::Private::Init(HWND parent, CUIWindow::WindowConfig confi
 #ifndef LUI_NO_DROPDRAG
     // 对于非弹出窗口注册拖放
     if (!(config & CUIWindow::Config_Popup))
-        ::RegisterDragDrop(hwnd, &drop_target);
+        ::RegisterDragDrop(hwnd, &platform);
 #endif
     // 创建成功
     //if (hwnd)

@@ -224,10 +224,10 @@
     <ClCompile Include="..\src\core\ui_time_capsule.cpp" />
     <ClCompile Include="..\src\core\ui_window.cpp" />
     <ClCompile Include="..\src\core\ui_window_manager.cpp" />
+    <ClCompile Include="..\src\core\ui_platform_win.cpp" />
     <ClCompile Include="..\src\debugger\ui_debug.cpp" />
     <ClCompile Include="..\src\debugger\ui_debug_window.cpp" />
     <ClCompile Include="..\src\debugger\ui_tracer.cpp" />
-    <ClCompile Include="..\src\dragdrop\ui_dragdrop.cpp" />
     <ClCompile Include="..\src\effect\ui_effect_backimage.cpp" />
     <ClCompile Include="..\src\effect\ui_effect_borderimage.cpp" />
     <ClCompile Include="..\src\effect\ui_shader_backimage.cpp" />
@@ -390,11 +390,11 @@
     <ClInclude Include="..\include\core\ui_window.h" />
     <ClInclude Include="..\include\core\ui_window_event.h" />
     <ClInclude Include="..\include\core\ui_window_manager.h" />
+    <ClInclude Include="..\include\core\ui_platform_win.h" />
     <ClInclude Include="..\include\debugger\ui_debug.h" />
     <ClInclude Include="..\include\debugger\ui_tracer.h" />
     <ClInclude Include="..\include\dropdrag\ui_dropdrag_decl.h" />
     <ClInclude Include="..\include\dropdrag\ui_dropdrag_impl.h" />
-    <ClInclude Include="..\include\dropdrag\ui_droptarget.h" />
     <ClInclude Include="..\include\effect\ui_effect_backimage.h" />
     <ClInclude Include="..\include\effect\ui_effect_borderimage.h" />
     <ClInclude Include="..\include\event\ui_group_event.h" />
