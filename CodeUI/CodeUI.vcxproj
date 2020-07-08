@@ -215,6 +215,7 @@
     <ClCompile Include="..\src\core\ui_control_control.cpp" />
     <ClCompile Include="..\src\core\ui_all_control_info.cpp" />
     <ClCompile Include="..\src\core\ui_control_state.cpp" />
+    <ClCompile Include="..\src\core\ui_platform.cpp" />
     <ClCompile Include="..\src\core\ui_popup_window.cpp" />
     <ClCompile Include="..\src\core\ui_hidpi.cpp" />
     <ClCompile Include="..\src\core\ui_malloc.cpp" />
@@ -370,6 +371,7 @@
     <ClInclude Include="..\include\core\ui_basic_interface.h" />
     <ClInclude Include="..\include\core\ui_basic_type.h" />
     <ClInclude Include="..\include\core\ui_control_state.h" />
+    <ClInclude Include="..\include\core\ui_platform.h" />
     <ClInclude Include="..\include\core\ui_unsafe.h" />
     <ClInclude Include="..\include\core\ui_color.h" />
     <ClInclude Include="..\include\core\ui_color_list.h" />

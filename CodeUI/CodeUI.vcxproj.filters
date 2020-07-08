@@ -494,6 +494,9 @@
     <ClCompile Include="..\src\core\ui_platform_win.cpp">
       <Filter>source\core</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\core\ui_platform.cpp">
+      <Filter>source\core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\src\naivis\z_string.natvis">
@@ -1114,6 +1117,9 @@
       <Filter>header\control</Filter>
     </ClInclude>
     <ClInclude Include="..\include\core\ui_platform_win.h">
+      <Filter>header\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\core\ui_platform.h">
       <Filter>header\core</Filter>
     </ClInclude>
   </ItemGroup>
