@@ -3,7 +3,7 @@
 #include <cassert>
 #include <cstdlib>
 // atomic
-#include <atomic>
+//#include <atomic>
 
 
 #ifndef NDEBUG
@@ -294,18 +294,20 @@ void LongUI::CUIDefaultConfigure::BreakMsgLoop(uintptr_t code) noexcept {
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIDefaultConfigure::BeginRenderThread() noexcept ->Result {
-    auto& flag = reinterpret_cast<std::atomic<bool>&>(m_bExitFlag);
-    // 退出flag
-    flag.store(false, std::memory_order_relaxed);
+    // 即使不用std::atomic也是线程安全的
+    //auto& flag = reinterpret_cast<std::atomic<bool>&>(m_bExitFlag);
+    //flag.store(false, std::memory_order_relaxed);
+    m_bExitFlag = false;
     // 渲染线程
     const auto thr = ::_beginthread([](void* ptr) noexcept {
-        const auto flag = reinterpret_cast<std::atomic_bool*>(ptr);
-        while (!flag->load(std::memory_order_relaxed)) {
+        //const auto flag = reinterpret_cast<std::atomic_bool*>(ptr);
+        //while (!flag->load(std::memory_order_relaxed)) {
+        while (!(*reinterpret_cast<bool*>(ptr))) {
             UIManager.OneFrame();
             UIManager.WaitForVBlank();
         }
         ::_endthread();
-    }, 0, &flag);
+    }, 0, &m_bExitFlag);
     m_hRenderThread = thr;
     // 检测错误
     Result hr = { Result::RS_OK };
@@ -332,9 +334,10 @@ auto LongUI::CUIDefaultConfigure::RecursionMsgLoop() noexcept ->uintptr_t {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIDefaultConfigure::EndRenderThread() noexcept {
-    auto& flag = reinterpret_cast<std::atomic<bool>&>(m_bExitFlag);
-    // 退出
-    flag.store(true, std::memory_order_relaxed);
+    // 即使不用std::atomic也是线程安全的
+    //auto& flag = reinterpret_cast<std::atomic<bool>&>(m_bExitFlag);
+    //flag.store(true, std::memory_order_relaxed);
+    m_bExitFlag = true;
     // 等待设置
     const auto hthr = reinterpret_cast<HANDLE>(m_hRenderThread);
     constexpr uint32_t try_wait_time = 2333;
