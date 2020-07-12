@@ -80,7 +80,7 @@ LongUI::CUITextOutline::CUITextOutline() noexcept {
     using target_t = impl::outline_renderer;
     static_assert(sizeof(*this) == sizeof(this), "one pointer");
     static_assert(sizeof(m_buffer) == sizeof(target_t), "be same!");
-    detail::ctor_dtor<target_t>::create_obj(address);
+    impl::ctor_dtor<target_t>::create_obj(address);
 }
 
 /// <summary>
@@ -91,7 +91,7 @@ LongUI::CUITextOutline::~CUITextOutline() noexcept {
     const auto address = &m_buffer;
     using target_t = impl::outline_renderer;
     static_assert(sizeof(m_buffer) == sizeof(target_t), "be same!");
-    detail::ctor_dtor<target_t>::delete_obj(address);
+    impl::ctor_dtor<target_t>::delete_obj(address);
 }
 
 

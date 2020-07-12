@@ -13,7 +13,7 @@
 
 namespace LongUI {
     // detail namespace
-    namespace detail {
+    namespace impl {
         // string length
         inline auto strlen(const char* ptr) noexcept { return std::strlen(ptr); }
         // string length
@@ -30,7 +30,7 @@ namespace LongUI {
     // string view
     template<typename T> struct PodStringView {
         // from c-tyle string
-        static auto FromCStyle(const T str[]) noexcept -> PodStringView { return{ str, str + detail::strlen(str) }; };
+        static auto FromCStyle(const T str[]) noexcept -> PodStringView { return{ str, str + impl::strlen(str) }; };
         // size
         auto size() const noexcept { return static_cast<uint32_t>(end() - begin()); }
         // begin
@@ -39,14 +39,14 @@ namespace LongUI {
         auto end() const noexcept { return second; };
         // to RGBA32 in byte order
         auto ColorRGBA32() const noexcept->uint32_t {
-            return detail::color_rgba32(
+            return impl::color_rgba32(
                 reinterpret_cast<const char*>(first) + helper::ascii_offset<sizeof(T)>::value,
                 reinterpret_cast<const char*>(second) + helper::ascii_offset<sizeof(T)>::value,
                 sizeof(T)
             );}
         // to RGBA32 in byte order
         auto NamedRGB32() const noexcept->uint32_t { 
-            return detail::name_rgb32(
+            return impl::name_rgb32(
                 reinterpret_cast<const char*>(first) + helper::ascii_offset<sizeof(T)>::value,
                 reinterpret_cast<const char*>(second) + helper::ascii_offset<sizeof(T)>::value,
                 sizeof(T)
@@ -68,7 +68,7 @@ namespace LongUI {
         auto operator[](uint32_t i) const noexcept { return first[i]; }
 #else
         // operator[]
-        auto operator[](uint32_t i) const noexcept { detail::range_assert(i, size()); return first[i]; }
+        auto operator[](uint32_t i) const noexcept { impl::range_assert(i, size()); return first[i]; }
 #endif
         // to bool
         bool ToBool() noexcept { return *begin() == 't'; }

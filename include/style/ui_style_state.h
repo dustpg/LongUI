@@ -163,7 +163,7 @@ namespace LongUI {
         StyleState      state_change;
     };
     // detail namespace
-    namespace detail {
+    namespace impl {
         // is_same state
         template<StyleState Mask> inline auto is_same(StyleState a, StyleState b) noexcept {
             return !((a ^ b) & Mask);

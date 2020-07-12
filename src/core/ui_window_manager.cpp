@@ -9,7 +9,7 @@
 #include <cassert>
 #include <algorithm>
 
-//namespace LongUI { namespace detail {
+//namespace LongUI { namespace impl {
 //    // find viewport
 //    UIViewport* find_viewport(
 //        const POD::Vector<UIViewport*>&, 
@@ -142,14 +142,14 @@ LongUI::CUIWndMgr::CUIWndMgr(Result& out) noexcept {
     // 静态检查
     enum {
         wm_size = sizeof(Private),
-        pw_size = detail::private_wndmgr<sizeof(void*)>::size,
+        pw_size = impl::private_wndmgr<sizeof(void*)>::size,
 
         wm_align = alignof(Private),
-        pw_align = detail::private_wndmgr<sizeof(void*)>::align,
+        pw_align = impl::private_wndmgr<sizeof(void*)>::align,
     };
     static_assert(wm_size == pw_size, "must be same");
     static_assert(wm_align == pw_align, "must be same");
-    detail::ctor_dtor<Private>::create(&wm());
+    impl::ctor_dtor<Private>::create(&wm());
     // 开始计时
     wm().timemeter.Start();
     // 更新显示频率
@@ -258,7 +258,7 @@ void LongUI::CUIWndMgr::before_render_windows(Iterator itr, const Iterator endi)
     // 进行渲染预处理, 途中不该会出现节点变化(下帧执行)
     while (itr != endi) {
         // 执行预处理
-        itr->BeforeRender();
+        itr->PrepareRender();
         // 预处理子窗口
         before_render_windows(itr->begin(), itr->end());
         // 递进

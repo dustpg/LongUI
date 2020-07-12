@@ -35,7 +35,7 @@ namespace LongUI {
     // window list
     struct WindowVector;
     // detail namespace
-    namespace detail {
+    namespace impl {
         // private data for manager
         template<size_t> struct private_wndmgr;
         // 32bit
@@ -111,8 +111,8 @@ namespace LongUI {
     private:
         // private data
         std::aligned_storage<
-            detail::private_wndmgr<sizeof(void*)>::size,
-            detail::private_wndmgr<sizeof(void*)>::align
+            impl::private_wndmgr<sizeof(void*)>::size,
+            impl::private_wndmgr<sizeof(void*)>::align
         >::type                 m_private;
         // wm
         auto& wm() noexcept { return reinterpret_cast<Private&>(m_private); }

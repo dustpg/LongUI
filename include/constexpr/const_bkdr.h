@@ -30,7 +30,7 @@
 // ui namespace
 namespace LongUI {
     // detail namespace
-    namespace detail {
+    namespace impl {
         template<uint32_t SEED>
         constexpr uint32_t const_bkdr(uint32_t hash, const char* str) noexcept {
             return *str ? const_bkdr<SEED>(
@@ -40,7 +40,7 @@ namespace LongUI {
     }
     // Typical BKDR hash function
     constexpr uint32_t TypicalBKDR(const char* str) noexcept {
-        return detail::const_bkdr<131>(0, str);
+        return impl::const_bkdr<131>(0, str);
     }
     // BKDR
     constexpr uint32_t operator ""_bkdr(const char* str, size_t) noexcept {

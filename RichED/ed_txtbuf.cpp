@@ -8,7 +8,7 @@
 /// <summary>
 /// Initializes a new instance of the <see cref="buffer_base"/> class.
 /// </summary>
-RichED::detail::buffer_base::buffer_base() noexcept {
+RichED::impl::buffer_base::buffer_base() noexcept {
 
 }
 
@@ -16,7 +16,7 @@ RichED::detail::buffer_base::buffer_base() noexcept {
 /// Finalizes an instance of the <see cref="buffer_base"/> class.
 /// </summary>
 /// <returns></returns>
-RichED::detail::buffer_base::~buffer_base() noexcept {
+RichED::impl::buffer_base::~buffer_base() noexcept {
     if (this->is_ok()) {
         assert(m_data && "cannot be nullptr");
         RichED::Free(m_data);
@@ -31,7 +31,7 @@ PCN_NOINLINE
 /// <param name="size_of">The size of.</param>
 /// <param name="plat">The plat.</param>
 /// <returns></returns>
-bool RichED::detail::buffer_base::resize_buffer(
+bool RichED::impl::buffer_base::resize_buffer(
     uint32_t len, size_t size_of, IEDTextPlatform& plat) noexcept {
     // 不够的情况
     if (len > m_capacity) {

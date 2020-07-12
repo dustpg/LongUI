@@ -147,8 +147,8 @@ void LongUI::UIControl::apply_world_transform() const noexcept {
     painter.SetTransform(auto_cast(m_mtWorld));
 }
 
-// LongUI::detail
-namespace LongUI { namespace detail {
+// LongUI::impl
+namespace LongUI { namespace impl {
     // both visible?
     inline bool both_visible(AttributeOverflow x, AttributeOverflow y) noexcept {
         return (x & y) == Overflow_Visible;
@@ -169,7 +169,7 @@ void LongUI::UIControl::apply_clip_rect() const noexcept {
     // 检查overflow属性
     const auto overflow_x = static_cast<AttributeOverflow>(this->RefStyle().overflow_xex & 3);
     const auto overflow_y = this->RefStyle().overflow_y;
-    if (detail::both_visible(overflow_x, overflow_y)) return;
+    if (impl::both_visible(overflow_x, overflow_y)) return;
     // 压入
     auto& painter = UIManager.Ref2DRenderer();
     const float max_size = DEFAULT_CONTROL_MAX_SIZE;
@@ -185,7 +185,7 @@ void LongUI::UIControl::cancel_clip_rect() const noexcept {
     // 检查overflow属性
     const auto overflow_x = static_cast<AttributeOverflow>(this->RefStyle().overflow_xex & 3);
     const auto overflow_y = this->RefStyle().overflow_y;
-    if (detail::both_visible(overflow_x, overflow_y)) return;
+    if (impl::both_visible(overflow_x, overflow_y)) return;
     // 弹出
     auto& painter = UIManager.Ref2DRenderer();
     painter.PopAxisAlignedClip();

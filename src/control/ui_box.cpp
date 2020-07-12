@@ -109,7 +109,7 @@ void LongUI::UIBoxLayout::relayout_v() noexcept {
         const auto exsize = child.GetBoxExSize();
         if (a == AttributeAlign::Align_Stretcht) {
             size.width = maxs - exsize.width;
-            size.width = detail::clamp(size.width, style.limited.width, style.maxsize.width);
+            size.width = impl::clamp(size.width, style.limited.width, style.maxsize.width);
         }
         size.width += exsize.width;
         size.height += exsize.height;
@@ -121,7 +121,7 @@ void LongUI::UIBoxLayout::relayout_v() noexcept {
     };
     // - 钳制尺寸
     const auto clamp_size = [](UIControl& child, float v) noexcept {
-        return detail::clamp(v, 
+        return impl::clamp(v, 
             child.RefStyle().limited.height, 
             child.RefStyle().maxsize.height
         );
@@ -228,7 +228,7 @@ void LongUI::UIBoxLayout::relayout_h() noexcept {
         const auto exsize = child.GetBoxExSize();
         if (a == AttributeAlign::Align_Stretcht) {
             size.height = maxs.height - exsize.height;
-            size.height = detail::clamp(size.height, style.limited.height, style.maxsize.height);
+            size.height = impl::clamp(size.height, style.limited.height, style.maxsize.height);
         }
         size.width += exsize.width;
         size.height += exsize.height;
@@ -240,7 +240,7 @@ void LongUI::UIBoxLayout::relayout_h() noexcept {
     };
     // 钳制尺寸
     const auto clamp_size = [](UIControl& child, float v) noexcept {
-        return detail::clamp(v, 
+        return impl::clamp(v, 
             child.RefStyle().limited.width, 
             child.RefStyle().maxsize.width
         );

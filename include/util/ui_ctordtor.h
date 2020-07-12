@@ -24,8 +24,8 @@
 #include <new>
 #endif
 
-// LongUI::detail namespace
-namespace LongUI { namespace detail {
+// LongUI::impl namespace
+namespace LongUI { namespace impl {
     // empty dtor
     void empty_dtor(void*) noexcept;
     // dtor_t

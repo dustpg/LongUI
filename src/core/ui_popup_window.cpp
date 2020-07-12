@@ -21,8 +21,6 @@ namespace LongUI {
             mode_flip_v = 1 << 0,
             mode_flip_h = 1 << 1,
         };
-        // get screen work area size
-        RectL work_area_from(HWND) noexcept;
         // adjust via pos
         void adjust_via(RectWHL& inout, const RectL&, AttributePopupPosition) noexcept;
         // adjust via wnd
@@ -124,8 +122,8 @@ void LongUI::PopupWindowFromViewport(
     target.top = int32_t(pointer.y);
     target.width = zoomed.width;
     target.height = zoomed.height;
-    // 调整位置
-    const auto work = impl::work_area_from(this_window->GetHwnd());
+    // 调整位置 
+    const auto work = this_window->GetWorkArea();
     const auto rect = [=, &hoster]() noexcept {
         RectF rect = hoster.RefBox().visible;
         RectL rv;

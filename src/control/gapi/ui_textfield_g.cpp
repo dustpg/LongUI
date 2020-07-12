@@ -92,7 +92,7 @@ namespace LongUI {
     /// </summary>
     /// <returns></returns>
     void UITextField::Private::release_doc() noexcept {
-        detail::ctor_dtor<doc_t>::delete_obj(&docbuf);
+        impl::ctor_dtor<doc_t>::delete_obj(&docbuf);
     }
     /// <summary>
     /// Documents the map.
@@ -126,7 +126,7 @@ namespace LongUI {
             rd
         };
         RichED::IEDTextPlatform& platform = box;
-        detail::ctor_dtor<doc_t>::create(&docbuf, platform, args);
+        impl::ctor_dtor<doc_t>::create(&docbuf, platform, args);
         const Result hr{ args.code };
         // XXX: 错误处理
         assert(hr);
@@ -223,7 +223,7 @@ void LongUI::UITextField::create_private() noexcept {
     dbg_color[1] = ColorF::FromRGBA_CT<RGBA_Blue>();
     dbg_color[0].a = dbg_color[1].a = 0.25f;
 #endif
-    detail::ctor_dtor<Private>::create(&m_private);
+    impl::ctor_dtor<Private>::create(&m_private);
     //pimpl() = new(std::nothrow) Private{};
     //this->ctor_failed_if(pimpl());
 }
@@ -669,7 +669,7 @@ bool LongUI::UITextField::GuiHasText() const noexcept {
 bool LongUI::UITextField::GuiIsPasswordMode() const noexcept {
 #if 0
     using flag_t = decltype(m_flag);
-    constexpr auto shift = detail::log2<flag_t>(RichED::Flag_UsePassword);
+    constexpr auto shift = impl::log2<flag_t>(RichED::Flag_UsePassword);
     return (m_flag >> shift) & 1;
 #else
     return !!(m_flag & RichED::Flag_UsePassword);

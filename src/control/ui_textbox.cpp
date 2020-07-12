@@ -232,7 +232,7 @@ auto LongUI::UITextBox::SetValueAsDouble(double value, bool increase) noexcept -
     const auto target = increase ? cur_value + value : value;
     const auto maxv = this->max_value;
     const auto minv = this->min_value;
-    const auto new_value = detail::clamp(target, minv, maxv);
+    const auto new_value = impl::clamp(target, minv, maxv);
     //  没变
     //if (new_value == cur_value) return Event_Ignore;
     const uint32_t places = m_uDecimalPlaces;
@@ -457,7 +457,7 @@ auto LongUI::UITextBox::do_wheel(int index, float wheel) noexcept ->EventAccept 
     auto& offset = index[&m_oTextField.render_positon.x];
     const auto line_height = UIManager.GetWheelScrollLines();
     float pos = offset - index[&this->line_size.width] * wheel * line_height;
-    pos = detail::clamp(pos, 0.f, maxv);
+    pos = impl::clamp(pos, 0.f, maxv);
     // 已经修改
     if (pos != offset) {
         offset = pos;

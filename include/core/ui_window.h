@@ -13,6 +13,8 @@
 namespace LongUI {
     // style sheet
     class CUIStyleSheet;
+    // platform
+    class CUIPlatform;
     // Cursor
     class CUICursor;
     // window manager
@@ -24,13 +26,13 @@ namespace LongUI {
     // popup type
     enum class PopupType : uint16_t;
     // detail namespace
-    namespace detail {
+    namespace impl {
         // private data for manager
-        template<size_t> struct private_window;
+        template<size_t> struct platform;
         // 32bit
-        template<> struct private_window<4> { enum { size = 964, align = 4 }; };
+        template<> struct platform<4> { enum { size = 964, align = 4 }; };
         // 64bit
-        template<> struct private_window<8> { enum { size = 1224, align = 8 }; };
+        template<> struct platform<8> { enum { size = 1224, align = 8 }; };
     }
     /// <summary>
     /// window base class
@@ -44,6 +46,8 @@ namespace LongUI {
         friend class UIViewport;
         // friend class
         friend class CUIWndMgr;
+        // friend class
+        friend class CUIPlatform;
 #ifdef LUI_ACCESSIBLE
         // friend class
         friend class CUIAccessibleWnd;
@@ -102,7 +106,9 @@ namespace LongUI {
         void RestoreWindow() noexcept { this->show_window(Show_Restore); }
         // close window
         void CloseWindow() noexcept;
-        // active window
+        // enable window
+        void EnableWindow(bool) noexcept;
+        // set as active
         void ActiveWindow() noexcept;
         // is visible
         bool IsVisible() const noexcept;
@@ -110,12 +116,14 @@ namespace LongUI {
         bool IsInDtor() const noexcept { return m_inDtor; }
         // mark full rendering
         void MarkFullRendering() noexcept;
+#if 0
         // is auto sleep?
         bool IsAutoSleep() const noexcept { return !!(config & Config_Popup); }
         // is in sleep mode?
-        auto IsInSleepMode() const noexcept { return !m_hwnd; }
+        //auto IsInSleepMode() const noexcept { return !m_hwnd; }
+#endif
         // into sleep mode immediately
-        void IntoSleepImmediately() noexcept;
+        void SleepImmediately() noexcept;
         // try sleep
         void TrySleep() noexcept;
         // wake up
@@ -148,8 +156,6 @@ namespace LongUI {
         //void MapFromScreen(RectF& rect) const noexcept;
         // map from screen
         void MapFromScreen(Point2F& pos) const noexcept;
-        // hi-dpi support
-        void HiDpiSupport() noexcept;
     public:
         // show popup window
         void PopupWindow(CUIWindow& wnd, Point2L pos, PopupType type) noexcept;
@@ -164,7 +170,7 @@ namespace LongUI {
         // close tooltip
         void CloseTooltip() noexcept;
         // set title name
-        void SetTitleName(const char16_t*) noexcept;
+        void SetTitleName(U16View) noexcept;
         // set title name
         void SetTitleName(CUIString&&) noexcept;
         // get title name
@@ -187,6 +193,10 @@ namespace LongUI {
         void SetNowCursor(const CUICursor&) noexcept;
         // set now cursor to default
         void SetNowCursor(std::nullptr_t) noexcept;
+        // work area that this window worked
+        auto GetWorkArea() const noexcept->RectL;
+        // get raw handle
+        auto GetRawHandle() const noexcept->uintptr_t;
     public:
         // show caret
         void ShowCaret(UIControl&ctrl, const RectF& rect) noexcept;
@@ -248,32 +258,29 @@ namespace LongUI {
         void Delete() noexcept;
         // set control world changed
         void SetControlWorldChanged(UIControl&) noexcept;
-        // before render
-        void BeforeRender() noexcept;
+        // prepare render
+        void PrepareRender() noexcept;
         // render
         auto Render() noexcept->Result;
         // Recreate
         auto RecreateDeviceData() noexcept->Result;
         // release window device data
         void ReleaseDeviceData() noexcept;
+        // get const platform
+        auto&RefPlatform() const noexcept { return reinterpret_cast<const CUIPlatform&>(m_platform); }
         // get viewport
         auto RefViewport() noexcept ->UIViewport&;
         // get viewport
-        auto RefViewport() const noexcept->const UIViewport& { 
-            return const_cast<CUIWindow*>(this)->RefViewport(); }
+        auto RefViewport() const noexcept->const UIViewport& { return const_cast<CUIWindow*>(this)->RefViewport(); }
         // get parent
         auto GetParent() const noexcept { return m_pParent; }
-        // get window handle
-        HWND GetHwnd() const { return m_hwnd; }
         // set native icon data [MUST CALL AFTER SHOUWINDOW]
         void SetNativeIconData(const wchar_t*, uintptr_t big=0) noexcept;
         // is inline window
         bool IsInlineWindow() const noexcept { return false; }
     protected:
-        // private impl
-        auto pimpl() noexcept { return reinterpret_cast<Private*>(&m_private); }
-        // private impl
-        auto pimpl() const noexcept { return reinterpret_cast<const Private*>(&m_private); }
+        // get platform
+        auto&platform() noexcept { return reinterpret_cast<CUIPlatform&>(m_platform); }
         // init
         void init() noexcept;
         // recursive set result
@@ -282,10 +289,6 @@ namespace LongUI {
         void add_child(CUIWindow& child) noexcept;
         // remove child
         //void remove_child(CUIWindow& child) noexcept;
-        // recreate_device window
-        auto recreate_window() noexcept->Result;
-        // release window only device data
-        void release_window_only_device() noexcept;
         // ctor
         CUIWindow(CUIWindow* parent, WindowConfig cfg) noexcept;
         // no copy
@@ -301,7 +304,7 @@ namespace LongUI {
         Node<AllWindows>    m_oListNode;
     protected:
         // window handle
-        HWND                m_hwnd = nullptr;
+        //HWND                m_hwnd = nullptr;
 #ifndef LUI_DISABLE_STYLE_SUPPORT
         // style sheet
         CUIStyleSheet*      m_pStyleSheet = nullptr;
@@ -324,16 +327,14 @@ namespace LongUI {
         bool                m_inDtor : 1;
         // in exec
         bool                m_bInExec : 1;
-        // big icon
-        //bool                m_bBigIcon : 1;
         // state: under "minsize changed" list
         //bool                m_bMinsizeList = false;
     protected:
         // private data
         std::aligned_storage<
-            detail::private_window<sizeof(void*)>::size,
-            detail::private_window<sizeof(void*)>::align
-        >::type                 m_private;
+            impl::platform<sizeof(void*)>::size,
+            impl::platform<sizeof(void*)>::align
+        >::type                 m_platform;
     };
     // WindowConfig | WindowConfig
     inline CUIWindow::WindowConfig operator|(

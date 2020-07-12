@@ -67,7 +67,7 @@ PCN_NOINLINE
 /// <param name="x">The x.</param>
 /// <returns></returns>
 auto LongUI::Mix(const ColorF& from, const ColorF& to, float x) noexcept -> ColorF {
-    const auto x0_0 = detail::clamp(x, 0.f, 1.f);
+    const auto x0_0 = impl::clamp(x, 0.f, 1.f);
     const auto x0_1 = 1.f - x0_0;
     ColorF rv;
     rv.r = from.r * x0_1 + to.r * x0_0;

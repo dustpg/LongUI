@@ -13,7 +13,7 @@
 // ui namespace
 namespace LongUI {
     // detail namespace
-    namespace detail {
+    namespace impl {
         // cc size
         template<size_t> struct cc;
         // 32bit
@@ -57,7 +57,7 @@ namespace LongUI {
         // create time capsule for control
         template<typename T>
         auto CreateTimeCapsule(T&& func, float total, UIControl* ctrl = nullptr) noexcept {
-            return this->after_create_tc(detail::create<T>(total, std::move(func)), ctrl); }
+            return this->after_create_tc(impl::create<T>(total, std::move(func)), ctrl); }
         // dispose time capsule for control
         void DisposeTimeCapsule(UIControl& ctrl) noexcept;
         // refresh time capsule for control
@@ -156,8 +156,8 @@ namespace LongUI {
     private:
         // private data
         std::aligned_storage<
-            detail::cc<sizeof(void*)>::size,
-            detail::cc<sizeof(void*)>::align
+            impl::cc<sizeof(void*)>::size,
+            impl::cc<sizeof(void*)>::align
         >::type                 m_private;
         // get cc
         auto&cc() noexcept { return reinterpret_cast<Private&>(m_private); }

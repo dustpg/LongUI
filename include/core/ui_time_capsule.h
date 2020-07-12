@@ -80,7 +80,7 @@ namespace LongUI {
         float               m_fDoneTime = 0.f;
     };
     // impl namespace
-    namespace detail {
+    namespace impl {
         // impl for time capsule
         template<typename T> struct time_capsule_helper : CUITimeCapsule {
             // alignof T cannot greater double(std::max_align_t)
@@ -93,7 +93,7 @@ namespace LongUI {
                 void(*call)(void*, float p) noexcept,
                 void(*dtor)(void*) noexcept,
                 float total) noexcept : CUITimeCapsule(call, dtor, total) {
-                detail::ctor_dtor<T>::create(&this->buffer, std::move(func));
+                impl::ctor_dtor<T>::create(&this->buffer, std::move(func));
             }
             // operator ()
             static void call(void* ptr, float p) noexcept {
@@ -104,10 +104,10 @@ namespace LongUI {
         // create time capsule
         template<typename T>
         inline auto create(float total, T&& func) noexcept ->CUITimeCapsule* {
-            return new(std::nothrow) detail::time_capsule_helper<T>(
+            return new(std::nothrow) impl::time_capsule_helper<T>(
                 std::move(func), 
-                detail::time_capsule_helper<T>::call,
-                detail::ctor_dtor<T>::delete_obj_ptr().ptr,
+                impl::time_capsule_helper<T>::call,
+                impl::ctor_dtor<T>::delete_obj_ptr().ptr,
                 total
                 );
         }

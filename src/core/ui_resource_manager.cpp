@@ -37,6 +37,7 @@
 #pragma comment(lib, "d3d11")
 #pragma comment(lib, "Imm32")
 #pragma comment(lib, "dwrite")
+#pragma comment(lib, "dxguid")
 #pragma comment(lib, "windowscodecs")
 
 // ui namespace
@@ -559,7 +560,7 @@ void LongUI::CUIResMgr::Private::free_rects(BitmapFrame& f) noexcept {
 }
 
 // longui namespace
-namespace LongUI { namespace detail { 
+namespace LongUI { namespace impl { 
     /// <summary>
     /// Removes the resource only.
     /// </summary>
@@ -1048,7 +1049,7 @@ auto LongUI::CUIResMgr::CreateCtlText(
     IDWriteTextLayout* layout = nullptr;
     // 创建基本布局
     Result hr = { rm().dwritefactroy->CreateTextLayout(
-        detail::sys(arg.string),
+        impl::sys(arg.string),
         static_cast<uint32_t>(arg.length),
         arg.font ? arg.font : rm().deffont,
         arg.mwidth,
@@ -1098,7 +1099,7 @@ auto LongUI::CUIResMgr::CreateCtlFont(const FontArg& arg,
         auto_cast(arg.style),
         auto_cast(arg.stretch),
         arg.size,
-        detail::sys(m_szLocaleName),
+        impl::sys(m_szLocaleName),
         reinterpret_cast<IDWriteTextFormat**>(&font)
     ) };
     // 直接断言方便检查
@@ -1309,7 +1310,7 @@ LongUI::CUIResMgr::CUIResMgr(IUIConfigure* cfg, Result& out) noexcept {
     // 本地字符集名称
     cfg->GetLocaleName(m_szLocaleName);
     // 创建rm
-    detail::ctor_dtor<CUIResMgr::Private>::create(&rm());
+    impl::ctor_dtor<CUIResMgr::Private>::create(&rm());
     // 初始化无关资源
     Result hr = rm().init();
     // 创建拖放目标帮助器
@@ -1750,14 +1751,14 @@ void LongUI::CUIResMgr::release_device() noexcept {
 }
 
 
-namespace LongUI { namespace detail {
+namespace LongUI { namespace impl {
     // add ref res via id
     void add_ref(uintptr_t handle) noexcept;
     // image to id
     auto xul_image_to_id(U8View view) noexcept -> uintptr_t {
         const auto type = ResourceType::Type_Image;
         const auto id = UIManager.LoadResource(view, /*type,*/ true);
-        if (id) detail::add_ref(id);
+        if (id) impl::add_ref(id);
         return id;
     }
 }}

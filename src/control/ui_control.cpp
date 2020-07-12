@@ -1927,7 +1927,7 @@ void LongUI::UIControl::link_style_sheet() noexcept {
 #endif
 
 // longui::detail namespace
-namespace LongUI { namespace detail {
+namespace LongUI { namespace impl {
     // attribute write
     template<typename T, typename U>
     static inline void write_value(T& a, U b) noexcept {
@@ -1965,14 +1965,14 @@ void LongUI::UIControl::ApplyValue(const SSValue& value) noexcept {
     }
         break;
     case ValueType::Type_PositionOverflowY:
-        detail::write_value(m_oStyle.overflow_y, value.data4.byte);
+        impl::write_value(m_oStyle.overflow_y, value.data4.byte);
         break;
     case ValueType::Type_PositionLeft:
-        detail::write_value(m_oBox.pos.x, value.data4.single);
+        impl::write_value(m_oBox.pos.x, value.data4.single);
         this->mark_world_changed();
         break;
     case ValueType::Type_PositionTop:
-        detail::write_value(m_oBox.pos.y, value.data4.single);
+        impl::write_value(m_oBox.pos.y, value.data4.single);
         this->mark_world_changed();
         break;
     case ValueType::Type_DimensionWidth:
@@ -1988,17 +1988,17 @@ void LongUI::UIControl::ApplyValue(const SSValue& value) noexcept {
         const uint8_t flag = 4 << i;
         reinterpret_cast<uint8_t&>(m_oStyle.overflow_xex) |= flag;
         auto& write_to = i[&m_oStyle.fitting.width];
-        detail::write_value(write_to, value.data4.single);
+        impl::write_value(write_to, value.data4.single);
     }
         this->NeedUpdate(Reason_SizeChanged);
         if (m_pParent) m_pParent->NeedUpdate(Reason_ChildLayoutChanged);
         break;
     case ValueType::Type_BoxFlex:
-        detail::write_value(m_oStyle.flex, value.data4.single);
+        impl::write_value(m_oStyle.flex, value.data4.single);
         if (m_pParent) m_pParent->NeedUpdate(Reason_ChildLayoutChanged);
         break;
     case ValueType::Type_BorderStyle:
-        this->SetBdStyle(detail::same_cast<AttributeBStyle>(value.data4.byte));
+        this->SetBdStyle(impl::same_cast<AttributeBStyle>(value.data4.byte));
         break;
     case ValueType::Type_BorderColor:
         this->SetBdColor({ value.data4.u32 });
@@ -2014,7 +2014,7 @@ void LongUI::UIControl::ApplyValue(const SSValue& value) noexcept {
         this->SetBdImageSlice(tmp_rect, value.data4.boolean);
         break;
     case ValueType::Type_BorderImageRepeat:
-        this->SetBdImageRepeat(detail::same_cast<AttributeRepeat>(value.data4.byte));
+        this->SetBdImageRepeat(impl::same_cast<AttributeRepeat>(value.data4.byte));
         break;
     case ValueType::Type_BackgroundColor:
         this->SetBgColor({ value.data4.u32 });
@@ -2023,13 +2023,13 @@ void LongUI::UIControl::ApplyValue(const SSValue& value) noexcept {
         this->SetBgImageID({ value.data8.handle });
         break;
     case ValueType::Type_BackgroundRepeat:
-        this->SetBgRepeat(detail::same_cast<AttributeRepeat>(value.data4.byte));
+        this->SetBgRepeat(impl::same_cast<AttributeRepeat>(value.data4.byte));
         break;
     case ValueType::Type_BackgroundClip:
-        this->SetBgClip(detail::same_cast<AttributeBox>(value.data4.byte));
+        this->SetBgClip(impl::same_cast<AttributeBox>(value.data4.byte));
         break;
     case ValueType::Type_BackgroundOrigin:
-        this->SetBgOrigin(detail::same_cast<AttributeBox>(value.data4.byte));
+        this->SetBgOrigin(impl::same_cast<AttributeBox>(value.data4.byte));
         break;
     case ValueType::Type_TransitionDuration:
         using dur_t = decltype(m_oStyle.tduration);
@@ -2037,13 +2037,13 @@ void LongUI::UIControl::ApplyValue(const SSValue& value) noexcept {
         m_oStyle.tduration = static_cast<dur_t>(value.data4.single * 1000.f);
         break;
     case ValueType::Type_TransitionTimingFunc:
-        detail::write_value(m_oStyle.tfunction, value.data4.byte);
+        impl::write_value(m_oStyle.tfunction, value.data4.byte);
         break;
     case ValueType::Type_TextColor:
         this->SetFgColor({ value.data4.u32 });
         break;
     case ValueType::Type_TextAlign:
-        this->SetTextAlign(detail::same_cast<AttributeTextAlign>(value.data4.byte));
+        this->SetTextAlign(impl::same_cast<AttributeTextAlign>(value.data4.byte));
         break;
     case ValueType::Type_WKTextStrokeWidth:
         this->SetTextStrokeWidth({ value.data4.single });
@@ -2055,13 +2055,13 @@ void LongUI::UIControl::ApplyValue(const SSValue& value) noexcept {
         this->SetFontSize({ value.data4.single });
         break;
     case ValueType::Type_FontStyle:
-        this->SetFontStyle(detail::same_cast<AttributeFontStyle>(value.data4.byte));
+        this->SetFontStyle(impl::same_cast<AttributeFontStyle>(value.data4.byte));
         break;
     case ValueType::Type_FontStretch:
-        this->SetFontStretch(detail::same_cast<AttributeFontStretch>(value.data4.byte));
+        this->SetFontStretch(impl::same_cast<AttributeFontStretch>(value.data4.byte));
         break;
     case ValueType::Type_FontWeight:
-        this->SetFontWeight(detail::same_cast<AttributeFontWeight>(value.data4.word));
+        this->SetFontWeight(impl::same_cast<AttributeFontWeight>(value.data4.word));
         break;
     case ValueType::Type_FontFamily:
         this->SetFontFamily(value.data8.strptr);
@@ -2103,7 +2103,7 @@ void LongUI::UIControl::ApplyValue(const SSValue& value) noexcept {
         this->SetBorderLeft(value.data4.single);
         break;
     case ValueType::Type_LUIAppearance:
-        detail::write_value(m_oStyle.appearance, value.data4.byte);
+        impl::write_value(m_oStyle.appearance, value.data4.byte);
 #if 0
         if (m_oStyle.appearance == Appearance_None)
             this->ClearAppearance();
@@ -2132,13 +2132,13 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
         value.data4.byte = static_cast<uint8_t>(m_oStyle.overflow_xex) & 3;
         break;
     case ValueType::Type_PositionOverflowY:
-        detail::write_value(value.data4.byte, m_oStyle.overflow_y);
+        impl::write_value(value.data4.byte, m_oStyle.overflow_y);
         break;
     case ValueType::Type_PositionLeft:
-        detail::write_value(value.data4.single, m_oBox.pos.x);
+        impl::write_value(value.data4.single, m_oBox.pos.x);
         break;
     case ValueType::Type_PositionTop:
-        detail::write_value(value.data4.single, m_oBox.pos.y);
+        impl::write_value(value.data4.single, m_oBox.pos.y);
         break;
     case ValueType::Type_DimensionWidth:
     case ValueType::Type_DimensionHeight:
@@ -2150,119 +2150,119 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
         const auto x = static_cast<uint32_t>(value.type);
         const auto y = static_cast<uint32_t>(ValueType::Type_DimensionWidth);
         const auto read_to = (&m_oStyle.fitting.width)[x - y];
-        detail::write_value(value.data4.single, read_to);
+        impl::write_value(value.data4.single, read_to);
         break;
     }
     case ValueType::Type_BoxFlex:
-        detail::write_value(value.data4.single, m_oStyle.flex);
+        impl::write_value(value.data4.single, m_oStyle.flex);
         break;
     case ValueType::Type_BorderStyle:
-        detail::write_value(value.data4.byte, this->GetBdStyle());
+        impl::write_value(value.data4.byte, this->GetBdStyle());
         break;
     case ValueType::Type_BorderColor:
-        detail::write_value(value.data4.u32, this->GetBdColor().primitive);
+        impl::write_value(value.data4.u32, this->GetBdColor().primitive);
         break;
     case ValueType::Type_BorderRadius:
         tmp_size = this->GetBdRadius();
-        detail::write_value(value.data8.single[0], tmp_size.width);
-        detail::write_value(value.data8.single[1], tmp_size.height);
+        impl::write_value(value.data8.single[0], tmp_size.width);
+        impl::write_value(value.data8.single[1], tmp_size.height);
         break;
     case ValueType::Type_BorderImageSource:
-        detail::write_value(value.data8.handle, this->GetBdImageSourceID());
+        impl::write_value(value.data8.handle, this->GetBdImageSourceID());
         break;
     case ValueType::Type_BorderImageSlice:
-        detail::write_value(value.data4.boolean, this->GetBdImageSlice(tmp_rect));
+        impl::write_value(value.data4.boolean, this->GetBdImageSlice(tmp_rect));
         LongUI::SliceRectToUniByte8(&tmp_rect.left, value.data8);
         break;
     case ValueType::Type_BorderImageRepeat:
-        detail::write_value(value.data4.byte, this->GetBdImageRepeat());
+        impl::write_value(value.data4.byte, this->GetBdImageRepeat());
         break;
     case ValueType::Type_BackgroundColor:
-        detail::write_value(value.data4.u32, this->GetBgColor().primitive);
+        impl::write_value(value.data4.u32, this->GetBgColor().primitive);
         break;
     case ValueType::Type_BackgroundImage:
-        detail::write_value(value.data8.handle, this->GetBgImageID());
+        impl::write_value(value.data8.handle, this->GetBgImageID());
         break;
     case ValueType::Type_BackgroundRepeat:
-        detail::write_value(value.data4.byte, this->GetBgRepeat());
+        impl::write_value(value.data4.byte, this->GetBgRepeat());
         break;
     case ValueType::Type_BackgroundClip:
-        detail::write_value(value.data4.byte, this->GetBgClip());
+        impl::write_value(value.data4.byte, this->GetBgClip());
         break;
     case ValueType::Type_BackgroundOrigin:
-        detail::write_value(value.data4.byte, this->GetBgOrigin());
+        impl::write_value(value.data4.byte, this->GetBgOrigin());
         break;
     case ValueType::Type_TransitionDuration:
         value.data4.single = static_cast<float>(m_oStyle.tduration) * 1000.f;
         break;
     case ValueType::Type_TransitionTimingFunc:
-        detail::write_value(value.data4.byte, m_oStyle.tfunction);
+        impl::write_value(value.data4.byte, m_oStyle.tfunction);
         break;
     case ValueType::Type_TextColor:
-        detail::write_value(value.data4.u32, this->GetFgColor().primitive);
+        impl::write_value(value.data4.u32, this->GetFgColor().primitive);
         break;
     case ValueType::Type_TextAlign:
-        detail::write_value(value.data4.byte, this->GetTextAlign());
+        impl::write_value(value.data4.byte, this->GetTextAlign());
         break;
     case ValueType::Type_WKTextStrokeWidth:
-        detail::write_value(value.data4.single, this->GetTextStrokeWidth());
+        impl::write_value(value.data4.single, this->GetTextStrokeWidth());
         break;
     case ValueType::Type_WKTextStrokeColor:
-        detail::write_value(value.data4.u32, this->GetTextStrokeColor().primitive);
+        impl::write_value(value.data4.u32, this->GetTextStrokeColor().primitive);
         break;
     case ValueType::Type_FontSize:
-        detail::write_value(value.data4.single, this->GetFontSize());
+        impl::write_value(value.data4.single, this->GetFontSize());
         break;
     case ValueType::Type_FontStyle:
-        detail::write_value(value.data4.byte, this->GetFontStyle());
+        impl::write_value(value.data4.byte, this->GetFontStyle());
         break;
     case ValueType::Type_FontStretch:
-        detail::write_value(value.data4.byte, this->GetFontStretch());
+        impl::write_value(value.data4.byte, this->GetFontStretch());
         break;
     case ValueType::Type_FontWeight:
-        detail::write_value(value.data4.word, this->GetFontWeight());
+        impl::write_value(value.data4.word, this->GetFontWeight());
         break;
     case ValueType::Type_FontFamily:
-        detail::write_value(value.data8.strptr, this->GetFontFamily());
+        impl::write_value(value.data8.strptr, this->GetFontFamily());
         break;
     case ValueType::Type_LUIAppearance:
-        detail::write_value(value.data4.byte, m_oStyle.appearance);
+        impl::write_value(value.data4.byte, m_oStyle.appearance);
         break;
     case ValueType::Type_MarginTop:
-        detail::write_value(value.data4.single, this->RefBox().margin.top);
+        impl::write_value(value.data4.single, this->RefBox().margin.top);
         break;
     case ValueType::Type_MarginRight:
-        detail::write_value(value.data4.single, this->RefBox().margin.right);
+        impl::write_value(value.data4.single, this->RefBox().margin.right);
         break;
     case ValueType::Type_MarginBottom:
-        detail::write_value(value.data4.single, this->RefBox().margin.bottom);
+        impl::write_value(value.data4.single, this->RefBox().margin.bottom);
         break;
     case ValueType::Type_MarginLeft:
-        detail::write_value(value.data4.single, this->RefBox().margin.left);
+        impl::write_value(value.data4.single, this->RefBox().margin.left);
         break;
     case ValueType::Type_PaddingTop:
-        detail::write_value(value.data4.single, this->RefBox().padding.top);
+        impl::write_value(value.data4.single, this->RefBox().padding.top);
         break;
     case ValueType::Type_PaddingRight:
-        detail::write_value(value.data4.single, this->RefBox().padding.right);
+        impl::write_value(value.data4.single, this->RefBox().padding.right);
         break;
     case ValueType::Type_PaddingBottom:
-        detail::write_value(value.data4.single, this->RefBox().padding.bottom);
+        impl::write_value(value.data4.single, this->RefBox().padding.bottom);
         break;
     case ValueType::Type_PaddingLeft:
-        detail::write_value(value.data4.single, this->RefBox().padding.left);
+        impl::write_value(value.data4.single, this->RefBox().padding.left);
         break;
     case ValueType::Type_BorderTopWidth:
-        detail::write_value(value.data4.single, this->RefBox().border.top);
+        impl::write_value(value.data4.single, this->RefBox().border.top);
         break;
     case ValueType::Type_BorderRightWidth:
-        detail::write_value(value.data4.single, this->RefBox().border.right);
+        impl::write_value(value.data4.single, this->RefBox().border.right);
         break;
     case ValueType::Type_BorderBottomWidth:
-        detail::write_value(value.data4.single, this->RefBox().border.bottom);
+        impl::write_value(value.data4.single, this->RefBox().border.bottom);
         break;
     case ValueType::Type_BorderLeftWidth:
-        detail::write_value(value.data4.single, this->RefBox().border.left);
+        impl::write_value(value.data4.single, this->RefBox().border.left);
         break;
     }
 }

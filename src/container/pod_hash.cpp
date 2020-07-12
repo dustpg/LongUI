@@ -24,7 +24,7 @@ inline void LongUI::POD::detail::hash_base::free(void* ptr) noexcept {
 }
 
 // detail namespace
-namespace LongUI { namespace detail {
+namespace LongUI { namespace impl {
     // nearset pointer size
     template<typename T>
     inline T nearest_psize(T size) noexcept {
@@ -121,7 +121,7 @@ void LongUI::POD::detail::hash_base::clear() noexcept {
 /// </summary>
 /// <param name="sizeof_T">The sizeof T.</param>
 LongUI::POD::detail::hash_base::hash_base(uint32_t sizeof_T) noexcept :
-m_cItemByteSize(LongUI::detail::nearest_psize(sizeof_T) + sizeof(hash_cell)),
+m_cItemByteSize(LongUI::impl::nearest_psize(sizeof_T) + sizeof(hash_cell)),
 m_itrFirst(this->end_itr())
 {
 
@@ -202,7 +202,7 @@ auto LongUI::POD::detail::hash_base::find(const char* str)const noexcept ->hash_
     // 有的话
     if (m_cItemSize) {
         const auto celln = m_pBaseTableEnd - m_pBaseTable;
-        assert(LongUI::detail::is_power_of_2(celln) && "N must be power of 2");
+        assert(LongUI::impl::is_power_of_2(celln) && "N must be power of 2");
         const auto code = LongUI::BKDRHash(str);
         const auto index = code & (celln - 1);
         auto cell = reinterpret_cast<hash_cell*>(m_pBaseTable[index]);
@@ -236,7 +236,7 @@ auto LongUI::POD::detail::hash_base::find(
     // 有的话
     if (m_cItemSize) {
         const auto celln = m_pBaseTableEnd - m_pBaseTable;
-        assert(LongUI::detail::is_power_of_2(celln) && "N must be power of 2");
+        assert(LongUI::impl::is_power_of_2(celln) && "N must be power of 2");
         const auto code = LongUI::BKDRHash(str_begin, str_end);
         const auto index = code & (celln - 1);
         auto cell = reinterpret_cast<hash_cell*>(m_pBaseTable[index]);
@@ -325,7 +325,7 @@ auto LongUI::POD::detail::hash_base::force_insert(hash_cell& cell) noexcept ->ui
     cell.next = nullptr;
     assert(m_itrFirst.bucket && "bad itr");
     const auto celln = m_pBaseTableEnd - m_pBaseTable;
-    assert(LongUI::detail::is_power_of_2(celln) && "N must be power of 2");
+    assert(LongUI::impl::is_power_of_2(celln) && "N must be power of 2");
     const auto hcode = LongUI::BKDRHash(cell.str);
     const auto index = hcode & (celln - 1);
     const auto pos = m_pBaseTable + index;

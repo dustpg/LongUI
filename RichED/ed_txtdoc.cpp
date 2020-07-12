@@ -26,7 +26,7 @@ RED_LUT_ALIGNED const uint32_t RED_CJK_LUT[] = {
 };
 
 // namesapce RichED::detail
-namespace RichED { namespace detail {
+namespace RichED { namespace impl {
     // op record
     struct op_recorder { 
         CEDTextDocument& doc;
@@ -102,7 +102,7 @@ namespace RichED { namespace detail {
             }
             ++itr;
         }
-        if (real_len && detail::is_1st_surrogate(itr[-1])) ++itr;
+        if (real_len && impl::is_1st_surrogate(itr[-1])) ++itr;
         rv.second = view.first = itr;
         return rv;
     }
@@ -115,7 +115,7 @@ namespace RichED { namespace detail {
             if (itr[-1] == '\n') break;
             --itr;
         }
-        if (real_len && detail::is_2nd_surrogate(itr[-1])) --itr;
+        if (real_len && impl::is_2nd_surrogate(itr[-1])) --itr;
         rv.first = view.second = itr;
         return rv;
     }
@@ -199,7 +199,7 @@ namespace RichED { namespace detail {
         while (pos > cell->RefString().length) {
             assert(cell->RefMetaInfo().eol == false);
             pos -= cell->RefString().length;
-            cell = detail::next_cell(cell);
+            cell = impl::next_cell(cell);
         }
         const txtoff_t rv = { cell, pos };
         return rv;
@@ -210,7 +210,7 @@ namespace RichED { namespace detail {
         while (pos >= cell->RefString().length) {
             if (cell->RefMetaInfo().eol) break;
             pos -= cell->RefString().length;
-            cell = detail::next_cell(cell);
+            cell = impl::next_cell(cell);
         }
         const txtoff_t rv = { cell, pos };
         return rv;
@@ -449,7 +449,7 @@ namespace RichED {
         while (true) {
             length += cell->RefString().length;
             if (cell->RefMetaInfo().eol) break;
-            cell = detail::next_cell(cell);
+            cell = impl::next_cell(cell);
         }
         return length;
     }
@@ -552,10 +552,10 @@ RichED::CEDTextDocument::CEDTextDocument(IEDTextPlatform& plat, const DocInitArg
 /// <returns></returns>
 RichED::CEDTextDocument::~CEDTextDocument() noexcept {
     // 释放CELL链
-    auto cell = detail::next_cell(&m_head);
+    auto cell = impl::next_cell(&m_head);
     while (cell != &m_tail) {
         const auto node = cell;
-        cell = detail::next_cell(cell);
+        cell = impl::next_cell(cell);
         node->Dispose();
     }
     m_head.next = &m_tail;
@@ -635,7 +635,7 @@ void RichED::CEDTextDocument::Render(CtxPtr ctx) noexcept {
             return cell;
         }(this_line->first);
         // 获取循环表
-        const auto cells = detail::cfor_cells(start_point, next_line->first);
+        const auto cells = impl::cfor_cells(start_point, next_line->first);
         const auto baseline = this_line->offset + this_line->ar_height_max;
         for (auto& cell : cells) {
             this->platform.DrawContext(ctx, cell, baseline);
@@ -705,7 +705,7 @@ auto RichED::CEDTextDocument::InsertText(
         const auto line_data = m_vLogic[dp.line];
         dp.pos = std::min(dp.pos, line_data.length);
         // 获取偏移量
-        const auto move = detail::lfcount(view);
+        const auto move = impl::lfcount(view);
         DocPoint after = dp;
         // 往右移动指定数量位置
         after.line += move.line;
@@ -738,7 +738,7 @@ bool RichED::CEDTextDocument::InsertRuby(DocPoint dp, char32_t ch, U16View view,
     assert(ch && "bad char");
     if (dp.line < m_vLogic.GetSize()) {
         // 不能包含换行信息
-        const auto real_view = detail::lfview(view);
+        const auto real_view = impl::lfview(view);
         if (real_view.first == real_view.second) return assert(!"empty"), false;
         auto& line_data = m_vLogic[dp.line];
         dp.pos = std::min(dp.pos, line_data.length);
@@ -754,7 +754,7 @@ bool RichED::CEDTextDocument::InsertRuby(DocPoint dp, char32_t ch, U16View view,
         if (!cell) return false;
         const_cast<CellMeta&>(cell->RefMetaInfo()).metatype = Type_UnderRuby;
         auto& str = const_cast<FixedStringA&>(cell->RefString());
-        str.capacity = str.length = detail::utf32to16(ch, str.data);
+        str.capacity = str.length = impl::utf32to16(ch, str.data);
         // 插入内联对象
         if (!Private::Insert(*this, dp, *cell, line_data)) return false;
         // 插入普通数据
@@ -803,13 +803,13 @@ void RichED::CEDTextDocument::RankUpMagic(DocPoint dp, uint32_t len) noexcept {
     // 处理
     auto cell = data.first;
     auto pos = dp.pos;
-    detail::find_cell2_txtoff_ex(cell, pos);
+    impl::find_cell2_txtoff_ex(cell, pos);
     Private::Dirty(*this, *cell, dp.line);
     assert(pos < cell->RefString().length);
     // 单字
     uint32_t end_pos = pos + 1;
     // 双字
-    if (detail::is_1st_surrogate(cell->RefString().data[pos]))
+    if (impl::is_1st_surrogate(cell->RefString().data[pos]))
         end_pos++;
     if (!cell->Split(end_pos)) return;
     if (cell = cell->Split(pos)) {
@@ -820,7 +820,7 @@ void RichED::CEDTextDocument::RankUpMagic(DocPoint dp, uint32_t len) noexcept {
         cell->AsDirty();
         // 后面标记为注音
         while (!cell->RefMetaInfo().eol) {
-            cell = detail::next_cell(cell);
+            cell = impl::next_cell(cell);
             if (len <= cell->RefString().length) {
                 cell->Split(len);
                 const_cast<CellType&>(cell->RefMetaInfo().metatype) = Type_Ruby;
@@ -849,7 +849,7 @@ void RichED::CEDTextDocument::RankUpMagic(
             const auto next_is_first = data.first->prev;
             auto cell = data.first;
             auto pos = dp.pos;
-            detail::find_cell2_txtoff_ex(cell, pos);
+            impl::find_cell2_txtoff_ex(cell, pos);
             Private::Dirty(*this, *cell, dp.line);
             assert(pos < cell->RefString().length);
             // 分离对象
@@ -862,7 +862,7 @@ void RichED::CEDTextDocument::RankUpMagic(
             RichED::InsertAfterFirst(*cell, *obj);
             cell->RemoveTextEx({ pos , 1 });
             // 防止失效
-            data.first = detail::next_cell(next_is_first);
+            data.first = impl::next_cell(next_is_first);
             return;
         }
     }
@@ -1018,7 +1018,7 @@ void RichED::CEDTextDocument::Private::GenText(
         append({ ptr0 + ctx.begin.offset, ptr0 + len0 });
         if (ctx.begin.cell->RefMetaInfo().eol) linefeed();
         // B
-        const auto cfor = detail::cfor_cells(ctx.begin.cell->next, ctx.end.cell);
+        const auto cfor = impl::cfor_cells(ctx.begin.cell->next, ctx.end.cell);
         for (auto& cell : cfor) {
             append(cell.View());
             if (cell.RefMetaInfo().eol) linefeed();
@@ -1104,16 +1104,16 @@ void RichED::CEDTextDocument::VAlignHelperH(unit_t ar, unit_t height, CellMetric
 /// <returns></returns>
 void RichED::CEDTextDocument::ForceResetAllRiched() noexcept {
     // 遍历所有节点
-    auto cell = detail::next_cell(&m_head);
+    auto cell = impl::next_cell(&m_head);
     while (cell != &m_tail) {
         const auto node = cell;
-        cell = detail::next_cell(cell);
+        cell = impl::next_cell(cell);
         node->SetRichED(this->default_riched);
         node->Sleep();
     }
     // 标记为脏
     m_vVisual.ReduceSize(1);
-    //Private::Dirty(*this, *detail::next_cell(&m_head), 0);
+    //Private::Dirty(*this, *impl::next_cell(&m_head), 0);
     Private::NeedRedraw(*this);
     Private::RefreshCaret(*this, m_dpCaret, nullptr);
 }
@@ -1230,7 +1230,7 @@ bool RichED::CEDTextDocument::GuiChar(char32_t ch) noexcept {
     }
 #endif
     char16_t buf[2];
-    const auto len = detail::utf32to16(ch, buf);
+    const auto len = impl::utf32to16(ch, buf);
     return this->GuiText({ buf, buf + len });
 }
 
@@ -1250,14 +1250,14 @@ bool RichED::CEDTextDocument::GuiText(U16View view) noexcept {
         view.second = view.first;
         if (m_info.length_max > m_info.total_length) {
             view.second += m_info.length_max - m_info.total_length;
-            if (detail::is_2nd_surrogate(*view.second)) 
+            if (impl::is_2nd_surrogate(*view.second)) 
                 --view.second;
         }
     }
     // 没有头发
     if (view.second == view.first) return false;
     // 记录下来
-    detail::op_recorder recorder{ *this };
+    impl::op_recorder recorder{ *this };
     // 删除选择区
     Private::DeleteSelection(*this);
     // 输入密码
@@ -1287,7 +1287,7 @@ bool RichED::CEDTextDocument::gui_password(U16View view) noexcept {
         char16_t pwbuf16[PASSWORD_INPUT_BUFFER * 2];
         auto itr = pwbuf16;
         for (uint32_t i = 0; i != count; ++i)
-            itr += detail::utf32to16(pwbuf32[i], itr);
+            itr += impl::utf32to16(pwbuf32[i], itr);
         caret_target = this->InsertText(caret_target, { pwbuf16 , itr }, true);
     };
     uint32_t char_count = 0, char_total = 0;
@@ -1295,10 +1295,10 @@ bool RichED::CEDTextDocument::gui_password(U16View view) noexcept {
     while (view.first < view.second) {
         char32_t ch = *view.first;
         // 将U16转换成U32
-        if (detail::is_1st_surrogate(*view.first)) {
-            ch = detail::char16x2to32(view.first[0], view.first[1]);
+        if (impl::is_1st_surrogate(*view.first)) {
+            ch = impl::char16x2to32(view.first[0], view.first[1]);
             ++view.first;
-            assert(detail::is_2nd_surrogate(*view.first));
+            assert(impl::is_2nd_surrogate(*view.first));
             assert(view.first < view.second);
         }
         // 再判断合法性
@@ -1369,7 +1369,7 @@ auto RichED::CEDTextDocument::password_helper16(
     U16View view; view.first = reinterpret_cast<char16_t*>(buf);
     const auto& str = cell.RefString();
     // XXX: 不用每次计算?
-    uint32_t fill_count = detail::count({ str.data, str.data + str.length });
+    uint32_t fill_count = impl::count({ str.data, str.data + str.length });
     // utf32 -> utf16
     if (mode) view.second = view.first + fill_count * 2;
     else {
@@ -1390,7 +1390,7 @@ bool RichED::CEDTextDocument::GuiBackspace(bool ctrl) noexcept {
     // 只读
     if (m_info.flags & Flag_GuiReadOnly) return false;
     // 开始记录
-    detail::op_recorder recorder{ *this };
+    impl::op_recorder recorder{ *this };
     // 删除选择区
     if (Private::DeleteSelection(*this)) {
         // TODO: BACK == LEFT ?
@@ -1416,7 +1416,7 @@ bool RichED::CEDTextDocument::GuiDelete(bool ctrl) noexcept {
     // 只读
     if (m_info.flags & Flag_GuiReadOnly) return false;
     // 开始记录
-    detail::op_recorder recorder{ *this };
+    impl::op_recorder recorder{ *this };
     // 删除选择区
     if (Private::DeleteSelection(*this)) {
         // TODO: DELETE == RIGHT ?
@@ -1458,7 +1458,7 @@ bool RichED::CEDTextDocument::GuiRuby(char32_t ch, U16View ruby, const RichData*
     // 只读
     if (m_info.flags & Flag_GuiReadOnly) return false;
     // 开始记录
-    detail::op_recorder recorder{ *this };
+    impl::op_recorder recorder{ *this };
     // 删除选择区
     Private::DeleteSelection(*this);
     // 插入对象
@@ -1482,7 +1482,7 @@ bool RichED::CEDTextDocument::GuiInline(const InlineInfo& info, int16_t len, Cel
     // 只读
     if (m_info.flags & Flag_GuiReadOnly) return false;
     // 开始记录
-    detail::op_recorder recorder{ *this };
+    impl::op_recorder recorder{ *this };
     // 删除选择区
     Private::DeleteSelection(*this);
     // 插入对象
@@ -1662,7 +1662,7 @@ bool RichED::CEDTextDocument::gui_riched(uint32_t offset, uint32_t size, const v
     // TODO: 没有选择的时候应该将默认的富属性修改为目标?
     if (Cmp(m_dpSelBegin) == Cmp(m_dpSelEnd)) return false;
     // 尝试记录
-    detail::op_recorder recorder{ *this };
+    impl::op_recorder recorder{ *this };
     // 正式调用
     const auto rv = this->set_riched(m_dpSelBegin, m_dpSelEnd, offset, size, data, relayout);
     // 重新布局?
@@ -1689,7 +1689,7 @@ bool RichED::CEDTextDocument::gui_flags(uint16_t flags, uint32_t set) noexcept {
     // TODO: 没有选择的时候应该将默认的富属性修改为目标?
     if (Cmp(m_dpSelBegin) == Cmp(m_dpSelEnd)) return false;
     // 尝试记录
-    detail::op_recorder recorder{ *this };
+    impl::op_recorder recorder{ *this };
     // 正式调用
     const auto rv = this->set_flags(m_dpSelBegin, m_dpSelEnd, flags, set);
     // 重新布局?
@@ -1756,7 +1756,7 @@ bool RichED::CEDTextDocument::set_riched(
     const auto e = cell2->Split(pos2);
     const auto b = cell1->Split(pos1);
     if (b && e) {
-        const auto cfor = detail::cfor_cells(b, e);
+        const auto cfor = impl::cfor_cells(b, e);
         for (auto& cell : cfor) set_data(cell);
         // 重新布局
         if (relayout) Private::Dirty(*this, *cell1, begin.line);
@@ -1852,7 +1852,7 @@ bool RichED::CEDTextDocument::set_flags(
     const auto e = cell2->Split(pos2);
     const auto b = cell1->Split(pos1);
     if (b && e) {
-        const auto cfor = detail::cfor_cells(b, e);
+        const auto cfor = impl::cfor_cells(b, e);
         Private::NeedRedraw(*this);
         for (auto& cell : cfor) set_data(cell);
         // 重新布局
@@ -1961,7 +1961,7 @@ void RichED::CEDTextDocument::Private::ExpandVL(
                 // -------------------------
                 line.char_len_this = char_length_vl;
                 // 换行
-                if (!detail::push_data(vlv, line, doc.platform)) return;
+                if (!impl::push_data(vlv, line, doc.platform)) return;
                 cell->metrics.pos = 0;
                 // 这里换行不是逻辑
                 line.char_len_before += char_length_vl;
@@ -1998,12 +1998,12 @@ void RichED::CEDTextDocument::Private::ExpandVL(
         // 换行
         if (new_line) {
             line.char_len_this = char_length_vl;
-            if (!detail::push_data(vlv, line, doc.platform)) return;
+            if (!impl::push_data(vlv, line, doc.platform)) return;
             line.char_len_before += char_length_vl;
             char_length_vl = 0;
             line.lineno += cell->RefMetaInfo().eol;
             if (cell->RefMetaInfo().eol) line.char_len_before = 0;
-            line.first = detail::next_cell(cell);
+            line.first = impl::next_cell(cell);
             // 行偏移 = 上一行偏移 + 上一行最大升高 + 上一行最大降高
             line.offset += line.ar_height_max + line.dr_height_max;
             line.ar_height_max = 0;
@@ -2016,7 +2016,7 @@ void RichED::CEDTextDocument::Private::ExpandVL(
             }
         }
         // 推进
-        cell = detail::next_cell(cell);
+        cell = impl::next_cell(cell);
     }
     // 末尾
     push_data(vlv, line, doc.platform);
@@ -2044,12 +2044,12 @@ void RichED::CEDTextDocument::Private::Recreate(
         bool need_create = false;
         const auto end_cell = [&cell, &need_create]() noexcept {
             need_create = cell.RefMetaInfo().dirty;
-            auto node = detail::next_cell(&cell);
+            auto node = impl::next_cell(&cell);
             //assert(node->RefMetaInfo().metatype == Type_Ruby);
             while (node->RefMetaInfo().metatype == Type_Ruby) {
                 need_create |= node->RefMetaInfo().dirty;
                 const auto eol = node->RefMetaInfo().eol;
-                node = detail::next_cell(node);
+                node = impl::next_cell(node);
                 if (eol) break;
             }
             return node;
@@ -2060,19 +2060,19 @@ void RichED::CEDTextDocument::Private::Recreate(
         {
             cell.AsDirty();
             doc.recreate_context(cell);
-            auto node = detail::next_cell(&cell);
+            auto node = impl::next_cell(&cell);
             // 没有注音
             if (node == end_cell) return;
             while (node != end_cell) {
                 node->AsDirty();
                 doc.recreate_context(*node);
                 width += node->metrics.width;
-                node = detail::next_cell(node);
+                node = impl::next_cell(node);
             }
         }
         // 第三次遍历: 重构布局
         {
-            auto node = detail::next_cell(&cell);
+            auto node = impl::next_cell(&cell);
             const unit_t allw = std::max(width, cell.metrics.width);
             const unit_t offy =  -(node->metrics.dr_height + cell.metrics.ar_height);
             const unit_t height = node->metrics.ar_height + node->metrics.dr_height;
@@ -2086,7 +2086,7 @@ void RichED::CEDTextDocument::Private::Recreate(
                 node->metrics.offset.y = offy;
                 offset += node->metrics.width;
                 node->metrics.width = 0;
-                node = detail::next_cell(node);
+                node = impl::next_cell(node);
             }
         }
     }
@@ -2152,27 +2152,27 @@ auto RichED::CEDTextDocument::Private::CheckWrap(
             if (ch == ' ') return cell.Split(this_index);
             // CJK需要提前一个字符
             char32_t cjk; const auto lch = str[this_index - 1];
-            if (detail::is_2nd_surrogate(lch)) {
+            if (impl::is_2nd_surrogate(lch)) {
                 assert(index); --index;
                 const auto pch = str[this_index - 2];
-                assert(detail::is_1st_surrogate(pch));
-                cjk = detail::char16x2to32(pch, lch);
+                assert(impl::is_1st_surrogate(pch));
+                cjk = impl::char16x2to32(pch, lch);
             }
             else cjk = static_cast<char32_t>(lch);
-            if (detail::is_cjk(cjk)) return cell.Split(this_index);
+            if (impl::is_cjk(cjk)) return cell.Split(this_index);
         } while (index--);
         // 向后查找空格、CJK
         for (index = hittest.pos; index != len; ++index) {
             const auto ch = str[index];
             if (ch == ' ') return cell.Split(index + 1);
             char32_t cjk;
-            if (detail::is_1st_surrogate(ch)) {
+            if (impl::is_1st_surrogate(ch)) {
                 const auto nch = str[++index];
-                assert(detail::is_2nd_surrogate(nch));
-                cjk = detail::char16x2to32(ch, nch);
+                assert(impl::is_2nd_surrogate(nch));
+                cjk = impl::char16x2to32(ch, nch);
             }
             else cjk = static_cast<char32_t>(ch);
-            if (detail::is_cjk(cjk)) return cell.Split(index);
+            if (impl::is_cjk(cjk)) return cell.Split(index);
         }
         break;
     case Mode_Anywhere:
@@ -2319,7 +2319,7 @@ bool RichED::CEDTextDocument::Private::Insert(
     auto pos = dp.pos;
     auto cell = linedata.first;
     // 遍历到合适的位置
-    detail::find_cell1_txtoff_ex(cell, pos);
+    impl::find_cell1_txtoff_ex(cell, pos);
     // 这之后的为脏
     Private::Dirty(doc, *cell, dp.line);
 
@@ -2330,7 +2330,7 @@ bool RichED::CEDTextDocument::Private::Insert(
 
     // 1. 插入双字UTF16中间
     if (pos < cell->RefString().length) {
-        if (detail::is_2nd_surrogate(cell->RefString().data[pos])) return false;
+        if (impl::is_2nd_surrogate(cell->RefString().data[pos])) return false;
     }
     // 插在后面
     else {
@@ -2342,7 +2342,7 @@ bool RichED::CEDTextDocument::Private::Insert(
                 if (!obj) return false;
                 RichED::InsertAfterFirst(*cell, *obj);
             }
-            cell = detail::next_cell(cell);
+            cell = impl::next_cell(cell);
             pos = 0; 
         }
         // 插入被注音后面算作注音
@@ -2366,7 +2366,7 @@ bool RichED::CEDTextDocument::Private::Insert(
 
 
     // 第一次遍历, 为m_vLogic创建空间
-    const auto lf_count = detail::lfcount(view).line;
+    const auto lf_count = impl::lfcount(view).line;
     if (lf_count) {
         const size_t moved = sizeof(LogicLine) * (doc.m_vLogic.GetSize() - dp.line - 1);
         const auto ns = doc.m_vLogic.GetSize() + lf_count;
@@ -2445,8 +2445,8 @@ bool RichED::CEDTextDocument::Private::Insert(
     }
     //cells = { cell_a, cell_b };
     // 对其进行插入
-    const auto view1 = detail::nice_view1(view, cell_a->RefString().Left());
-    const auto view2 = detail::nice_view2(view, cell_b->RefString().Left());
+    const auto view1 = impl::nice_view1(view, cell_a->RefString().Left());
+    const auto view2 = impl::nice_view2(view, cell_b->RefString().Left());
 
     line_ptr[0].first = static_cast<CEDTextCell*>(*pointer_to_the_first_at_line);;
     line_ptr[0].length += add_total(view1.second - view1.first);
@@ -2463,7 +2463,7 @@ bool RichED::CEDTextDocument::Private::Insert(
     if (view.first != view.second) {
         while (true) {
             // 获取新的一行字符数据
-            auto line_view = detail::lfview(view);
+            auto line_view = impl::lfview(view);
             // 有效字符串 --- XA
             if (line_view.first != line_view.second || line_ptr != old_line_ptr) do {
                 // 将有效字符串拆分成最大长度的字符串块
@@ -2471,7 +2471,7 @@ bool RichED::CEDTextDocument::Private::Insert(
                 // 越界
                 if (this_end > line_view.second) this_end = line_view.second;
                 // 双字检查
-                if (detail::is_1st_surrogate(this_end[-1])) ++this_end;
+                if (impl::is_1st_surrogate(this_end[-1])) ++this_end;
                 // 创建CELL
                 const auto obj = RichED::CreateNormalCell(doc, riched);
                 // TODO: 强异常保证
@@ -2527,10 +2527,10 @@ bool RichED::CEDTextDocument::Private::Insert(
     // 遍历到合适的位置
     while (pos > cell->RefString().length) {
         pos -= cell->RefString().length;
-        cell = detail::next_cell(cell);
+        cell = impl::next_cell(cell);
     }
     // 遍历到合适的位置
-    detail::find_cell1_txtoff_ex(cell, pos);
+    impl::find_cell1_txtoff_ex(cell, pos);
     // 必须是正常的
     assert(pos == 0 || pos == cell->RefString().length || cell->RefMetaInfo().metatype == Type_Normal);
 
@@ -2548,7 +2548,7 @@ bool RichED::CEDTextDocument::Private::Insert(
     else if (pos < cell->RefString().length) if (!cell->Split(pos)) return false;
     RichED::InsertAfterFirst(*insert_after_this, obj);
 
-    line_data.first = detail::next_cell(next_is_first);
+    line_data.first = impl::next_cell(next_is_first);
     // 添加总长度
     const auto add_total = [&doc](uint32_t l) noexcept {
         doc.m_info.total_length += l; return l;
@@ -2576,18 +2576,18 @@ void RichED::CEDTextDocument::Private::RecordObjs(
         const auto cell = ctx.begin.cell;
         if (cell->RefMetaInfo().eol) begin.line++, begin.pos = 0;
         else begin.pos += cell->RefString().length - ctx.begin.offset;
-        return detail::next_cell(cell);
+        return impl::next_cell(cell);
     };
     // 对象必须为起点为0, 终点为END
     const auto start_cell = ctx.begin.offset ? change_begin() : ctx.begin.cell;
     const auto end_cell = ctx.end.offset == ctx.end.cell->RefString().length
-        ? detail::next_cell(ctx.end.cell) : ctx.end.cell
+        ? impl::next_cell(ctx.end.cell) : ctx.end.cell
         ;
     if (start_cell == end_cell->next) return;
     if (start_cell == end_cell) return;
 
     const auto real_begin = begin;
-    const auto cfor = detail::cfor_cells(start_cell, end_cell);
+    const auto cfor = impl::cfor_cells(start_cell, end_cell);
 
     // 遍历用模板函数
     const auto for_it = [cfor](auto call, DocPoint dp) noexcept {
@@ -2633,7 +2633,7 @@ void RichED::CEDTextDocument::Private::RecordObjs(
             // 计算有效注音长度
             auto cell = object;
             while (!cell->RefMetaInfo().eol) {
-                cell = detail::next_cell(cell);
+                cell = impl::next_cell(cell);
                 if (cell->RefMetaInfo().metatype != Type_Ruby) break;
                 ruby += cell->RefString().length;
             }
@@ -2664,14 +2664,14 @@ bool RichED::CEDTextDocument::Private::RichRange(
     out[1] = in.end;
     // 起点是cell结束则换到下一个cell
     if (out[0].offset == out[0].cell->RefString().length) {
-        out[0].cell = detail::next_cell(out[0].cell);
+        out[0].cell = impl::next_cell(out[0].cell);
         out[0].offset = 0;
         //  一致就算了: [特殊]不对EOL单独富属性就行记录
         if (out[0].cell == out[1].cell && out[0].offset == out[1].offset) return false;
     }
     // 终点是cell开始则换到上一个cell结束
     if (!out[1].offset) {
-        out[1].cell = detail::prev_cell(out[1].cell);
+        out[1].cell = impl::prev_cell(out[1].cell);
         out[1].offset = out[1].cell->RefString().length;
         //  一致就算了: [特殊]不对EOL单独富属性就行记录
         if (out[0].cell == out[1].cell && out[0].offset == out[1].offset) return false;
@@ -2706,9 +2706,9 @@ void RichED::CEDTextDocument::Private::RecordRich(
     // 计算不同的富属性多少个
     uint32_t count = 1;
     auto riched = &cell1->RefRichED();
-    const auto cfor = detail::cfor_cells(cell1, cell2);
+    const auto cfor = impl::cfor_cells(cell1, cell2);
     for (auto& cell : cfor) {
-        auto& real_cell = *detail::next_cell(&cell);
+        auto& real_cell = *impl::next_cell(&cell);
         if (real_cell.RefString().length && real_cell.RefRichED() != *riched) {
             riched = &real_cell.RefRichED();
             ++count;
@@ -2743,7 +2743,7 @@ void RichED::CEDTextDocument::Private::RecordRich(
         start = 0;
         if (cell.RefMetaInfo().eol) { end.line++; end.pos = 0; }
 
-        auto& real_cell = *detail::next_cell(&cell);
+        auto& real_cell = *impl::next_cell(&cell);
         // 新的格式
         if (real_cell.RefRichED() != *riched) {
             impl::rich_set(data, index, *riched, begin, end);
@@ -2922,7 +2922,7 @@ bool RichED::CEDTextDocument::Private::RemoveText(
     // 标记为脏
     Private::Dirty(doc, *cell1, begin.line);
     // 处理
-    const auto cell2_next = detail::next_cell(cell2);
+    const auto cell2_next = impl::next_cell(cell2);
     bool delete_eol = false;
     // 删除地点在同一个CELL内部
     if (cell1 == cell2) {
@@ -2972,7 +2972,7 @@ bool RichED::CEDTextDocument::Private::RemoveText(
     line_data1.length = begin.pos;
     line_data1.length += line_data2.length - end.pos;
     // 行首计算
-    line_data1.first = detail::next_cell(next_is_first_to_line_1);
+    line_data1.first = impl::next_cell(next_is_first_to_line_1);
     // 合并逻辑行
     if (begin.line != end.line) {
         auto& llv = doc.m_vLogic;
@@ -3063,14 +3063,14 @@ bool RichED::CEDTextDocument::Private::CheckRange(
             auto cell1 = line_data1.first;
             auto pos2 = end.pos;
             auto cell2 = line_data2.first;
-            detail::find_cell2_txtoff_ex(cell1, pos1);
+            impl::find_cell2_txtoff_ex(cell1, pos1);
             // TODO: [优化] cell2从cell1处搜索
-            detail::find_cell1_txtoff_ex(cell2, pos2);
+            impl::find_cell1_txtoff_ex(cell2, pos2);
             assert(cell1 != cell2 || pos1 != pos2);
             // 删除无效区间
-            if (detail::is_2nd_surrogate(cell1->RefString().data[pos1])) return false;
+            if (impl::is_2nd_surrogate(cell1->RefString().data[pos1])) return false;
             if (pos2 < cell2->RefString().length)
-                if (detail::is_2nd_surrogate(cell2->RefString().data[pos2])) return false;
+                if (impl::is_2nd_surrogate(cell2->RefString().data[pos2])) return false;
             ctx.begin = { cell1, pos1 };
             ctx.end = { cell2, pos2 };
             ctx.line1 = &line_data1;
@@ -3107,7 +3107,7 @@ bool RichED::CEDTextDocument::Private::HitTest(
     // 太高的话算第一行
     if (itr == vlv.begin()) {
         ctx.visual_line = &itr[0];
-        ctx.text_cell = detail::next_cell(&doc.m_head);
+        ctx.text_cell = impl::next_cell(&doc.m_head);
         ctx.len_before_cell = 0;
         ctx.pos_in_cell = 0;
         return true;
@@ -3144,7 +3144,7 @@ bool RichED::CEDTextDocument::Private::HitTest(
     else {
         unit_t offthis = pos.x;
         uint32_t char_offset_in_line = line0.char_len_before;
-        const auto cfor = detail::cfor_cells(line0.first, last);
+        const auto cfor = impl::cfor_cells(line0.first, last);
         auto target = last;
         for (auto& cell : cfor) {
             if (offthis < cell.metrics.width
@@ -3218,7 +3218,7 @@ void RichED::CEDTextDocument::Private::HitTest(
         // 搜索cell
         auto cell = itr->first;
         auto pos = dp.pos;
-        detail::find_cell1_txtoff_ex(cell, pos);
+        impl::find_cell1_txtoff_ex(cell, pos);
         ctx.visual_line = itr;
         ctx.len_before_cell += dp.pos - pos;
         ctx.pos_in_cell = pos;
@@ -3242,7 +3242,7 @@ auto RichED::CEDTextDocument::Private::CheckPoint(
         cp.cell = ll.first;
         cp.offset = dp.pos;
         if (dp.pos > ll.length) cp.offset = ll.length;
-        detail::find_cell1_txtoff_ex(cp.cell, cp.offset);
+        impl::find_cell1_txtoff_ex(cp.cell, cp.offset);
     }
     return cp;
 }
@@ -3388,7 +3388,7 @@ auto RichED::CEDTextDocument::Private::LogicLeft(
             const auto first_cell = line.first;
             auto pos = dp.pos;
             auto cell = first_cell;
-            detail::find_cell1_txtoff_ex(cell, pos);
+            impl::find_cell1_txtoff_ex(cell, pos);
             assert(pos && "BAD ACTION");
             // 遇到注音则移动的到被注音前面(有的话)
             rv = dp; 
@@ -3407,7 +3407,7 @@ auto RichED::CEDTextDocument::Private::LogicLeft(
             // 否则检查UTF16规则, 避免移动到错误地点
             else {
                 --rv.pos;
-                if (detail::is_2nd_surrogate(cell->RefString().data[pos - 1])) --rv.pos;
+                if (impl::is_2nd_surrogate(cell->RefString().data[pos - 1])) --rv.pos;
             }
         }
         // 处于行首
@@ -3444,12 +3444,12 @@ auto RichED::CEDTextDocument::Private::LogicRight(
             auto cell = line.first;
             auto pos = dp.pos;
             rv = dp;
-            detail::find_cell2_txtoff_ex(cell, pos);
+            impl::find_cell2_txtoff_ex(cell, pos);
             // 遇到被注音则移动的到注音后面(有的话)
             if (cell->RefMetaInfo().metatype == Type_UnderRuby) {
                 rv.pos += cell->RefString().length - pos;
                 while (!cell->RefMetaInfo().eol) {
-                    cell = detail::next_cell(cell);
+                    cell = impl::next_cell(cell);
                     if (cell->RefMetaInfo().metatype != Type_Ruby) break;
                     rv.pos += cell->RefString().length;
                 }
@@ -3458,7 +3458,7 @@ auto RichED::CEDTextDocument::Private::LogicRight(
             else {
                 assert(pos < cell->RefString().length && "BAD ACTION");
                 ++rv.pos;
-                if (detail::is_1st_surrogate(cell->RefString().data[pos])) ++rv.pos;
+                if (impl::is_1st_surrogate(cell->RefString().data[pos])) ++rv.pos;
             }
         }
     }
@@ -3504,7 +3504,7 @@ auto RichED::CEDTextDocument::PWHelperPos(const CEDTextCell& cell, const uint32_
         assert(pos < string.length && "Out of Range");
         uint32_t count = 0;
         for (uint32_t i = 0; i < pos; ++i) {
-            if (detail::is_1st_surrogate(string.data[i])) ++i;
+            if (impl::is_1st_surrogate(string.data[i])) ++i;
             ++count;
         }
         if (m_bPassword4) count *= 2;
@@ -3528,7 +3528,7 @@ void RichED::CEDTextDocument::PWHelperHit(const CEDTextCell& cell, CellHitTest& 
         uint32_t count = 0; uint32_t length = 1;
         for (uint32_t i = 0; i != count_mode; ++i) {
             length = 1;
-            if (detail::is_1st_surrogate(string.data[i])) length = 2;
+            if (impl::is_1st_surrogate(string.data[i])) length = 2;
             count += length;
         }
         assert(count < string.length && "Out of Range");
@@ -3554,7 +3554,7 @@ auto RichED::CEDTextDocument::PWHelperLen(const CEDTextCell& cell, const uint32_
         auto& string = cell.RefString();
         uint32_t count = 0;
         for (uint32_t i = 0; i != count_mode; ++i) {
-            if (detail::is_1st_surrogate(string.data[i])) ++count;
+            if (impl::is_1st_surrogate(string.data[i])) ++count;
             ++count;
         }
         assert(count < string.length && "Out of Range");
@@ -3577,7 +3577,7 @@ auto RichED::CEDTextDocument::PWHelperCnt(const CEDTextCell & cell, const uint32
         auto& string = cell.RefString();
         uint32_t count = 0;
         for (uint32_t i = 0; i != pos; ++i) {
-            if (detail::is_1st_surrogate(string.data[i])) ++count;
+            if (impl::is_1st_surrogate(string.data[i])) ++count;
             ++count;
         }
         assert(count < string.length && "Out of Range");

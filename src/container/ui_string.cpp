@@ -11,7 +11,7 @@ PCN_NOINLINE
 /// <param name="begin">The begin.</param>
 /// <param name="end">The end.</param>
 /// <returns></returns>
-void LongUI::detail::string_helper::string_assign(
+void LongUI::impl::string_helper::string_assign(
     base_str& str,
     const char* begin, 
     const char* end) noexcept {
@@ -39,7 +39,7 @@ PCN_NOINLINE
 /// <param name="begin">The begin.</param>
 /// <param name="end">The end.</param>
 /// <returns></returns>
-void LongUI::detail::string_helper::string_insert(
+void LongUI::impl::string_helper::string_insert(
     base_str& str,
     uintptr_t pos,
     const char* begin,
@@ -71,7 +71,7 @@ PCN_NOINLINE
 /// <param name="pos">The position.</param>
 /// <param name="len">The length.</param>
 /// <returns></returns>
-void LongUI::detail::string_helper::string_erase(
+void LongUI::impl::string_helper::string_erase(
     base_str& str, size_t pos, size_t len) noexcept {
     // 内存有效
     if (str.is_ok()) {
@@ -94,7 +94,7 @@ PCN_NOINLINE
 /// <param name="fmt">The FMT.</param>
 /// <param name="">The .</param>
 /// <returns></returns>
-bool LongUI::detail::string_helper::string_format(
+bool LongUI::impl::string_helper::string_format(
     base_str& str, const char* fmt, ...) noexcept {
     // 内存不足
     if (!str.is_ok()) return false;
@@ -151,8 +151,8 @@ on_error:
     return false;
 }
 
-// LongUI::detail
-namespace LongUI { namespace detail {
+// LongUI::impl
+namespace LongUI { namespace impl {
     template<typename T>
     inline auto split_view(PodStringView<T>& view, T ch) noexcept ->PodStringView<T> {
         // 初始化
@@ -186,7 +186,7 @@ namespace LongUI { namespace detail {
 /// <param name="pos">The position.</param>
 /// <param name="bytelen">The bytelen.</param>
 /// <returns></returns>
-void LongUI::detail::string_helper::string_set_null_char(
+void LongUI::impl::string_helper::string_set_null_char(
     void * pos, size_t bytelen) noexcept {
 #if 0
     // utf-8?
@@ -211,7 +211,7 @@ PCN_NOINLINE
 /// <param name="src_begin">The source begin.</param>
 /// <param name="src_end">The source end.</param>
 /// <returns></returns>
-void LongUI::detail::string_helper::copy_from_latin1(
+void LongUI::impl::string_helper::copy_from_latin1(
     wchar_t* des,
     const char* src_begin,
     const char* src_end) noexcept {
@@ -248,13 +248,13 @@ void LongUI::detail::string_helper::copy_from_latin1(
 template<>
 PCN_NOINLINE
 auto LongUI::PodStringView<char>::Split(char ch) noexcept -> PodStringView<char> {
-    return detail::split_view(*this, ch);
+    return impl::split_view(*this, ch);
 }
 
 template<>
 PCN_NOINLINE
 auto LongUI::PodStringView<wchar_t>::Split(wchar_t ch) noexcept -> PodStringView<wchar_t> {
-    return detail::split_view(*this, ch);
+    return impl::split_view(*this, ch);
 }
 
 PCN_NOINLINE
@@ -266,7 +266,7 @@ PCN_NOINLINE
 /// <param name="tokenbegin">The tokenbegin.</param>
 /// <param name="tokenend">The tokenend.</param>
 /// <returns></returns>
-void LongUI::detail::string_helper::string_split(
+void LongUI::impl::string_helper::string_split(
     const base_str& str, 
     POD::Vector<PodStringView<char>>& list,
     const char* tokenbegin, 
@@ -318,7 +318,7 @@ void LongUI::detail::string_helper::string_split(
 /// <param name="str">The string.</param>
 /// <returns></returns>
 template<typename T>
-inline void LongUI::detail::string_helper::string_split(
+inline void LongUI::impl::string_helper::string_split(
     T ch, 
     base_str& str, 
     POD::Vector<PodStringView<T>>& list
@@ -359,7 +359,7 @@ PCN_NOINLINE
 /// <param name="str">The string.</param>
 /// <param name="ch">The ch.</param>
 /// <returns></returns>
-void LongUI::detail::string_helper::string_split(
+void LongUI::impl::string_helper::string_split(
     base_str& str, 
     POD::Vector<PodStringView<char>>& list,
     char ch) noexcept {
@@ -373,7 +373,7 @@ PCN_NOINLINE
 /// <param name="str">The string.</param>
 /// <param name="ch">The ch.</param>
 /// <returns></returns>
-void LongUI::detail::string_helper::string_split(
+void LongUI::impl::string_helper::string_split(
     base_str& str,
     POD::Vector<PodStringView<char>>& list,
     wchar_t ch) noexcept {
@@ -411,7 +411,7 @@ extern "C" {
 /// <param name="begin">The begin.</param>
 /// <param name="end">The end.</param>
 /// <returns></returns>
-void LongUI::detail::string_helper::string_u16_u32(base_str& str, const char16_t* begin, const char16_t* end) noexcept {
+void LongUI::impl::string_helper::string_u16_u32(base_str& str, const char16_t* begin, const char16_t* end) noexcept {
     // 计算所需缓存大小
     const auto len = ::ui_utf16_to_utf32_get_buflen(begin, end);
     str.reserve(len);
@@ -430,7 +430,7 @@ void LongUI::detail::string_helper::string_u16_u32(base_str& str, const char16_t
 /// <param name="begin">The begin.</param>
 /// <param name="end">The end.</param>
 /// <returns></returns>
-void LongUI::detail::string_helper::string_u16_u8(base_str& str, const char16_t* begin, const char16_t* end) noexcept {
+void LongUI::impl::string_helper::string_u16_u8(base_str& str, const char16_t* begin, const char16_t* end) noexcept {
     // 计算所需缓存大小
     const auto len = ::ui_utf16_to_utf8_get_buflen(begin, end);
     str.reserve(len);
@@ -452,7 +452,7 @@ PCN_NOINLINE
 /// <param name="decimalplaces"></param>
 /// <param name="decimalsysbol"></param>
 /// <returns></returns>
-void LongUI::detail::string_helper::string_double(
+void LongUI::impl::string_helper::string_double(
     base_str& str, double value, double round,
     uint32_t decimalplaces, char decimalsysbol) noexcept {
     const uint32_t max_places = std::min(decimalplaces, 15_ui32);
@@ -492,7 +492,7 @@ void LongUI::detail::string_helper::string_double(
 /// <param name="begin">The begin.</param>
 /// <param name="end">The end.</param>
 /// <returns></returns>
-void LongUI::detail::string_helper::string_u8_u16(
+void LongUI::impl::string_helper::string_u8_u16(
     base_str& str,
     const char* begin,
     const char* end) noexcept {
@@ -516,7 +516,7 @@ void LongUI::detail::string_helper::string_u8_u16(
 /// <param name="begin">The begin.</param>
 /// <param name="end">The end.</param>
 /// <returns></returns>
-void LongUI::detail::string_helper::string_u8_u32(
+void LongUI::impl::string_helper::string_u8_u32(
     base_str& str, const char* begin, const char* end) noexcept{
     assert(str.m_uByteLen == sizeof(char32_t));
     // 计算所需缓存大小

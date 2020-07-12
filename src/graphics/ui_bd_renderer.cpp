@@ -148,23 +148,23 @@ auto LongUI::CUIRendererBorder::refresh_image() noexcept -> Result {
 /// <returns></returns>
 void LongUI::CUIRendererBorder::refresh_real_slice() noexcept {
     // LEFT
-    if (detail::is_percent_value(m_rcSlice.left))
-        m_rcRealSlice.left = detail::get_percent_value(m_rcSlice.left);
+    if (impl::is_percent_value(m_rcSlice.left))
+        m_rcRealSlice.left = impl::get_percent_value(m_rcSlice.left);
     else
         m_rcRealSlice.left = m_rcSlice.left / m_szImage.width;
     // TOP
-    if (detail::is_percent_value(m_rcSlice.top)) 
-        m_rcRealSlice.top = detail::get_percent_value(m_rcSlice.top);
+    if (impl::is_percent_value(m_rcSlice.top)) 
+        m_rcRealSlice.top = impl::get_percent_value(m_rcSlice.top);
     else
         m_rcRealSlice.top = m_rcSlice.top / m_szImage.height;
     // RIGHT
-    if (detail::is_percent_value(m_rcSlice.right))
-        m_rcRealSlice.right = detail::get_percent_value(m_rcSlice.right);
+    if (impl::is_percent_value(m_rcSlice.right))
+        m_rcRealSlice.right = impl::get_percent_value(m_rcSlice.right);
     else
         m_rcRealSlice.right = m_rcSlice.right / m_szImage.width;
     // BOTTOM
-    if (detail::is_percent_value(m_rcSlice.bottom))
-        m_rcRealSlice.bottom = detail::get_percent_value(m_rcSlice.bottom);
+    if (impl::is_percent_value(m_rcSlice.bottom))
+        m_rcRealSlice.bottom = impl::get_percent_value(m_rcSlice.bottom);
     else
         m_rcRealSlice.bottom = m_rcSlice.bottom / m_szImage.height;
 }

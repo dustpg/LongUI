@@ -123,7 +123,7 @@ auto LongUI::UIScrollArea::do_wheel(int index, float wheel) noexcept ->EventAcce
         auto& offset = index[&m_ptChildOffset.x];
         const auto line_height = UIManager.GetWheelScrollLines();
         float pos = offset - index[&this->line_size.width] * wheel * line_height;
-        pos = detail::clamp(pos, 0.f, maxv);
+        pos = impl::clamp(pos, 0.f, maxv);
         // 已经修改
         if (pos != offset) {
             offset = pos;

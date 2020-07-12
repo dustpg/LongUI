@@ -81,7 +81,7 @@ namespace LongUI {
         return U8View{ v.first, v.first + v.length };
     }
     // detail namespace
-    namespace detail {
+    namespace impl {
         // using namespace
         using namespace SimpAC;
         // attribute write
@@ -152,7 +152,7 @@ void LongUI::ValueTypeMakeValue(
         // [OVERFLOW]
         //   -- overflow-x
         //   -- overflow-y
-        detail::attribute(ssv.data4.byte, AttrParser::Overflow(U8(values[0])));
+        impl::attribute(ssv.data4.byte, AttrParser::Overflow(U8(values[0])));
         break;
     case ValueType::Type_MarginTop:
     case ValueType::Type_MarginRight:
@@ -180,7 +180,7 @@ void LongUI::ValueTypeMakeValue(
     case ValueType::Type_WKTextStrokeWidth:
         // [FLOAT]
         assert(value_len == 1 && "unsupported");
-        detail::attribute(ssv.data4.single, detail::parse_float(values[0]));
+        impl::attribute(ssv.data4.single, impl::parse_float(values[0]));
         break;
     case ValueType::Type_BackgroundColor:
     case ValueType::Type_BorderColor:
@@ -193,7 +193,7 @@ void LongUI::ValueTypeMakeValue(
         //   -- -webkit-text-stroke-color
         assert(value_len == 1 && "unsupported");
         assert(!values[0].func && "function unsupported");
-        detail::attribute(ssv.data4.u32, U8(values[0]).ColorRGBA32());
+        impl::attribute(ssv.data4.u32, U8(values[0]).ColorRGBA32());
         break;
     case ValueType::Type_BorderStyle:
         assert(value_len == 1 && "unsupported");
@@ -205,25 +205,25 @@ void LongUI::ValueTypeMakeValue(
             LUIDebug(Error) << "support 'solid' only" << endl;
         }
 #endif // !NDEBUG
-        detail::attribute(ssv.data4.byte, values->first[0] == 's' ? Style_Solid : Style_None);
+        impl::attribute(ssv.data4.byte, values->first[0] == 's' ? Style_Solid : Style_None);
         break;
     case ValueType::Type_BorderRadius:
         // [RADIUS]
         //   -- border-radius
         assert(value_len <= 3 && "unsupported");
-        detail::attribute(ssv.data4.single, detail::parse_float(values[0]));
+        impl::attribute(ssv.data4.single, impl::parse_float(values[0]));
         ssv.data8.single[0] = ssv.data4.single;
         ssv.data8.single[1] = ssv.data8.single[0];
         if (value_len == 3) {
             assert(values[1].first[0] == '/' && "unsupported");
-            detail::attribute(ssv.data8.single[1], detail::parse_float(values[2]));
+            impl::attribute(ssv.data8.single[1], impl::parse_float(values[2]));
         }
         break;
     case ValueType::Type_BorderImageSlice:
         // [SLICE]
         //   -- border-image-slice
         assert(value_len <= 5 && "unsupported");
-        detail::parse_slice(values, value_len, ssv);
+        impl::parse_slice(values, value_len, ssv);
         break;
     case ValueType::Type_BorderImageSource:
     case ValueType::Type_BackgroundImage:
@@ -231,14 +231,14 @@ void LongUI::ValueTypeMakeValue(
         //   -- border-image-source
         //   -- background-image
         assert(value_len == 1 && "unsupported");
-        detail::attribute(ssv.data8.handle, detail::parse_image(values[0]));
+        impl::attribute(ssv.data8.handle, impl::parse_image(values[0]));
         break;
     case ValueType::Type_BackgroundRepeat:
     case ValueType::Type_BorderImageRepeat:
         // [REPEAT]
         //   -- background-repeat
         assert(value_len <= 2 && "unsupported");
-        detail::attribute(ssv.data4.byte, detail::parse_bgrepeat(values, value_len));
+        impl::attribute(ssv.data4.byte, impl::parse_bgrepeat(values, value_len));
         break;
     case ValueType::Type_BackgroundClip:
     case ValueType::Type_BackgroundOrigin:
@@ -246,53 +246,53 @@ void LongUI::ValueTypeMakeValue(
         //   -- background-clip
         //   -- background-origin
         assert(value_len < 2 && "unsupported");
-        detail::attribute(ssv.data4.byte, AttrParser::Box(U8(values[0])));
+        impl::attribute(ssv.data4.byte, AttrParser::Box(U8(values[0])));
         break;
     case ValueType::Type_TransitionDuration:
         // [TIME]
         //   -- transition-duration
         assert(value_len == 1 && "unsupported");
-        detail::attribute(ssv.data4.single, detail::parse_time(U8(values[0])));
+        impl::attribute(ssv.data4.single, impl::parse_time(U8(values[0])));
         break;
     case ValueType::Type_TransitionTimingFunc:
         // [TIMING FUNCTION]
         //   -- transition-timing-function
         assert(value_len == 1 && "unsupported");
-        detail::attribute(ssv.data4.byte, detail::parse_timingfunc(U8(values[0])));
+        impl::attribute(ssv.data4.byte, impl::parse_timingfunc(U8(values[0])));
         break;
     case ValueType::Type_TextAlign:
         // [TEXT ALIGN]
         assert(value_len == 1 && "unsupported");
-        detail::attribute(ssv.data4.byte, TFAttrParser::TextAlign(U8(values[0])));
+        impl::attribute(ssv.data4.byte, TFAttrParser::TextAlign(U8(values[0])));
         break;
     case ValueType::Type_FontStyle:
         // [FontStyle]
         //   -- font-size
         assert(value_len == 1 && "unsupported");
-        detail::attribute(ssv.data4.byte, TFAttrParser::Style(U8(values[0])));
+        impl::attribute(ssv.data4.byte, TFAttrParser::Style(U8(values[0])));
         break;
     case ValueType::Type_FontStretch:
         // [FontStretch]
         //   -- font-stretch
         assert(value_len == 1 && "unsupported");
-        detail::attribute(ssv.data4.byte, TFAttrParser::Stretch(U8(values[0])));
+        impl::attribute(ssv.data4.byte, TFAttrParser::Stretch(U8(values[0])));
         break;
     case ValueType::Type_FontWeight:
         // [FontStretch]
         //   -- font-weight
         assert(value_len == 1 && "unsupported");
-        detail::attribute(ssv.data4.word, TFAttrParser::Weight(U8(values[0])));
+        impl::attribute(ssv.data4.word, TFAttrParser::Weight(U8(values[0])));
         break;
     case ValueType::Type_FontFamily:
         // [FontFamily]
         //   -- font-family
         assert(value_len == 1 && "unsupported");
-        detail::attribute(ssv.data8.strptr, detail::parse_string(U8(values[0])));
+        impl::attribute(ssv.data8.strptr, impl::parse_string(U8(values[0])));
         break;
     case ValueType::Type_LUIAppearance:
         // [APPEARANCE]
         //   -- -moz-appearance
-        detail::attribute(ssv.data4.byte, AttrParser::Appearance(U8(values[0])));
+        impl::attribute(ssv.data4.byte, AttrParser::Appearance(U8(values[0])));
         break;
 
         // ------------------- 简写属性 -----------------
@@ -343,7 +343,7 @@ void LongUI::ValueTypeMakeValue(
         const auto vtype1 = static_cast<uint32_t>(vtype);
         assert(vtype1 - vtype0 < sizeof(map) / sizeof(map[0]));
         const auto vtype2 = map[vtype1 - vtype0];
-        detail::one_for_four(vtype2, value_len, values, values_write);
+        impl::one_for_four(vtype2, value_len, values, values_write);
         return;
     }
     }
@@ -707,7 +707,7 @@ namespace LongUI {
         }
     }
     // detail namespace
-    namespace detail {
+    namespace impl {
         // parse image
         auto parse_image(SimpAC::FuncValue value) noexcept -> uintptr_t {
             switch (value.func)
@@ -762,7 +762,7 @@ namespace LongUI {
                 // 百分比
                 switch (*unit.begin())
                 {
-                case '%': return detail::mark_percent_from100(single);
+                case '%': return impl::mark_percent_from100(single);
                 case 'e': return single * UIManager.RefDefaultFont().size;
                 default:
 #ifndef NDEBUG
@@ -889,7 +889,7 @@ void LongUI::InitDefaultState(UniByte4 buf[], UniByte8 buf2[]) noexcept {
 /// </summary>
 /// <param name="value">The value.</param>
 /// <returns></returns>
-auto LongUI::detail::parse_string(U8View value) noexcept -> const char* {
+auto LongUI::impl::parse_string(U8View value) noexcept -> const char* {
     return UIManager.GetUniqueText(value).id;
 }
 
@@ -901,7 +901,7 @@ auto LongUI::detail::parse_string(U8View value) noexcept -> const char* {
 /// <param name="len">The length.</param>
 /// <param name="out">The out.</param>
 /// <returns></returns>
-void LongUI::detail::parse_slice(
+void LongUI::impl::parse_slice(
     const SimpAC::FuncValue list[], 
     uint32_t len, 
     SSValue& out) noexcept {
@@ -917,8 +917,8 @@ void LongUI::detail::parse_slice(
         LongUI::SliceRectToUniByte8(&rect.left, after);
         LUIDebug(Log)
             << "[" << int(data.i16[0]) << "]"
-            << (detail::is_percent_value(rect.left) ?
-                detail::get_percent_value(rect.left) :
+            << (impl::is_percent_value(rect.left) ?
+                impl::get_percent_value(rect.left) :
                 rect.left)
             << "[" << int(after.i16[0]) << "]"
             << endl;
@@ -940,7 +940,7 @@ void LongUI::detail::parse_slice(
         // 百分比
         if (unit.begin() != unit.end() && unit.begin()[0] == '%') {
             // 以一万为基础, 最多三万
-            const auto after = detail::clamp(single, 0.f, 300.f);
+            const auto after = impl::clamp(single, 0.f, 300.f);
 #ifndef NDEBUG
             if (after != single) {
                 LUIDebug(Error)
@@ -981,7 +981,7 @@ void LongUI::UniByte8ToSliceRect(UniByte8 data, float out[4]) noexcept {
         // 百分比
         if (i16value < 0) {
             const auto percent10000 = -i16value;
-            writen = detail::mark_percent_from10000(float(percent10000));
+            writen = impl::mark_percent_from10000(float(percent10000));
         }
         // 大小
         else writen = static_cast<float>(i16value);
@@ -1002,8 +1002,8 @@ void LongUI::SliceRectToUniByte8(const float rect[4], UniByte8& out) noexcept {
         const auto fvalue = rect[i];
         int16_t writen;
         // 百分比
-        if (detail::is_percent_value(fvalue)) {
-            const auto percent = detail::get_percent_value(fvalue);
+        if (impl::is_percent_value(fvalue)) {
+            const auto percent = impl::get_percent_value(fvalue);
             const auto percent10000 = percent * 1e4f;
             const int16_t i16value = static_cast<int16_t>(percent10000);
             writen = -i16value;

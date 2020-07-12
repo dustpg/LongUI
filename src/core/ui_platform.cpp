@@ -1,11 +1,74 @@
 ﻿// LUI
+#include <core/ui_string_view.h>
 #include <control/ui_viewport.h>
+#include <core/ui_color_list.h>
 #include <input/ui_kminput.h>
 #include <core/ui_platform.h>
 #include <core/ui_manager.h>
 #include <core/ui_window.h>
+// private
+#include "../private/ui_private_control.h"
 // C/C++
 #include <cassert>
+#include <algorithm>
+
+// LongUI::impl
+namespace LongUI { namespace impl {
+#if 0
+    // get dpi scale
+    auto get_dpi_scale_from_hwnd(HWND hwnd) noexcept -> Size2F;
+    // get subpixcel rendering level
+    void get_subpixel_text_rendering(uint32_t&) noexcept;
+    // eval script for window
+    void eval_script_for_window(U8View view, CUIWindow* window) noexcept {
+        assert(window && "eval script but no window");
+        UIManager.Evaluation(view, *window);
+    }
+    
+#endif
+    // mark two rect
+    inline auto mark_two_rect_dirty(
+        const RectF& a,
+        const RectF& b,
+        const Size2F size,
+        RectF* output
+    ) noexcept {
+        const auto is_valid = [size](const RectF& rect) noexcept {
+            return rect.bottom > rect.top
+                && rect.right > rect.left
+                && rect.right > 0.f
+                && rect.bottom > 0.f
+                && rect.left < size.width
+                && rect.top < size.height
+                ;
+        };
+        // 判断有效性
+        const auto av = is_valid(a);
+        const auto bv = is_valid(b);
+        // 都无效
+        if (!av && !bv) return output;
+        // 默认处理包含仅有A有效的情况
+        RectF merged_rect = a;
+        // 都有效
+        if (av && bv) {
+            // 存在交集
+            if (LongUI::IsOverlap(a, b)) {
+                merged_rect.top = std::min(a.top, b.top);
+                merged_rect.left = std::min(a.left, b.left);
+                merged_rect.right = std::max(a.right, b.right);
+                merged_rect.bottom = std::max(a.bottom, b.bottom);
+            }
+            // 没有交集
+            else { *output = b; ++output; }
+        }
+        // 只有B有效
+        else if (bv) merged_rect = b;
+        // 标记
+        *output = merged_rect; ++output;
+        return output;
+    }
+}}
+
 // error beep
 extern "C" void longui_error_beep() noexcept;
 
@@ -14,13 +77,17 @@ extern "C" void longui_error_beep() noexcept;
 /// </summary>
 /// <returns></returns>
 LongUI::CUIPlatform::~CUIPlatform() noexcept {
+
 }
 
 /// <summary>
 /// 
 /// </summary>
 /// <returns></returns>
-LongUI::CUIPlatform::CUIPlatform() noexcept {
+LongUI::CUIPlatform::CUIPlatform() noexcept : titlename(u"LUI"_sv) {
+    clear_color = ColorF::FromRGBA_CT<RGBA_TianyiBlue>();
+    caret_color = ColorF::FromRGBA_CT<RGBA_Black>();
+    std::memset(access_key_map, 0, sizeof(access_key_map));
 }
 
 /// <summary>
@@ -36,6 +103,30 @@ void LongUI::CUIPlatform::DoMouseEventTs(const MouseEventArg & args) noexcept {
     ctrl->DoMouseEvent(args);
 }
 
+
+/// <summary>
+/// Marks the dirty rect.
+/// </summary>
+/// <param name="rect">The rect.</param>
+/// <returns></returns>
+void LongUI::CUIPlatform::MarkDirtyRect(const DirtyRect& rect) noexcept {
+    auto& counter = this->dirty_count_recording;
+    assert(counter <= LongUI::DIRTY_RECT_COUNT);
+    // 满了/全渲染 就算了
+    if (counter == LongUI::DIRTY_RECT_COUNT)
+        return this->mark_fr_for_update();
+    // 如果脏矩形列表存在祖先节点就算了
+    const auto ctrl = rect.control;
+    for (uint32_t i = 0; i != counter; ++i) {
+        if (ctrl->IsAncestorForThis(*this->dirty_rect_recording[i].control))
+            return;
+    }
+    // 标记在表
+    UIControlPrivate::MarkInDirty(*rect.control);
+    // 写入数据
+    this->dirty_rect_recording[counter] = rect;
+    ++counter;
+}
 
 /// <summary>
 /// Closes the popup.
@@ -64,6 +155,24 @@ void LongUI::CUIPlatform::toggle_access_key_display() noexcept {
     for (auto ctrl : this->access_key_map) if (ctrl)
         ctrl->DoEvent(nullptr, arg);
 }
+
+/// <summary>
+/// close the window
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIPlatform::close_window() noexcept {
+    window()->close_window();
+}
+
+/// <summary>
+/// resize the viewport
+/// </summary>
+/// <param name="size"></param>
+/// <returns></returns>
+void LongUI::CUIPlatform::resize_viewport(Size2F size) noexcept {
+    viewport()->resize_window(size);
+}
+
 
 
 
@@ -115,6 +224,72 @@ void LongUI::CUIPlatform::OnCharTs(char32_t ch) noexcept {
 }
 
 
+
+/// <summary>
+/// Befores the render.
+/// </summary>
+/// <param name="size">The size.</param>
+/// <returns></returns>
+void LongUI::CUIPlatform::PrepareRender(const Size2F size) noexcept {
+    // 先清除信息
+    this->clear_fr_for_render();
+    const uint32_t count = this->dirty_count_recording;
+    this->dirty_count_recording = 0;
+    std::for_each(
+        this->dirty_rect_recording,
+        this->dirty_rect_recording + count,
+        [](const DirtyRect& x) noexcept {
+        UIControlPrivate::ClearInDirty(*x.control);
+    });
+    // 全渲染
+    if (this->is_fr_for_update()) {
+        this->clear_fr_for_update();
+        this->mark_fr_for_render();
+        return;
+    }
+    // 初始化信息
+    auto itr = this->dirty_rect_presenting;
+    const auto endi = itr + LongUI::DIRTY_RECT_COUNT;
+    // 遍历脏矩形
+    for (uint32_t i = 0; i != count; ++i) {
+        const auto& data = this->dirty_rect_recording[i];
+        assert(data.control && data.control->GetWindow());
+        itr = impl::mark_two_rect_dirty(
+            data.rectangle,
+            data.control->RefBox().visible,
+            size,
+            itr
+        );
+        // 溢出->全渲染
+        if (itr > endi) return this->mark_fr_for_render();
+    }
+    // 写入数据
+    const auto pcount = itr - this->dirty_rect_presenting;
+    this->dirty_count_presenting = uint32_t(pcount);
+#if 0
+    // 先清除
+    this->clear_full_rendering_for_render();
+    // 复制全渲染信息
+    if (this->is_full_render_for_update()) {
+        this->mark_full_rendering_for_render();
+        this->clear_full_rendering_for_update();
+        this->dirty_count_for_render = 0;
+        this->dirty_count_for_update = 0;
+        return;
+    }
+    // 复制脏矩形信息
+    this->dirty_count_for_render = this->dirty_count_for_update;
+    this->dirty_count_for_update = 0;
+    std::memcpy(
+        this->dirty_rect_for_render,
+        this->dirty_rect_for_update,
+        sizeof(this->dirty_rect_for_update[0]) * this->dirty_count_for_render
+    );
+#endif
+}
+
+
+
 /// <summary>
 /// Called when [hot key].
 /// </summary>
@@ -125,8 +300,7 @@ void LongUI::CUIPlatform::OnAccessKey(uintptr_t i) noexcept {
     if (this->popup) {
         // TOOLTIP不算
         if (this->popup_type != PopupType::Type_Tooltip) {
-            const auto popprivate = this->popup->pimpl();
-            popprivate->OnAccessKey(i);
+            this->popup->platform().OnAccessKey(i);
             return;
         }
     }
@@ -231,4 +405,54 @@ void LongUI::CUIPlatform::OnKey(InputEventArg arg) noexcept {
         }
         return;
     }
+}
+
+
+#include <core/ui_platform_win.h>
+
+// longui namespace
+namespace LongUI {
+    // now platform
+    using CUIPlatformNow = CUIPlatformWin;
+    /// <summary>
+    /// create platform
+    /// </summary>
+    /// <param name="buf"></param>
+    /// <param name="len"></param>
+    /// <returns></returns>
+    void CreatePlatform(void* buf, size_t len) noexcept {
+        using platform = impl::platform<sizeof(void*)>;
+        enum { platform_size = sizeof(CUIPlatformNow), platform_align = alignof(CUIPlatformNow) };
+        static_assert(platform_size <= platform::size, "buffer not safe");
+        static_assert(platform_align <= platform::align, "buffer not safe");
+        assert(uintptr_t(buf) % platform_align == 0 && "bad aligned");
+        assert(len >= platform_size && "bad length");
+        impl::ctor_dtor<CUIPlatformNow>::create(buf);
+        const auto obj = reinterpret_cast<CUIPlatformNow*>(buf);
+        assert(static_cast<void*>(obj) == static_cast<CUIPlatform*>(obj));
+    }
+    // down cast the platform
+    inline auto platdown_cast(CUIPlatform* p) noexcept { return static_cast<CUIPlatformNow*>(p); }
+    // down cast the platform
+    inline auto platdown_cast(const CUIPlatform* p) noexcept { return static_cast<const CUIPlatformNow*>(p); }
+    // longui static polymorphism
+#define LUI_PLATSP(func, ...) return platdown_cast(this)->func(__VA_ARGS__)
+    void CUIPlatform::Init(CUIWindow* p, uint16_t f) noexcept { LUI_PLATSP(Init, p, f); }
+    auto CUIPlatform::Recreate() noexcept -> Result { LUI_PLATSP(Recreate); }
+    auto CUIPlatform::Render() noexcept -> Result { LUI_PLATSP(Render); }
+    void CUIPlatform::Dispose() noexcept { LUI_PLATSP(Dispose); }
+    void CUIPlatform::ReleaseDeviceData() noexcept { LUI_PLATSP(ReleaseDeviceData); }
+    void CUIPlatform::AfterTitleName() noexcept { LUI_PLATSP(AfterTitleName); }
+    void CUIPlatform::AfterPosition() noexcept { LUI_PLATSP(AfterPosition); }
+    void CUIPlatform::AfterAbsRect() noexcept { LUI_PLATSP(AfterAbsRect); }
+    void CUIPlatform::CloseWindow() noexcept { LUI_PLATSP(CloseWindow); }
+    void CUIPlatform::MapToScreen(RectF& r) const noexcept { LUI_PLATSP(MapToScreen, r); }
+    void CUIPlatform::MapToScreen(RectL& r) const noexcept { LUI_PLATSP(MapToScreen, r); }
+    void CUIPlatform::MapFromScreen(Point2F& p) const noexcept { LUI_PLATSP(MapFromScreen, p); }
+    void CUIPlatform::ShowWindow(int s) noexcept { LUI_PLATSP(ShowWindow, s); }
+    void CUIPlatform::ResizeAbsolute(Size2L s) noexcept { LUI_PLATSP(ResizeAbsolute, s); }
+    auto CUIPlatform::GetWorkArea() const noexcept ->RectL { LUI_PLATSP(GetWorkArea); }
+    auto CUIPlatform::GetRawHandle() const noexcept ->uintptr_t { LUI_PLATSP(GetRawHandle); }
+    void CUIPlatform::EnableWindow(bool e) noexcept { LUI_PLATSP(EnableWindow, e); }
+    void CUIPlatform::ActiveWindow() noexcept { LUI_PLATSP(ActiveWindow); }
 }

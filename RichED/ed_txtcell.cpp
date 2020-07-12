@@ -6,7 +6,7 @@
 
 
 // namespace Riched::detail
-namespace RichED { namespace detail {
+namespace RichED { namespace impl {
     // clear all
     inline auto&clear_all(CEDTextDocument& doc, CEDTextCell* cell) noexcept {
         std::memset(cell, 0, sizeof(*cell));
@@ -95,7 +95,7 @@ void RichED::CEDTextCell::Sleep() noexcept {
 /// <param name="doc">The document.</param>
 /// <param name="red">The red.</param>
 RichED::CEDTextCell::CEDTextCell(CEDTextDocument& doc, const RichData& red) noexcept
-    : doc(detail::clear_all(doc, this)) {
+    : doc(impl::clear_all(doc, this)) {
     m_riched = red;
     this->metrics.ar_height = this->metrics.bounding.bottom = red.size;
 }
@@ -118,7 +118,7 @@ RichED::CEDTextCell::~CEDTextCell() noexcept {
 /// <returns></returns>
 void RichED::CEDTextCell::SetRichED(const RichData& data) noexcept {
     m_riched = data;
-    detail::estimate(*this);
+    impl::estimate(*this);
     m_meta.dirty = true;
 }
 
@@ -188,7 +188,7 @@ bool RichED::CEDTextCell::MergeWithNext() noexcept {
         const auto all_len = m_string.length + next_cell->m_string.length;
         assert(m_string.capacity == TEXT_CELL_STR_MAXLEN);
         if (all_len > TEXT_CELL_STR_MAXLEN) return false;
-        if (detail::not_same(m_riched, next_cell->m_riched)) return false;
+        if (impl::not_same(m_riched, next_cell->m_riched)) return false;
         U16View view;
         view.first = next_cell->m_string.data;
         view.second = next_cell->m_string.data + next_cell->m_string.length;
@@ -214,9 +214,9 @@ void RichED::CEDTextCell::RemoveText(Range range) noexcept {
     // 移除空字符
     if (!range.len) return;
     // 直接删除
-    detail::erase(m_string, range.pos, range.len);
+    impl::erase(m_string, range.pos, range.len);
     // 进行估计
-    detail::estimate(*this);
+    impl::estimate(*this);
     // 标记为脏
     m_meta.dirty = true;
 }
@@ -246,9 +246,9 @@ void RichED::CEDTextCell::InsertText(uint32_t pos, U16View view) noexcept {
     assert(m_meta.metatype < Type_UnknownInline);
     // 计算插入长度
     const uint32_t len = static_cast<uint32_t>(view.second - view.first);
-    detail::insert(m_string, pos, view.first, len);
+    impl::insert(m_string, pos, view.first, len);
     // 进行估计
-    detail::estimate(*this);
+    impl::estimate(*this);
     // 标记为脏
     m_meta.dirty = true;
 }

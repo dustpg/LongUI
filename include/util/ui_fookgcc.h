@@ -1,7 +1,7 @@
 #include "ui_unimacro.h"
 #include <utility>
 
-namespace LongUI { namespace detail {
+namespace LongUI { namespace impl {
     // struct: unicall_funcptr_t
     template<typename return_t, typename... args_t>
     struct unicall_funcptr_t {

@@ -386,7 +386,7 @@ namespace LongUI {
         std::memset(&this->main, 0, sizeof(this->main) * len);
     }
     // release res via id
-    namespace detail { void release_res(uintptr_t handle) noexcept;} 
+    namespace impl { void release_res(uintptr_t handle) noexcept;} 
     /// <summary>
     /// Finalizes an instance of the <see cref="SSBlock"/> class.
     /// </summary>
@@ -395,7 +395,7 @@ namespace LongUI {
         // XXX: 释放表中的图像引用
         for (const auto x : this->list) {
             if (LongUI::IsImageType(x.type)) {
-                if (const auto id = x.data8.handle) detail::release_res(id);
+                if (const auto id = x.data8.handle) impl::release_res(id);
             }
         }
         // 释放被触发器
@@ -416,7 +416,7 @@ namespace LongUI {
         const auto size = sizeof(SSBlock) - sizeof(SSSelector) 
             + sizeof(SSSelector) * len;
         if (const auto ptr = LongUI::SmallAlloc(size)) {
-            detail::ctor_dtor<SSBlock>::create(ptr, len);
+            impl::ctor_dtor<SSBlock>::create(ptr, len);
             return static_cast<SSBlock*>(ptr);
         }
         return nullptr;
@@ -427,7 +427,7 @@ namespace LongUI {
     /// <returns></returns>
     void SSBlock::Dispose() noexcept {
         assert(this && "bad ptr");
-        detail::ctor_dtor<SSBlock>::delete_obj(this);
+        impl::ctor_dtor<SSBlock>::delete_obj(this);
         LongUI::SmallFree(this);
     }
     /// <summary>
@@ -499,7 +499,7 @@ namespace LongUI {
         return ptr;
     }
     // detail namespace
-    namespace detail {
+    namespace impl {
         /// <summary>
         /// Matches the basic.
         /// </summary>
@@ -541,7 +541,7 @@ namespace LongUI {
     /// <returns></returns>
     bool MatchSelector(UIControl& ctrl, const SSSelector& selector, UIControls& out) noexcept {
         // 匹配基本选择器
-        const auto result = detail::match_basic(ctrl, selector);
+        const auto result = impl::match_basic(ctrl, selector);
         if (!result) return false;
         // 添加伪类
         const auto yes = reinterpret_cast<const uint32_t&>(selector.pc.yes);

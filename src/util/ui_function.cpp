@@ -26,7 +26,7 @@ void LongUI::Conn::Disconnect() noexcept {
 /// <param name="a">a.</param>
 /// <param name="b">The b.</param>
 /// <returns></returns>
-auto LongUI::detail::uifunc_helper::add_chain_helper(
+auto LongUI::impl::uifunc_helper::add_chain_helper(
     GuiEventListener& a,
     GuiEventListener&& b) noexcept -> uintptr_t {
     // 将B的调用链添加至A中
@@ -62,7 +62,7 @@ auto LongUI::detail::uifunc_helper::add_chain_helper(
 /// </summary>
 /// <param name="">The .</param>
 /// <returns></returns>
-void LongUI::detail::empty_dtor(void*) noexcept {
+void LongUI::impl::empty_dtor(void*) noexcept {
 
 }
 

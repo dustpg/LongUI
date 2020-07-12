@@ -95,7 +95,7 @@ extern "C" LONG WINAPI ui_unexp_filter(EXCEPTION_POINTERS* p) noexcept {
     //constexpr size_t FILE_PATH_LENGTH = 1024;
     //char16_t file_path[FILE_PATH_LENGTH]; *file_path = 0;
     // 获取DUMP路径
-    //detail::strlen;
+    //impl::strlen;
     const auto file_path = Attribute::BugDumpFilePath;
     //::MessageBoxW(nullptr, file_path, file_path, MB_OK | MB_ICONERROR);
     // 写入dump
@@ -126,7 +126,7 @@ extern "C" LONG WINAPI ui_unexp_filter(EXCEPTION_POINTERS* p) noexcept {
     ::MessageBoxW(
         nullptr, 
         L"ERROR, MINIDUMP FILE DUMPED.", 
-        LongUI::detail::sys(file_path),
+        LongUI::impl::sys(file_path),
         MB_ICONERROR
     );
     return EXCEPTION_EXECUTE_HANDLER;
@@ -253,7 +253,7 @@ auto LongUI::CUIDebug::RefInstance() noexcept->CUIDebug& {
 /// <returns></returns>
 void LongUI::CUIDebug::OutputNoFlush(
     DebugStringLevel lv, const char16_t * str) noexcept {
-    this->OutputString(lv, detail::sys(str), false);
+    this->OutputString(lv, impl::sys(str), false);
 }
 
 /// <summary>
@@ -446,7 +446,7 @@ void LongUI::CUIDebug::Output(DebugStringLevel l, const char* s) noexcept {
 /// <param name="s">The s.</param>
 /// <returns></returns>
 void LongUI::CUIDebug::Output(DebugStringLevel l, const char16_t* s) noexcept {
-    this->OutputString(l, detail::sys(s), true);
+    this->OutputString(l, impl::sys(s), true);
 }
 
 /// <summary>

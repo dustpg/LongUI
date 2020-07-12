@@ -33,7 +33,7 @@ namespace RichED {
     // platform
     struct IEDTextPlatform;
     // detail namespace
-    namespace detail {
+    namespace impl {
         // buffer base class
         class buffer_base {
         protected:
@@ -64,7 +64,7 @@ namespace RichED {
         };
     }
     // buffer class
-    template<typename T> class CEDBuffer: public detail::buffer_base {
+    template<typename T> class CEDBuffer: public impl::buffer_base {
         // tptr / const tptr
         using tptr = T * ; using cptr = const T*;
         // must be pod

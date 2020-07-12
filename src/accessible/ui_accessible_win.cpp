@@ -40,12 +40,12 @@ namespace LongUI {
     // bstring from View
     inline BSTR BStrFromView(const U16View view) noexcept {
         const auto len = static_cast<uint32_t>(view.end() - view.begin());
-        return ::SysAllocStringLen(detail::sys(view.begin()), len);
+        return ::SysAllocStringLen(impl::sys(view.begin()), len);
     }
     // bstring from string
     inline BSTR BStrFromString(const CUIString& str) noexcept {
         const auto len = static_cast<uint32_t>(str.length());
-        return ::SysAllocStringLen(detail::sys(str.c_str()), len);
+        return ::SysAllocStringLen(impl::sys(str.c_str()), len);
     }
 }
 
@@ -268,8 +268,8 @@ auto LongUI::CUIAccessible::GetPatternProvider(
     return S_OK;
 }
 
-// LongUI::detail
-namespace LongUI { namespace detail {
+// LongUI::impl
+namespace LongUI { namespace impl {
     // 映射表
     static const int8_t ctrl_type_map[] = {
         UIA_CustomControlTypeId         - UIA_ButtonControlTypeId,
@@ -317,7 +317,7 @@ auto LongUI::CUIAccessible::GetPropertyValue(PROPERTYID propertyId,
     VARIANT* pRetVal) noexcept -> HRESULT {
     constexpr auto MAX_TYPE = AccessibleControlType::Type_None;
     constexpr auto TYPE_MAX = static_cast<uint32_t>(MAX_TYPE);
-    static_assert(TYPE_MAX == sizeof(detail::ctrl_type_map), "must be same");
+    static_assert(TYPE_MAX == sizeof(impl::ctrl_type_map), "must be same");
     CUIDataAutoLocker locker;
     CUIString string;
     // 获取控件类型
@@ -345,7 +345,7 @@ auto LongUI::CUIAccessible::GetPropertyValue(PROPERTYID propertyId,
         // 类型有效
         if (uint32_t(type) < TYPE_MAX) {
             pRetVal->vt = VT_I4;
-            const auto offset = detail::ctrl_type_map[uint32_t(type)];
+            const auto offset = impl::ctrl_type_map[uint32_t(type)];
             pRetVal->lVal = offset + UIA_ButtonControlTypeId;
         }
         // 类型无效
@@ -752,7 +752,7 @@ auto LongUI::CUIAccessible::SetValue(LPCWSTR val) noexcept -> HRESULT {
     CUIDataAutoLocker locker;
     //assert(!"UNTESTED");
     assert(this->is_support_value());
-    AccessibleVSetValueArg arg{ detail::sys(val), static_cast<uint32_t>(std::wcslen(val)) };
+    AccessibleVSetValueArg arg{ impl::sys(val), static_cast<uint32_t>(std::wcslen(val)) };
     m_control.accessible(arg);
     return S_OK;
 }
@@ -1296,11 +1296,12 @@ auto LongUI::CUIAccessibleWnd::Release() noexcept -> ULONG {
 auto UNICALL LongUI::CUIAccessibleWnd::get_BoundingRectangle(
     UiaRect * pRetVal) noexcept -> HRESULT {
     if (!pRetVal) return E_INVALIDARG;
-    RECT rect; ::GetWindowRect(m_window.GetHwnd(), &rect);
-    pRetVal->top = static_cast<double>(rect.top);
-    pRetVal->left = static_cast<double>(rect.left);
-    pRetVal->width = static_cast<double>(rect.right - rect.left);
-    pRetVal->height = static_cast<double>(rect.bottom - rect.top);
+    const auto pos = m_window.GetPos();
+    const auto size = m_window.GetAbsoluteSize();
+    pRetVal->top = static_cast<double>(pos.x);
+    pRetVal->left = static_cast<double>(pos.y);
+    pRetVal->width = static_cast<double>(size.width);
+    pRetVal->height = static_cast<double>(size.height);
     return S_OK;
 }
 
@@ -1367,7 +1368,7 @@ auto LongUI::CUIAccessibleWnd::Navigate(NavigateDirection direction,
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIAccessibleWnd::SetFocus() noexcept -> HRESULT {
-    ::SetFocus(m_window.GetHwnd());
+    m_window.ActiveWindow();
     return S_OK;
 }
 
@@ -1379,7 +1380,8 @@ auto LongUI::CUIAccessibleWnd::SetFocus() noexcept -> HRESULT {
 /// <returns></returns>
 auto LongUI::CUIAccessibleWnd::get_HostRawElementProvider(
     IRawElementProviderSimple ** pRetVal) noexcept -> HRESULT {
-    return ::UiaHostProviderFromHwnd(m_window.GetHwnd(), pRetVal);
+    const auto hwnd = reinterpret_cast<HWND>(m_window.GetRawHandle());
+    return ::UiaHostProviderFromHwnd(hwnd, pRetVal);
 }
 
 /// <summary>

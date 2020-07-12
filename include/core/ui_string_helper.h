@@ -7,7 +7,7 @@
 
 namespace LongUI {
     // detail namespace
-    namespace detail {
+    namespace impl {
         // string helper
         struct string_helper {
             // base string

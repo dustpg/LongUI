@@ -73,25 +73,6 @@ namespace LongUI {
 #endif
         }
         /// <summary>
-        /// get screen date from hwnd
-        /// </summary>
-        /// <param name="hwnd"></param>
-        /// <returns></returns>
-        auto work_area_from(HWND hwnd) noexcept -> RectL {
-            assert(hwnd && "bad hwnd?");
-            const auto monitor = ::MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY);
-            MONITORINFO info = { 0 };
-            info.cbSize = sizeof(info);
-            ::GetMonitorInfoW(monitor, &info);
-            //RectL rc;
-            //rc.left = info.rcWork.left;
-            //rc.top = info.rcWork.top;
-            //rc.right = info.rcWork.right;
-            //rc.bottom = info.rcWork.bottom;
-            return reinterpret_cast<RectL&>(info.rcWork);
-        }
-
-        /// <summary>
         /// Gets the dpi scale from HWND.
         /// </summary>
         /// <param name="hwnd">The HWND.</param>

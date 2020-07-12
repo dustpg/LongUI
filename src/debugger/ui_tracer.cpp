@@ -15,7 +15,7 @@ bool uidbg_breakpoint() noexcept {
     return !bk;
 }
 
-namespace LongUI { namespace detail {
+namespace LongUI { namespace impl {
     /// <summary>
     /// trace data
     /// </summary>
@@ -36,8 +36,8 @@ namespace LongUI { namespace detail {
 /// </summary>
 /// <param name="buf">The buf.</param>
 /// <returns></returns>
-void  LongUI::detail::debug_trace_data::push(uidbg_trace_func buf) noexcept {
-    using namespace LongUI::detail;
+void  LongUI::impl::debug_trace_data::push(uidbg_trace_func buf) noexcept {
+    using namespace LongUI::impl;
     if (trace_cap == trace_len) {
         trace_cap += 2 + trace_cap / 2;
         auto ptr = std::realloc(trace_jump_ptr, sizeof(void*) * trace_cap);
@@ -56,7 +56,7 @@ void  LongUI::detail::debug_trace_data::push(uidbg_trace_func buf) noexcept {
 /// <param name="func">The function.</param>
 /// <returns></returns>
 auto uidbg_init_trace(uidbg_trace_func func) noexcept -> uint32_t {
-    using namespace LongUI::detail;
+    using namespace LongUI::impl;
     dbg_trace_data.locker.Lock();
     dbg_trace_data.push(func);
     const auto count = dbg_trace_data.id_counter++;
@@ -70,7 +70,7 @@ auto uidbg_init_trace(uidbg_trace_func func) noexcept -> uint32_t {
 /// <param name="id">The identifier.</param>
 /// <returns></returns>
 void uidbg_goto_id(uint32_t id) noexcept {
-    using namespace LongUI::detail;
+    using namespace LongUI::impl;
     uidbg_trace_func func = nullptr;
     dbg_trace_data.locker.Lock();
     if (dbg_trace_data.trace_jump_ptr && id < dbg_trace_data.trace_len) {
@@ -121,7 +121,7 @@ void uidbg_trace(uint32_t id, const char* func, const char* msg) noexcept {
 /// </summary>
 /// <returns></returns>
 void uidbg_freedata() noexcept {
-    auto&ptr = LongUI::detail::dbg_trace_data.trace_jump_ptr;
+    auto&ptr = LongUI::impl::dbg_trace_data.trace_jump_ptr;
     std::free(ptr);
     ptr = nullptr;
 }

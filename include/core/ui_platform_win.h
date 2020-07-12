@@ -25,7 +25,7 @@
 */
 
 #include "../util/ui_ostype.h"
-#include "../dropdrag/ui_dropdrag_impl.h"
+#include "../graphics/ui_dcomp.h"
 #include "ui_platform.h"
 
 // Windows API
@@ -38,66 +38,34 @@ namespace LongUI {
     // window
     class CUIWindow;
     // longui platform for windows
-    class CUIPlatformWin final : public CUIPlatform,
-#ifndef LUI_NO_DROPDRAG
-        public I::DropTarget
-#endif
-    {
-#ifndef LUI_NO_DROPDRAG
-    public: // IUnkown
-        // add ref-count
-        ULONG UNICALL AddRef() noexcept { return 2; };
-        // release ref-count
-        ULONG UNICALL Release() noexcept { return 1; };
-        // query the interface
-        HRESULT UNICALL QueryInterface(const IID&, void **ppvObject) noexcept override;
-    public:
-        // drag enter
-        HRESULT UNICALL DragEnter(IDataObject*, DWORD, POINTL, DWORD*) noexcept override;
-        // drag over
-        HRESULT UNICALL DragOver(DWORD, POINTL, DWORD*) noexcept override;
-        // drag leave
-        HRESULT UNICALL DragLeave(void)  noexcept override;
-        // drop
-        HRESULT UNICALL Drop(IDataObject*, DWORD, POINTL, DWORD*) noexcept override;
-    private:
-#else
-        // unused pointer
-        void*           m_unused;
-#endif
+    class CUIPlatformWin final : public CUIPlatform {
         // register class
         static void register_class() noexcept;
         // using direct composition?
         bool is_direct_composition() const noexcept { return m_bDcompSupport; }
-        // full-rendering this frame?
-        bool is_fr_for_update() const noexcept { return m_bFullRenderingUpdate; }
-        // mark as full-rendering
-        void mark_fr_for_update() noexcept { m_bFullRenderingUpdate = true; }
-        // clear full-rendering 
-        void clear_fr_for_update() noexcept { m_bFullRenderingUpdate = false; }
-        // full-rendering this frame?
-        bool is_fr_for_render() const noexcept { return dirty_count_presenting == DIRTY_RECT_COUNT + 1; }
-        // will render in this frame?
-        auto is_r_for_render() const noexcept { return dirty_count_presenting; }
-        // mark as full-rendering
-        void mark_fr_for_render() noexcept { dirty_count_presenting = DIRTY_RECT_COUNT + 1; }
-        // mark as full-rendering
-        void clear_fr_for_render() noexcept { dirty_count_presenting = 0; }
-        // using direct composition?
-        bool is_direct_composition() const noexcept { return m_bDcompSupport; }
         // is skip render?
         bool is_skip_render() const noexcept { return m_bSystemSkipRendering; }
+        // layered
+        void layered() noexcept;
+        // begin rendering
+        void begin_render() noexcept;
+        // end rendering
+        auto end_render() noexcept ->Result;
+        // resize window buffer
+        void resize_window_buffer() noexcept;
+        // dcomp
+        using dcomp = impl::dcomp_window_buf;
     public:
         // win proc function on real
         static LRESULT WINAPI PrcoReal(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept;
         // win proc function on null
         static LRESULT WINAPI PrcoNull(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept;
+        // destroy window
+        static void Destroy(HWND) noexcept;
         // ctor
         CUIPlatformWin() noexcept;
         // dtor
         ~CUIPlatformWin() noexcept;
-        // init for this
-        HWND Init(HWND, uint16_t flag) noexcept;
         // do msg
         auto DoMsg(HWND, UINT, WPARAM, LPARAM) noexcept->LRESULT;
         // when create
@@ -106,15 +74,63 @@ namespace LongUI {
         void OnResizeTs(Size2U) noexcept;
         // on IME
         bool OnIme(HWND) const noexcept;
-    public:
+    public: // interface 
+        // init
+        void Init(CUIWindow* parent, uint16_t flag) noexcept;
+        // render
+        auto Render() noexcept->Result;
+        // dispose
+        void Dispose() noexcept;
+        // release device data
+        void ReleaseDeviceData() noexcept;
+        // recreate
+        auto Recreate() noexcept->Result;
+        // map to screen
+        void MapToScreen(RectF& rect) const noexcept;
+        // map to screen
+        void MapToScreen(RectL& rect) const noexcept;
+        // map from screen
+        void MapFromScreen(Point2F& pos) const noexcept;
+        // after titlename set
+        void AfterTitleName() noexcept;
+        // after position set
+        void AfterPosition() noexcept;
+        // after absrect set
+        void AfterAbsRect() noexcept;
+        // close window
+        void CloseWindow() noexcept;
+        // show window
+        void ShowWindow(int) noexcept;
+        // resize
+        void ResizeAbsolute(Size2L) noexcept;
+        // work area that this window worked
+        auto GetWorkArea() const noexcept->RectL;
+        // get raw handle
+        auto GetRawHandle() const noexcept { return reinterpret_cast<uintptr_t>(m_hWnd); }
+        // enable the window
+        void EnableWindow(bool enable) noexcept;
+        // active window(the focus to window self)
+        void ActiveWindow() noexcept;
     protected:
+        // drop target impl
+        uintptr_t           m_oDropTargetImpl = 0;
         // mouse track data
         TRACKMOUSEEVENT     m_oTrackMouse;
+        // swap chian
+        I::Swapchan*        m_pSwapchan = nullptr;
+        // bitmap buffer
+        I::Bitmap*          m_pBitmap = nullptr;
+        // hwnd for this
+        HWND                m_hWnd = nullptr;
+        // dcomp support
+        dcomp               m_dcomp;
+        // window buffer logical size
+        Size2L              m_szWndbufLogical = {};
     protected:
+        // d2d text antialias
+        uint16_t            m_uTextAntialias;
         // visible window
-        bool                m_bWindowVisible = false;
-        // full renderer in update
-        bool                m_bFullRenderingUpdate = false;
+        //bool                m_bWindowVisible = false;
         // in creating
         bool                m_bInCreating = false;
         // ma return code
@@ -135,5 +151,12 @@ namespace LongUI {
         bool                m_bSystemSkipRendering : 1;
         // layered window support
         bool                m_bLayeredWindowSupport : 1;
+    public:
+#ifndef NDEBUG
+        // full render counter
+        uint32_t        dbg_full_render_counter = 0;
+        // dirty render counter
+        uint32_t        dbg_dirty_render_counter = 0;
+#endif
     };
 }

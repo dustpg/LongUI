@@ -125,7 +125,7 @@ void LongUI::UIScale::SetValue(float value) noexcept {
     // 整型转换
     if (true) value = LongUI::RoundInGuiLevel(value);
     // 范围检查
-    const auto newv = detail::clamp(value, m_fMin, m_fMax);
+    const auto newv = impl::clamp(value, m_fMin, m_fMax);
     // 差不多?
     if (LongUI::IsSameInGuiLevel(newv, m_fValue)) return;
     // 修改数据

@@ -9,7 +9,7 @@
 // longui namespace
 namespace LongUI {
     // remove res info
-    namespace detail { void remove_res_only(const char*) noexcept; }
+    namespace impl { void remove_res_only(const char*) noexcept; }
     // private impl
     struct CUISharedResource::Private {
         // AddRef
@@ -27,7 +27,7 @@ namespace LongUI {
         // 引用计数归为0
         if (--sr.m_data.ref == 0) {
             // 字符映射表中删除
-            detail::remove_res_only(sr.m_data.uri);
+            impl::remove_res_only(sr.m_data.uri);
             // 释放对象
 #ifdef LUI_MULTIPLE_RESOURCE
             switch (sr.m_data.GetType())
@@ -59,7 +59,7 @@ namespace LongUI {
         return reinterpret_cast<CUISharedResource*>(id);
     }
     // detail namesapce
-    namespace detail {
+    namespace impl {
         // release the res
         void release_res(uintptr_t handle) noexcept {
             CUISharedResource::Private::Release(*CUIResourceID::Object(handle));

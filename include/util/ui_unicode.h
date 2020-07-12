@@ -38,7 +38,7 @@ namespace LongUI {
     // not wchar_t
     using unwchar_t = typename Unicode::WChar::unsame_t;
     // detail namespace
-    namespace detail {
+    namespace impl {
         // utf16 to system char type
         inline auto sys(const wcharxx_t* str) noexcept {
             return reinterpret_cast<const wchar_t*>(str);

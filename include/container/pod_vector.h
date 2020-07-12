@@ -16,8 +16,8 @@
 namespace LongUI {
     // string class
     template<typename TT, unsigned BB> class CUIBasicString;
-    // detail::string_helper namespace
-    namespace detail { struct string_helper; }
+    // impl::string_helper namespace
+    namespace impl { struct string_helper; }
     // nullptr must be 0
     static_assert(nullptr == 0, "not supported if nullptr != 0");
     // sizeof boolean must be 1
@@ -34,7 +34,7 @@ namespace LongUI { namespace POD {
     /// </summary>
     namespace detail {
         // using
-        using LongUI::detail::ctor_dtor;
+        using LongUI::impl::ctor_dtor;
         // push_back_helper impl
         template<size_t> struct push_back_helper;
         /// <summary>
@@ -42,7 +42,7 @@ namespace LongUI { namespace POD {
         /// </summary>
         class vector_base {
             // friend
-            friend LongUI::detail::string_helper;
+            friend LongUI::impl::string_helper;
             // friend
             friend ctor_dtor<vector_base>;
             // template friend
@@ -94,7 +94,7 @@ namespace LongUI { namespace POD {
                 static_assert(res < 16, "must less than 16");
                 static_assert(fbl < 256, "must less than 256");
                 static_assert(res <= fbl, "must less or eq than fbl");
-                enum : size_t { value = (fbl<< EX_FBL1) | (res << EX_RESERVED1) | (LongUI::detail::log2<size_t>(ali) <<  EX_ALIGNED1) };
+                enum : size_t { value = (fbl<< EX_FBL1) | (res << EX_RESERVED1) | (LongUI::impl::log2<size_t>(ali) <<  EX_ALIGNED1) };
             };
         protected:
             // ctor

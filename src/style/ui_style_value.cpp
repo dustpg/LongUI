@@ -14,7 +14,7 @@
 //#define PCN_NOINLINE
 
 // longui::detail
-namespace LongUI { namespace detail {
+namespace LongUI { namespace impl {
     // get text font
     auto get_text_font(UIControl& ctrl) noexcept->TextFont*;
     // get text font
@@ -47,9 +47,9 @@ void LongUI::CUIStyleValue::SetFgColor(RGBA color) noexcept {
     }
 #endif // !NDEBUG
     // 存在TF对象
-    if (const auto tf = detail::get_text_font(*ctrl)) {
+    if (const auto tf = impl::get_text_font(*ctrl)) {
         ColorF::FromRGBA_RT(tf->text.color, color);
-        detail::mark_td_display_changed(*ctrl);
+        impl::mark_td_display_changed(*ctrl);
     }
 }
 
@@ -61,7 +61,7 @@ PCN_NOINLINE
 auto LongUI::CUIStyleValue::GetFgColor() const noexcept -> RGBA {
     const auto ctrl = static_cast<const UIControl*>(this);
     // 存在TF对象
-    if (const auto tf = detail::get_text_font(*ctrl)) {
+    if (const auto tf = impl::get_text_font(*ctrl)) {
         return tf->text.color.ToRGBA();
     }
     return { RGBA_Black };
@@ -76,10 +76,10 @@ PCN_NOINLINE
 void LongUI::CUIStyleValue::SetTextAlign(AttributeTextAlign talign) noexcept {
     const auto ctrl = static_cast<UIControl*>(this);
     // 存在TF对象
-    if (const auto tf = detail::get_text_font(*ctrl)) {
+    if (const auto tf = impl::get_text_font(*ctrl)) {
         tf->text.alignment = talign;
         // 标记文本布局属性修改
-        detail::mark_td_layout_changed(*ctrl);
+        impl::mark_td_layout_changed(*ctrl);
     }
 }
 
@@ -91,7 +91,7 @@ PCN_NOINLINE
 auto LongUI::CUIStyleValue::GetTextAlign()const noexcept->AttributeTextAlign {
     const auto ctrl = static_cast<const UIControl*>(this);
     // 存在TF对象
-    if (const auto tf = detail::get_text_font(*ctrl)) {
+    if (const auto tf = impl::get_text_font(*ctrl)) {
         return tf->text.alignment;
     }
     return TAlign_Start;
@@ -112,10 +112,10 @@ void LongUI::CUIStyleValue::SetTextStrokeColor(RGBA color) noexcept {
     }
 #endif // !NDEBUG
     // 存在TF对象
-    if (const auto tf = detail::get_text_font(*ctrl)) {
+    if (const auto tf = impl::get_text_font(*ctrl)) {
         ColorF::FromRGBA_RT(tf->text.stroke_color, color);
         // 标记文本显示属性修改
-        detail::mark_td_display_changed(*ctrl);
+        impl::mark_td_display_changed(*ctrl);
     }
 }
 
@@ -128,10 +128,10 @@ PCN_NOINLINE
 void LongUI::CUIStyleValue::SetTextStrokeWidth(float width) noexcept {
     const auto ctrl = static_cast<UIControl*>(this);
     // 存在TF对象
-    if (const auto tf = detail::get_text_font(*ctrl)) {
+    if (const auto tf = impl::get_text_font(*ctrl)) {
         tf->text.stroke_width = width;
         // 标记文本显示属性修改
-        detail::mark_td_display_changed(*ctrl);
+        impl::mark_td_display_changed(*ctrl);
     }
 }
 
@@ -170,7 +170,7 @@ PCN_NOINLINE
 auto LongUI::CUIStyleValue::GetTextStrokeColor() const noexcept->RGBA {
     const auto ctrl = static_cast<const UIControl*>(this);
     // 存在TF对象
-    if (const auto tf = detail::get_text_font(*ctrl)) {
+    if (const auto tf = impl::get_text_font(*ctrl)) {
         return tf->text.stroke_color.ToRGBA();
     }
     return { RGBA_Transparent };
@@ -184,7 +184,7 @@ PCN_NOINLINE
 auto LongUI::CUIStyleValue::GetTextStrokeWidth() const noexcept -> float {
     const auto ctrl = static_cast<const UIControl*>(this);
     // 存在TF对象
-    if (const auto tf = detail::get_text_font(*ctrl)) {
+    if (const auto tf = impl::get_text_font(*ctrl)) {
         return tf->text.stroke_width;
     }
     return 0.0f;
@@ -511,10 +511,10 @@ PCN_NOINLINE
 void LongUI::CUIStyleValue::SetFontSize(float size) noexcept {
     const auto ctrl = static_cast<UIControl*>(this);
     // 存在TF对象
-    if (const auto tf = detail::get_text_font(*ctrl)) {
+    if (const auto tf = impl::get_text_font(*ctrl)) {
         tf->font.size = size;
         // 标记文本布局属性修改
-        detail::mark_td_layout_changed(*ctrl);
+        impl::mark_td_layout_changed(*ctrl);
     }
 }
 
@@ -526,7 +526,7 @@ PCN_NOINLINE
 auto LongUI::CUIStyleValue::GetFontSize() const noexcept->float {
     const auto ctrl = static_cast<const UIControl*>(this);
     // 存在TF对象
-    if (const auto tf = detail::get_text_font(*ctrl)) {
+    if (const auto tf = impl::get_text_font(*ctrl)) {
         return tf->font.size;
     }
     return UIManager.RefDefaultFont().size;
@@ -542,10 +542,10 @@ PCN_NOINLINE
 void LongUI::CUIStyleValue::SetFontStyle(AttributeFontStyle style) noexcept {
     const auto ctrl = static_cast<UIControl*>(this);
     // 存在TF对象
-    if (const auto tf = detail::get_text_font(*ctrl)) {
+    if (const auto tf = impl::get_text_font(*ctrl)) {
         tf->font.style = style;
         // 标记文本布局属性修改
-        detail::mark_td_layout_changed(*ctrl);
+        impl::mark_td_layout_changed(*ctrl);
     }
 }
 
@@ -559,7 +559,7 @@ PCN_NOINLINE
 auto LongUI::CUIStyleValue::GetFontStyle()const noexcept->AttributeFontStyle {
     const auto ctrl = static_cast<const UIControl*>(this);
     // 存在TF对象
-    if (const auto tf = detail::get_text_font(*ctrl)) {
+    if (const auto tf = impl::get_text_font(*ctrl)) {
         return tf->font.style;
     }
     return UIManager.RefDefaultFont().style;
@@ -577,10 +577,10 @@ void LongUI::CUIStyleValue::SetFontFamily(const char* family) noexcept {
         family = UIManager.RefDefaultFont().family;
     const auto ctrl = static_cast<UIControl*>(this);
     // 存在TF对象
-    if (const auto tf = detail::get_text_font(*ctrl)) {
+    if (const auto tf = impl::get_text_font(*ctrl)) {
         tf->font.family = family;
         // 标记文本布局属性修改
-        detail::mark_td_layout_changed(*ctrl);
+        impl::mark_td_layout_changed(*ctrl);
     }
 }
 
@@ -592,7 +592,7 @@ PCN_NOINLINE
 auto LongUI::CUIStyleValue::GetFontFamily()const noexcept->const char* {
     const auto ctrl = static_cast<const UIControl*>(this);
     // 存在TF对象
-    if (const auto tf = detail::get_text_font(*ctrl)) {
+    if (const auto tf = impl::get_text_font(*ctrl)) {
         return tf->font.family;
     }
     return UIManager.RefDefaultFont().family;
@@ -607,10 +607,10 @@ PCN_NOINLINE
 void LongUI::CUIStyleValue::SetFontWeight(AttributeFontWeight weight) noexcept {
     const auto ctrl = static_cast<UIControl*>(this);
     // 存在TF对象
-    if (const auto tf = detail::get_text_font(*ctrl)) {
+    if (const auto tf = impl::get_text_font(*ctrl)) {
         tf->font.weight = weight;
         // 标记文本布局属性修改
-        detail::mark_td_layout_changed(*ctrl);
+        impl::mark_td_layout_changed(*ctrl);
     }
 }
 
@@ -622,7 +622,7 @@ PCN_NOINLINE
 auto LongUI::CUIStyleValue::GetFontWeight()const noexcept->AttributeFontWeight {
     const auto ctrl = static_cast<const UIControl*>(this);
     // 存在TF对象
-    if (const auto tf = detail::get_text_font(*ctrl)) {
+    if (const auto tf = impl::get_text_font(*ctrl)) {
         return tf->font.weight;
     }
     return UIManager.RefDefaultFont().weight;
@@ -637,10 +637,10 @@ PCN_NOINLINE
 void LongUI::CUIStyleValue::SetFontStretch(AttributeFontStretch stretch) noexcept {
     const auto ctrl = static_cast<UIControl*>(this);
     // 存在TF对象
-    if (const auto tf = detail::get_text_font(*ctrl)) {
+    if (const auto tf = impl::get_text_font(*ctrl)) {
         tf->font.stretch = stretch;
         // 标记文本布局属性修改
-        detail::mark_td_layout_changed(*ctrl);
+        impl::mark_td_layout_changed(*ctrl);
     }
 }
 
@@ -652,7 +652,7 @@ PCN_NOINLINE
 auto LongUI::CUIStyleValue::GetFontStretch()const noexcept->AttributeFontStretch {
     const auto ctrl = static_cast<const UIControl*>(this);
     // 存在TF对象
-    if (const auto tf = detail::get_text_font(*ctrl)) {
+    if (const auto tf = impl::get_text_font(*ctrl)) {
         return tf->font.stretch;
     }
     return UIManager.RefDefaultFont().stretch;
@@ -819,7 +819,7 @@ void LongUI::CUIStyleValue::SetBorderBottom(float value) noexcept {
 #endif
 
 // longui::detail
-namespace LongUI { namespace detail {
+namespace LongUI { namespace impl {
     /// <summary>
     /// Gets the text font.
     /// </summary>

@@ -42,7 +42,7 @@ LongUI::CUIFile::CUIFile(OpenFlag flag, const char16_t* filename) noexcept {
     }
     // 创建文件句柄
     const auto file = ::CreateFileW(
-        detail::sys(filename),
+        impl::sys(filename),
         access,
         FILE_SHARE_READ,
         nullptr,

@@ -29,13 +29,13 @@
 
 namespace LongUI {
     // window manager
-    class CUIWndMgr;
+    class CUIWndMgr; class CUIPlatform;
     // viewport, logic window viewport
     class UIViewport : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
         // friend window
-        friend CUIWindow; friend CUIWndMgr;
+        friend CUIWindow; friend CUIWndMgr; friend CUIPlatform;
     public:
         // class meta
         static const  MetaControl   s_meta;

@@ -200,7 +200,7 @@ void LongUI::UIProgress::init_bar() noexcept {
 void LongUI::UIProgress::adjust_flex() noexcept {
     // 数值设定
     m_max = std::max(m_max, 1.f);
-    m_value = detail::clamp(m_value, 0.f, m_max);
+    m_value = impl::clamp(m_value, 0.f, m_max);
     // 不确定情况
     if (m_oStyle.state & State_Indeterminate) {
         UIControlPrivate::SetFlex(m_oBar, 1);

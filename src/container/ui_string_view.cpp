@@ -13,7 +13,7 @@ PCN_NOINLINE
 /// </summary>
 /// <param name="ptr">The PTR.</param>
 /// <returns></returns>
-auto LongUI::detail::strlen(const unwchar_t ptr[]) noexcept -> size_t {
+auto LongUI::impl::strlen(const unwchar_t ptr[]) noexcept -> size_t {
     assert(ptr && "bad string pointer");
     return std::char_traits<unwchar_t>::length(ptr);
 }
@@ -39,7 +39,7 @@ extern "C" {
 /// <param name="b">The b.</param>
 /// <param name="c">The c.</param>
 /// <returns></returns>
-auto LongUI::detail::color_rgba32(const char * a, const char * b, char c) noexcept -> uint32_t {
+auto LongUI::impl::color_rgba32(const char * a, const char * b, char c) noexcept -> uint32_t {
     return ui_web_color_string_to_rgba32(a, b, c);
 }
 
@@ -50,7 +50,7 @@ auto LongUI::detail::color_rgba32(const char * a, const char * b, char c) noexce
 /// <param name="b">The b.</param>
 /// <param name="c">The c.</param>
 /// <returns></returns>
-auto LongUI::detail::name_rgb32(const char * a, const char * b, char c) noexcept -> uint32_t {
+auto LongUI::impl::name_rgb32(const char * a, const char * b, char c) noexcept -> uint32_t {
     return ui_web_color_name_to_rgb32(a, b, c);
 }
 
@@ -110,6 +110,6 @@ template<> auto LongUI::PodStringView<char16_t>::ToInt32()const noexcept ->int32
 /// <param name=""></param>
 /// <param name=""></param>
 /// <returns></returns>
-void LongUI::detail::range_assert(uint32_t a, uint32_t b) noexcept {
+void LongUI::impl::range_assert(uint32_t a, uint32_t b) noexcept {
     assert(a < b && "a must less than b");
 }

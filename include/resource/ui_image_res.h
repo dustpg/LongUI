@@ -38,7 +38,7 @@
 // ui namespace
 namespace LongUI {
     // detail img_ctor_dtor
-    namespace detail { template<typename T> struct ctor_dtor; }
+    namespace impl { template<typename T> struct ctor_dtor; }
     // bitmapbank window
     struct BitbankWindow;
     // frame[prev/next may be null]
@@ -59,7 +59,7 @@ namespace LongUI {
     // Shared Image
     class CUIImage final : public CUISharedResource {
         // as friend
-        friend struct detail::ctor_dtor<CUIImage>;
+        friend struct impl::ctor_dtor<CUIImage>;
         // no move
         CUIImage(CUIImage&&) noexcept = delete;
         // mo copy

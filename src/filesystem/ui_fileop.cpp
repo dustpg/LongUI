@@ -3,7 +3,7 @@
 #include <core/ui_string.h>
 
 // longui::detail namespace
-namespace LongUI { namespace detail {
+namespace LongUI { namespace impl {
     // is a dot
     inline auto is_a_dot(const char* str) noexcept {
         return str[0] == '.';
@@ -50,7 +50,7 @@ auto LongUI::PathOP::Canonical(char* path) noexcept -> uint32_t {
             // 遍历到斜杠?
             if (path[i] == '/' || path[i] == '\0') {
                 // 找到一个点?
-                if ((i - j) == 1 && detail::is_a_dot(path + j)) {
+                if ((i - j) == 1 && impl::is_a_dot(path + j)) {
                     // 检查路径名是否为空?
                     if (k == 0) {
                         if (path[i] == '\0') {
@@ -67,7 +67,7 @@ auto LongUI::PathOP::Canonical(char* path) noexcept -> uint32_t {
                     }
                 }
                 // 找到两个个点?
-                else if ((i - j) == 2 && detail::is_double_dot(path + j)) {
+                else if ((i - j) == 2 && impl::is_double_dot(path + j)) {
                     // 检查路径名是否为空?
                     if (k == 0) {
                         path[k++] = '.';
@@ -82,7 +82,7 @@ auto LongUI::PathOP::Canonical(char* path) noexcept -> uint32_t {
                         }
                         // 找到斜杠分隔符
                         if (j < k) {
-                            if (detail::is_double_dot(path + k - j)) {
+                            if (impl::is_double_dot(path + k - j)) {
                                 path[k++] = '.';
                                 path[k++] = '.';
                             }
@@ -97,7 +97,7 @@ auto LongUI::PathOP::Canonical(char* path) noexcept -> uint32_t {
                         }
                         // 找不到斜杠分隔符
                         else {
-                            if (k == 3 && detail::is_double_dot(path)) {
+                            if (k == 3 && impl::is_double_dot(path)) {
                                 path[k++] = '.';
                                 path[k++] = '.';
                                 // 必要时添加一个斜杠
@@ -182,7 +182,7 @@ auto LongUI::PathOP::TempDirectoryPath(BasePath& bp) noexcept->uint32_t {
 auto LongUI::PathOP::TempDirectoryPath(CUIString& str) noexcept -> uint32_t {
     const auto buflen = ::GetTempPathW(0, nullptr);
     str.as_buffer_nul(buflen -1, [buflen](char16_t* buf) noexcept {
-        ::GetTempPathW(buflen, detail::sys(buf));
+        ::GetTempPathW(buflen, impl::sys(buf));
     });
     return static_cast<uint32_t>(str.length());
 }

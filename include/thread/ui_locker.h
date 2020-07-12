@@ -8,7 +8,7 @@
 // ui namespace
 namespace LongUI {
     // detail namespace
-    namespace detail {
+    namespace impl {
         // impl
         template<size_t> struct locker_impl_info {};
         // impl for 32 bit
@@ -19,9 +19,9 @@ namespace LongUI {
     // locker, could be used in "Recursive Calls"
     class CUILocker {
         // buffer size
-        enum { buf_size = detail::locker_impl_info<sizeof(void*)>::size };
+        enum { buf_size = impl::locker_impl_info<sizeof(void*)>::size };
         // buffer align
-        enum { buf_align = detail::locker_impl_info<sizeof(void*)>::align };
+        enum { buf_align = impl::locker_impl_info<sizeof(void*)>::align };
     public:
         // ctor
         CUILocker() noexcept;

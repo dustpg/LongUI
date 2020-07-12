@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 // longui::detail namespace
-namespace LongUI { namespace detail {
+namespace LongUI { namespace impl {
     // clamp for float/double
     template<typename T> inline auto clamp(T v, T lo, T hi) noexcept {
         return (v < lo) ? lo : (hi < v) ? hi : v;

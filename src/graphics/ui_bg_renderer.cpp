@@ -129,7 +129,7 @@ auto LongUI::CUIRendererBackground::refresh_image() noexcept->Result {
 
 
 // longui::detail
-namespace LongUI { namespace detail {
+namespace LongUI { namespace impl {
     /// <summary>
     /// Gets the render rect.
     /// </summary>
@@ -172,7 +172,7 @@ void LongUI::CUIRendererBackground::RenderColor(const Box& box, Size2F radius) c
     //if (!reinterpret_cast<const uint32_t&>(this->color.a)) return;
     // 获取渲染矩阵
     D2D1_ROUNDED_RECT rrect;
-    detail::get_render_rect(this->clip, box, auto_cast(rrect.rect));
+    impl::get_render_rect(this->clip, box, auto_cast(rrect.rect));
     rrect.radiusX = radius.width;
     rrect.radiusY = radius.height;
 
@@ -209,7 +209,7 @@ void LongUI::CUIRendererBackground::RenderImage(const LongUI::Box& box, Size2F r
     auto& renderer = UIManager.Ref2DRenderer();
     // 获取渲染矩阵
     D2D1_ROUNDED_RECT rrect;
-    detail::get_render_rect(this->origin, box, auto_cast(rrect.rect));
+    impl::get_render_rect(this->origin, box, auto_cast(rrect.rect));
     // TODO: 实现圆角, Before优化
     rrect.radiusX = radius.width;
     rrect.radiusY = radius.height;

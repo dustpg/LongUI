@@ -390,8 +390,8 @@ namespace LongUI {
     // help
     enum {
         pmanag1 = sizeof(CUIManager::Private),
-        pm_size = detail::private_manager<sizeof(void*)>::size,
-        pm_align= detail::private_manager<sizeof(void*)>::align,
+        pm_size = impl::private_manager<sizeof(void*)>::size,
+        pm_align= impl::private_manager<sizeof(void*)>::align,
     };
     // check
     static_assert(pm_size == pmanag1, "must be same");
@@ -541,12 +541,12 @@ auto LongUI::CUIManager::Initialize(
     static_assert(std::is_trivially_destructible<CUIDefaultConfigure>::value, "bad");
     // 直接初始化
     const auto defcfg = reinterpret_cast<CUIDefaultConfigure*>(s_config_buf);
-    detail::ctor_dtor<CUIDefaultConfigure>::create(defcfg);
+    impl::ctor_dtor<CUIDefaultConfigure>::create(defcfg);
     if (!cfg) cfg = defcfg;
     // 构造管理器
     {
         Result hr = { Result::RS_OK };
-        detail::ctor_dtor<CUIManager>::create(&UIManager, cfg, flag, hr);
+        impl::ctor_dtor<CUIManager>::create(&UIManager, cfg, flag, hr);
         if (!hr) return hr;
     }
     // 致命BUG处理
@@ -874,10 +874,10 @@ CUIWndMgr(out),
 flag(cfgflag) {
     m_oCtrlInfo.end_of_list = m_oCtrlInfo.info_list;
 #ifndef NDEBUG
-    detail::ctor_dtor<CUIManagerDebug>::create(&DbgMgr());
+    impl::ctor_dtor<CUIManagerDebug>::create(&DbgMgr());
 #endif
     //config->AddRef();
-    detail::ctor_dtor<Private>::create(&this_()->pm());
+    impl::ctor_dtor<Private>::create(&this_()->pm());
     // 更新系统信息
     this_()->refresh_system_info();
     

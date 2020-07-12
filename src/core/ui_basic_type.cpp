@@ -128,7 +128,7 @@ bool LongUI::IsSameInGuiLevel(Point2F a, Point2F b) noexcept {
 /// <param name="progress">The progress.</param>
 /// <returns></returns>
 auto LongUI::Mix(Point2F from, Point2F to, float progress) noexcept -> Point2F {
-    const auto x0_0 = detail::clamp(progress, 0.f, 1.f);
+    const auto x0_0 = impl::clamp(progress, 0.f, 1.f);
     const auto x0_1 = 1.f - x0_0;
     Point2F rv;
     rv.x = from.x * x0_1 + to.x * x0_0;

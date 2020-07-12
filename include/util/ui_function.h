@@ -15,7 +15,7 @@ namespace LongUI {
         void Disconnect() noexcept;
     };
     // detail namespace
-    namespace detail {
+    namespace impl {
         // func base
         template<typename Result, typename ...Args>
         class func : public CUISmallObject {
@@ -99,11 +99,11 @@ namespace LongUI {
     class CUIFunction<Result(Args...)> {
     public:
         // friend
-        friend detail::uifunc_helper;
+        friend impl::uifunc_helper;
         // this type
         using Self = CUIFunction<Result(Args...)>;
         // func_t
-        using FuncT = detail::func<Result, Args...>;
+        using FuncT = impl::func<Result, Args...>;
     private:
         // RealFunc pointer
         FuncT *      m_pFunction = nullptr;
@@ -131,8 +131,8 @@ namespace LongUI {
         Self& operator += (const Func &x) noexcept { this->AddCallChain(std::move(CUIFunction(x))); return *this; }
         // operator =
         template<typename Func> Self& operator=(const Func &x) noexcept {
-            this->dispose(); m_pFunction = new(std::nothrow) detail::
-                func_ex<typename detail::type_helper<Func>::type, Result, Args...>(x); return *this;
+            this->dispose(); m_pFunction = new(std::nothrow) impl::
+                func_ex<typename impl::type_helper<Func>::type, Result, Args...>(x); return *this;
         }
         // operator =
         Self& operator=(Self&& x) noexcept {
@@ -140,16 +140,16 @@ namespace LongUI {
         }
         // ctor with func
         template<typename Func> CUIFunction(Func&& f) noexcept : m_pFunction(
-            new(std::nothrow) detail::func_ex<typename detail::type_helper<Func>::type, Result, Args...>(std::move(f), &m_pFunction)) { }
+            new(std::nothrow) impl::func_ex<typename impl::type_helper<Func>::type, Result, Args...>(std::move(f), &m_pFunction)) { }
         // () operator
         auto operator()(Args&&... args) const noexcept -> Result {
             assert(m_pFunction && "bad call or oom");
             return m_pFunction ? m_pFunction->call(std::forward<Args>(args)...) : Result();
         }
         // add call chain with exist call chain, return first connection of chain
-        Conn AddCallChain(Self&& chain) noexcept { return { detail::uifunc_helper::add_chain(*this, std::move(chain)) }; }
+        Conn AddCallChain(Self&& chain) noexcept { return { impl::uifunc_helper::add_chain(*this, std::move(chain)) }; }
         // add call chain with callable obj(except self), return connection
         template<typename Func>
-        Conn AddCallChain(const Func &x) noexcept { return { detail::uifunc_helper::add_chain(*this, Self{ x }) }; }
+        Conn AddCallChain(const Func &x) noexcept { return { impl::uifunc_helper::add_chain(*this, Self{ x }) }; }
     };
 }

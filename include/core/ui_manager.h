@@ -53,7 +53,7 @@
 // ui namespace
 namespace LongUI {
     // detail namespace
-    namespace detail { 
+    namespace impl { 
         // ctor_dtor
         template<typename T> struct ctor_dtor;
         // private data for manager
@@ -80,7 +80,7 @@ namespace LongUI {
         // input
         friend CUIInputKM;
         // ctor_dtor
-        friend detail::ctor_dtor<CUIManager>;
+        friend impl::ctor_dtor<CUIManager>;
         // interface for memory management
         struct IMM;
         // private
@@ -231,8 +231,8 @@ namespace LongUI {
         auto&pm() noexcept { return reinterpret_cast<Private&>(m_private); }
         // private data
         std::aligned_storage<
-            detail::private_manager<sizeof(void*)>::size,
-            detail::private_manager<sizeof(void*)>::align
+            impl::private_manager<sizeof(void*)>::size,
+            impl::private_manager<sizeof(void*)>::align
         >::type                 m_private;
     private:
         // recreate_device flag

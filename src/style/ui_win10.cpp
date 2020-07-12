@@ -723,10 +723,10 @@ void LongUI::CUINativeStyleWindows10::draw_selbg(const NativeDrawArgs& args) noe
         renderer.FillRectangle(auto_cast(rect), &brush);
     };
     // 改变时
-    if (detail::is_any<State_Selected>(args.to, args.from)) {
+    if (impl::is_any<State_Selected>(args.to, args.from)) {
         // 渲染
         auto get_alpha = [&]() noexcept {
-            if (detail::is_same<State_Selected>(args.to, args.from)) return 1.f;
+            if (impl::is_same<State_Selected>(args.to, args.from)) return 1.f;
             else return args.from & State_Selected ? 1.f - args.progress : args.progress;
         };
         draw_this(get_alpha(), args.to & State_Disabled);
@@ -915,9 +915,9 @@ void LongUI::CUINativeStyleWindows10::draw_checkbox(const NativeDrawArgs& args) 
     bool draw_check = false;
     float progress = args.progress;
     // 第三态
-    if (detail::is_any<State_Indeterminate>(args.from, args.to)) {
+    if (impl::is_any<State_Indeterminate>(args.from, args.to)) {
         // 状态已经固定
-        if (detail::is_same<State_Indeterminate>(args.from, args.to)) progress = 1.f;
+        if (impl::is_same<State_Indeterminate>(args.from, args.to)) progress = 1.f;
         // 反向修改
         else if (args.from & State_Indeterminate) progress = 1.f - progress;
     }
@@ -925,7 +925,7 @@ void LongUI::CUINativeStyleWindows10::draw_checkbox(const NativeDrawArgs& args) 
     else {
         draw_check = true;
         // 状态已经固定
-        if (detail::is_same<State_Checked>(args.from, args.to)) {
+        if (impl::is_same<State_Checked>(args.from, args.to)) {
             progress = args.from & State_Checked ? 1.f : 0.f;
         }
         // 反向修改
@@ -1276,7 +1276,7 @@ void LongUI::CUINativeStyleWindows10::draw_radio(
     // 前景准备
     float progress = args.progress;
     // 状态已经固定
-    if (detail::is_same<State_Checked>(args.from, args.to)) {
+    if (impl::is_same<State_Checked>(args.from, args.to)) {
         progress = args.from & State_Checked ? 1.0f : 0.0f;
     }
     // 反向修改
@@ -1577,7 +1577,7 @@ void LongUI::CUINativeStyleWindows10::draw_tab(const NativeDrawArgs& args) noexc
     auto& bursh1 = UIManager.RefCCBrush(bgcolor);
     renderer.FillRectangle(auto_cast(rect), &bursh1);
     // 底层直线
-    if (!detail::is_same<State_Selected>(args.from, args.to)) {
+    if (!impl::is_same<State_Selected>(args.from, args.to)) {
         const auto fv = 1.f - args.progress;
         auto& bursh2 = UIManager.RefCCBrush(
             args.from & State_Selected ? ColorF{ 1,1,1,1 } : bdcolor
@@ -1675,7 +1675,7 @@ void LongUI::CUINativeStyleWindows10::draw_tree_twisty(
     const auto fcolor = LongUI::Mix(fcolor1, fcolor2, args.progress);
     // 计算角度
     float angle = 180.f;
-    if (detail::is_different<State_Closed>(args.from, args.to)) {
+    if (impl::is_different<State_Closed>(args.from, args.to)) {
         const auto delta = 90.f * args.progress;
         angle = args.from & State_Closed ? 90.f + delta : 180.f - delta;
     }

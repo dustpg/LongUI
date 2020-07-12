@@ -195,7 +195,7 @@ void LongUI::UILabel::ShowAccessKey(bool show) noexcept {
 }
 
 // longui::detail
-namespace LongUI { namespace detail{
+namespace LongUI { namespace impl{
     // append access key
     inline void append_ass_key(CUIString& str, char key) noexcept {
         char16_t buf[3];
@@ -216,7 +216,7 @@ void LongUI::UILabel::update_text_changed() noexcept {
     // 需要额外的字符
     const auto base_len = m_string.length();
     if (m_uPosAkey == base_len + 1)
-        detail::append_ass_key(m_string, this->GetAccessKey());
+        impl::append_ass_key(m_string, this->GetAccessKey());
     // 创建文本布局
     auto hr = m_text.SetText(m_string.c_str(), m_string.length());
     m_string.erase(base_len);

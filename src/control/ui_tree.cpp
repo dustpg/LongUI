@@ -43,7 +43,7 @@ namespace LongUI {
     // UITreeChildren类 元信息
     LUI_CONTROL_META_INFO(UITreeChildren, "treechildren");
     // detail namespace
-    namespace detail {
+    namespace impl {
         // calculate lowest common ancestor
         UIControl* lowest_common_ancestor(UIControl* now, UIControl* old) noexcept;
     }

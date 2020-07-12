@@ -181,8 +181,8 @@ void LongUI::CUIControlControl::AddGlobalCssFile(U8View file) noexcept {
 LongUI::CUIControlControl::Private::Private() noexcept {
     enum {
         pc_size = sizeof(Private),
-        cc_size = detail::cc<sizeof(void*)>::size,
-        cc_align = detail::cc<sizeof(void*)>::align,
+        cc_size = impl::cc<sizeof(void*)>::size,
+        cc_align = impl::cc<sizeof(void*)>::align,
     };
     static_assert(pc_size == cc_size, "must be same");
     static_assert(alignof(Private) == cc_align, "must be same");
@@ -225,7 +225,7 @@ void LongUI::CUIControlControl::RecursiveRender(
 LongUI::CUIControlControl::CUIControlControl() noexcept {
     m_oHeadTimeCapsule = { nullptr, static_cast<CUITimeCapsule*>(&m_oTailTimeCapsule) };
     m_oTailTimeCapsule = { static_cast<CUITimeCapsule*>(&m_oHeadTimeCapsule), nullptr };
-    detail::ctor_dtor<Private>::create(&cc());
+    impl::ctor_dtor<Private>::create(&cc());
     m_dwTimeTick = LongUI::GetTimeTick();
     m_dwDeltaTime = 0;
 }
@@ -1122,7 +1122,7 @@ auto LongUI::CUIControlControl::GetStyleCachedControlList() noexcept -> void * {
 
 
 // longui::detail
-namespace LongUI { namespace detail {
+namespace LongUI { namespace impl {
     // std::set_intersection sp-ver, allow set a keep same unit
     template<typename T, typename U, typename Comp>
     auto set_intersection_sp(const T& set0, const T& set1,
@@ -1195,7 +1195,7 @@ void LongUI::UIControl::make_off_initstate(
         const auto& set0 = trigger->m_oStyle.trigger;
         const auto& set1 = m_oStyle.trigger;
         // 类似与求交集, 但是集合A的允许重复(因为触发条件不同)
-        const auto end_buf = detail::set_intersection_sp(
+        const auto end_buf = impl::set_intersection_sp(
             set0, set1, std::begin(trigger_buf), std::end(trigger_buf),
             [](const auto&x, const auto& y) noexcept { return x.tid < y.tid - 1; }
         );

@@ -8,7 +8,7 @@
 #include <graphics/ui_graphics_impl.h>
 
 
-namespace LongUI { namespace detail {
+namespace LongUI { namespace impl {
     // free rects
     void free_rects(BitmapFrame& f) noexcept;
     // u2->f2
@@ -36,7 +36,7 @@ LongUI::CUIImage::~CUIImage() noexcept {
         // 逆序释放?
         //auto& frame = m_frames[fc - 1 - i];
         LongUI::SafeRelease(frame.bitmap);
-        if (frame.window) detail::free_rects(frame);
+        if (frame.window) impl::free_rects(frame);
     }
 }
 
@@ -66,7 +66,7 @@ void LongUI::CUIImage::Destroy() noexcept {
 /// <param name="d">The d.</param>
 /// <param name="s">The s.</param>
 LongUI::CUIImage::CUIImage(uint32_t f, uint32_t d, Size2U s) noexcept
-    : frame_count(f), delay(d), size(detail::u2_f2(s)) {
+    : frame_count(f), delay(d), size(impl::u2_f2(s)) {
     assert(frame_count && "at least 1");
     std::memset(m_frames, 0, frame_count * sizeof(BitmapFrame));
 }
@@ -84,7 +84,7 @@ auto LongUI::CUIImage::Create(uint32_t f, uint32_t d, Size2U s) noexcept -> CUII
     const size_t len = base + f * sizeof(BitmapFrame);
     const auto ptr = static_cast<CUIImage*>(LongUI::NormalAlloc(len));
     if (!ptr) return 0;
-    detail::ctor_dtor<CUIImage>::create(ptr, f, d, s);
+    impl::ctor_dtor<CUIImage>::create(ptr, f, d, s);
     return ptr;
 }
 

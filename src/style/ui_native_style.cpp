@@ -21,7 +21,7 @@ namespace LongUI {
                 return nullptr;
             }
             Result hr = { Result::RS_OK };
-            detail::ctor_dtor<CUINativeStyleNow>::create(ptr, luiref hr);
+            impl::ctor_dtor<CUINativeStyleNow>::create(ptr, luiref hr);
             return hr ? ptr : nullptr;
         }
         // recreate native style renderer

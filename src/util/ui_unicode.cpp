@@ -32,7 +32,7 @@ extern "C" {
 /// <returns></returns>
 template<> auto LongUI::Unicode::
 GetBufferLength<LongUI::Unicode::UTF8>(const char16_t str[]) noexcept->uint32_t {
-    const auto length = detail::strlen(str);
+    const auto length = impl::strlen(str);
     return ui_utf16_to_utf8_get_buflen(str, str + length) + 1;
 }
 
@@ -53,7 +53,7 @@ GetBufferLength<LongUI::Unicode::UTF8>(PodStringView<char16_t> view) noexcept->u
 /// <returns></returns>
 template<> auto LongUI::Unicode::GetBufferLength
 <LongUI::Unicode::UTF16>(const char str[]) noexcept->uint32_t {
-    const auto length = detail::strlen(str);
+    const auto length = impl::strlen(str);
     return ui_utf8_to_utf16_get_buflen(str, str + length) + 1;
 }
 
@@ -78,7 +78,7 @@ template<> auto LongUI::Unicode::GetBufferLength
 template<>
 PCN_NOINLINE
 auto LongUI::Unicode::To<LongUI::Unicode::UTF8>(char buf[], uint32_t buflen, const char16_t str[]) noexcept->uint32_t {
-    const auto length = ui_utf16_to_utf8(buf, buflen - 1, str, str + detail::strlen(str));
+    const auto length = ui_utf16_to_utf8(buf, buflen - 1, str, str + impl::strlen(str));
     buf[length] = 0;
     return length;
 }
@@ -105,7 +105,7 @@ auto LongUI::Unicode::To<LongUI::Unicode::UTF8>(char buf[], uint32_t buflen, Pod
 template<>
 PCN_NOINLINE
 auto LongUI::Unicode::To<LongUI::Unicode::UTF16>(char16_t buf[], uint32_t buflen, const char str[]) noexcept->uint32_t {
-    const auto length = ui_utf8_to_utf16(buf, buflen - 1, str, str + detail::strlen(str));
+    const auto length = ui_utf8_to_utf16(buf, buflen - 1, str, str + impl::strlen(str));
     buf[length] = 0;
     return length;
 }
