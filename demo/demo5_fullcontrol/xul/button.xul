@@ -75,7 +75,7 @@ function setText(textID,val)
  <groupbox flex="1">
    <caption label="These are menubuttons." />
    <hbox>
-     <button flex="1" type="menu" label="Menu">
+     <button flex="1" type="menu" label="Menu" id="btn-menu">
        <menupopup>
          <menuitem label="Option 1" oncommand="setText('menu-text','Option 1');" />
          <menuitem label="Option 2" oncommand="setText('menu-text','Option 2');" />

@@ -108,6 +108,12 @@ namespace LongUI {
         void PrepareRender(Size2F) noexcept;
         // mark one dirty rect
         void MarkDirtyRect(const DirtyRect& rect) noexcept;
+        //// map to screen
+        //void MapToScreen(RectF& rect) const noexcept;
+        //// map to screen
+        //void MapToScreen(RectL& rect) const noexcept;
+        //// map from screen
+        //void MapFromScreen(Point2F& pos) const noexcept;
     public:
         // init
         void Init(CUIWindow* parent, uint16_t flag) noexcept;
@@ -127,12 +133,6 @@ namespace LongUI {
         void AfterAbsRect() noexcept;
         // close window
         void CloseWindow() noexcept;
-        // map to screen
-        void MapToScreen(RectF& rect) const noexcept;
-        // map to screen
-        void MapToScreen(RectL& rect) const noexcept;
-        // map from screen
-        void MapFromScreen(Point2F& pos) const noexcept;
         // show window
         void ShowWindow(int) noexcept;
         // resize

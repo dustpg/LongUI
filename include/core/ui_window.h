@@ -281,6 +281,8 @@ namespace LongUI {
     protected:
         // get platform
         auto&platform() noexcept { return reinterpret_cast<CUIPlatform&>(m_platform); }
+        // get screen lt
+        template<typename T>auto screen_lt() const noexcept -> Point<T>;
         // init
         void init() noexcept;
         // recursive set result

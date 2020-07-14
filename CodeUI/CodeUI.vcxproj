@@ -170,7 +170,6 @@
     <ClCompile Include="..\src\cfunciton\view_atoi.c" />
     <ClCompile Include="..\src\cfunciton\view_unicode.c" />
     <ClCompile Include="..\src\container\pod_hash.cpp" />
-    <ClCompile Include="..\src\container\pod_sharedarray.cpp" />
     <ClCompile Include="..\src\container\pod_vector.cpp" />
     <ClCompile Include="..\src\container\ui_string.cpp" />
     <ClCompile Include="..\src\container\ui_string_view.cpp" />
@@ -301,7 +300,6 @@
     <ClInclude Include="..\include\constexpr\const_log2.h" />
     <ClInclude Include="..\include\container\const_string_list.h" />
     <ClInclude Include="..\include\container\pod_hash.h" />
-    <ClInclude Include="..\include\container\pod_sharedarray.h" />
     <ClInclude Include="..\include\container\pod_vector.h" />
     <ClInclude Include="..\include\container\ui_string_vector.h" />
     <ClInclude Include="..\include\control\ui_arrowscrollbox.h" />

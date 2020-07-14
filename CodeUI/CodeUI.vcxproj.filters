@@ -173,9 +173,6 @@
     <ClCompile Include="..\src\container\pod_hash.cpp">
       <Filter>source\container</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\container\pod_sharedarray.cpp">
-      <Filter>source\container</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\container\pod_vector.cpp">
       <Filter>source\container</Filter>
     </ClCompile>
@@ -550,9 +547,6 @@
       <Filter>header\constexpr</Filter>
     </ClInclude>
     <ClInclude Include="..\include\container\pod_hash.h">
-      <Filter>header\container</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\container\pod_sharedarray.h">
       <Filter>header\container</Filter>
     </ClInclude>
     <ClInclude Include="..\include\container\pod_vector.h">

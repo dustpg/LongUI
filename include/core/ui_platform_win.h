@@ -45,8 +45,8 @@ namespace LongUI {
         bool is_direct_composition() const noexcept { return m_bDcompSupport; }
         // is skip render?
         bool is_skip_render() const noexcept { return m_bSystemSkipRendering; }
-        // layered
-        void layered() noexcept;
+        // update adjust
+        void update_adjust(uint32_t, uint32_t, uint32_t dpi) noexcept;
         // begin rendering
         void begin_render() noexcept;
         // end rendering
@@ -85,12 +85,6 @@ namespace LongUI {
         void ReleaseDeviceData() noexcept;
         // recreate
         auto Recreate() noexcept->Result;
-        // map to screen
-        void MapToScreen(RectF& rect) const noexcept;
-        // map to screen
-        void MapToScreen(RectL& rect) const noexcept;
-        // map from screen
-        void MapFromScreen(Point2F& pos) const noexcept;
         // after titlename set
         void AfterTitleName() noexcept;
         // after position set

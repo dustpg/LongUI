@@ -199,7 +199,7 @@ PCN_NOINLINE
 /// <returns></returns>
 void LongUI::UIBoxLayout::relayout_h() noexcept {
 #ifndef NDEBUG
-    if (!std::strcmp(m_id.id, "editable_combobox")) {
+    if (!std::strcmp(m_id.id, "btn-menu")) {
         int bk = 9;
     }
     if (this->IsTopLevel()) {
@@ -298,6 +298,11 @@ void LongUI::UIBoxLayout::relayout_h() noexcept {
         auto& child = *itr;
         // 有效才处理
         if (!child.IsVaildInLayout()) continue;
+#ifndef NDEBUG
+        if (!std::strcmp(child.GetID().id, "btn-menu")) {
+            int bk = 9;
+        }
+#endif
         // 获取标准大小
         const auto size = get_stdsize(child, remaining, style_align);
         // 调整对齐
@@ -423,7 +428,7 @@ namespace LongUI { namespace impl {
 /// <returns></returns>
 void LongUI::UIBoxLayout::refresh_fitting() noexcept {
 #ifndef NDEBUG
-    if (!std::strcmp(m_id.id, "b")) {
+    if (!std::strcmp(m_id.id, "btn-menu")) {
         int bk = 9;
     }
     if (!std::strcmp(name_dbg, "scrollarea::vscrollbar")) {

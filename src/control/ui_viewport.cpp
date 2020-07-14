@@ -189,8 +189,8 @@ auto LongUI::UIViewport::FindSubViewport(U8View view) const noexcept -> UIViewpo
 /// <param name="y">The y.</param>
 /// <returns></returns>
 void LongUI::UIViewport::JustResetZoom(float x, float y) noexcept {
-    m_mtWorld._11 = x  ; m_mtWorld._12 = 0.f;
-    m_mtWorld._21 = 0.f; m_mtWorld._22 = y  ;
+    m_mtWorld._11 = x; m_mtWorld._12 = 0;
+    m_mtWorld._21 = 0; m_mtWorld._22 = y;
 }
 
 /// <summary>

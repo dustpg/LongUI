@@ -10,6 +10,7 @@
 #include <graphics/ui_graphics_impl.h>
 #include <dropdrag/ui_dropdrag_impl.h>
 // C/C++
+#include <cmath>
 #include <cassert>
 #include <algorithm>
 #ifdef LUI_ACCESSIBLE
@@ -41,6 +42,10 @@ namespace LongUI { namespace impl {
     }
     // get dpi scale
     auto get_dpi_scale_from_hwnd(HWND hwnd) noexcept->Size2F;
+    // adjust window
+    void adjust_window(RectL& rect, uint32_t style, uint32_t ex, uint32_t dpi) noexcept;
+    // get dpi
+    auto get_dpi_from_rect(const RectL& rect) noexcept->uint32_t;
 }}
 
 // ui namespace
@@ -221,6 +226,7 @@ namespace LongUI {
 /// <param name="hwnd"></param>
 /// <returns></returns>
 void LongUI::CUIPlatformWin::Destroy(HWND hwnd) noexcept {
+    assert(hwnd && "bad handle");
     //LUIDebug(Hint) LUI_FRAMEID << hwnd << endl;
 #ifndef LUI_NO_DROPDRAG
     //清理 DropDrag
@@ -297,7 +303,7 @@ LongUI::CUIPlatformWin::~CUIPlatformWin() noexcept {
     // 卸载资源
     this->ReleaseDeviceData();
     // 摧毁窗口
-    CUIPlatformWin::Destroy(m_hWnd);
+    if (m_hWnd) CUIPlatformWin::Destroy(m_hWnd);
 }
 
 
@@ -612,6 +618,17 @@ void LongUI::CUIPlatformWin::resize_window_buffer() noexcept {
 }
 
 /// <summary>
+/// update adjust rect with-dpi
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIPlatformWin::update_adjust(uint32_t s, uint32_t e,uint32_t dpi) noexcept {
+    this->adjust = { 0 };
+    impl::adjust_window(this->adjust, s, e, dpi);
+    this->adjust.left = -this->adjust.left;
+    this->adjust.top = -this->adjust.top;
+}
+
+/// <summary>
 /// Begins the render.
 /// </summary>
 /// <returns></returns>
@@ -818,20 +835,6 @@ void LongUI::CUIPlatformWin::Init(CUIWindow* parent, uint16_t flag) noexcept {
                 style |= WS_MAXIMIZEBOX | WS_THICKFRAME;
             return style;
         }();
-        // MA返回码
-        m_uMaRevalue = config & CUIWindow::Config_Popup ? MA_NOACTIVATE : MA_ACTIVATE;
-        // 调整大小
-        static_assert(sizeof(RectL) == sizeof(RECT), "SAME!");
-        auto& adjusted = reinterpret_cast<RECT&>(this->adjust);
-        ::AdjustWindowRect(&adjusted, style, FALSE);
-        // 窗口
-        RectWHL window_rect;
-        window_rect.left = this->rect.left;
-        window_rect.top = this->rect.top;
-        window_rect.width = this->rect.width + this->adjust.right - this->adjust.left;
-        window_rect.height = this->rect.height + this->adjust.bottom - this->adjust.top;
-        // 针对this->rect清空为-1, 否则会检查到未修改
-        this->rect = { -1, -1, -1, -1 };
         // 额外
         uint32_t ex_flag = 0;
         // DirectComposition 支持
@@ -840,6 +843,26 @@ void LongUI::CUIPlatformWin::Init(CUIWindow* parent, uint16_t flag) noexcept {
         // WS_EX_TOOLWINDOW 不会让窗口显示在任务栏
         if (config & (CUIWindow::Config_ToolWindow | CUIWindow::Config_Popup))
             ex_flag |= WS_EX_TOOLWINDOW;
+        // MA返回码
+        m_uMaRevalue = config & CUIWindow::Config_Popup ? MA_NOACTIVATE : MA_ACTIVATE;
+        // 调整大小
+        {
+            RectL dpi_area;
+            dpi_area.left = this->rect.left;
+            dpi_area.top = this->rect.top;
+            dpi_area.right = this->rect.width + this->rect.left;
+            dpi_area.bottom = this->rect.height + this->rect.top;
+            this->update_adjust(style, ex_flag, impl::get_dpi_from_rect(dpi_area));
+        }
+        // 窗口
+        RectWHL window_rect;
+        window_rect.left = this->rect.left;
+        window_rect.top = this->rect.top;
+        window_rect.width = this->rect.width + this->adjust.right + this->adjust.left;
+        window_rect.height = this->rect.height + this->adjust.bottom + this->adjust.top;
+        // 针对this->rect清空为-1, 否则会检查到未修改
+        this->rect.width = -1;
+        this->rect.height = -1;
         // 创建窗口
         //::Sleep(1000);
         hwnd = ::CreateWindowExW(
@@ -1186,6 +1209,10 @@ auto LongUI::CUIPlatformWin::DoMsg(
             break;
         case WM_DPICHANGED:
         {
+            const auto dpi = uint32_t(LOWORD(wParam));
+            const auto exstyle = static_cast<uint32_t>(::GetWindowLongW(hwnd, GWL_EXSTYLE));
+            const auto style = static_cast<uint32_t>(::GetWindowLongW(hwnd, GWL_STYLE));
+            this->update_adjust(style, exstyle, dpi);
             const float xdpi = float(uint16_t(LOWORD(wParam)));
             const float ydpi = float(uint16_t(HIWORD(wParam)));
             const float x = xdpi / float(LongUI::BASIC_DPI);
@@ -1239,38 +1266,6 @@ bool LongUI::CUIPlatformWin::OnIme(HWND hwnd) const noexcept {
 
 
 /// <summary>
-/// map rect to screen
-/// </summary>
-/// <returns></returns>
-void LongUI::CUIPlatformWin::MapToScreen(RectF & rect) const noexcept {
-    //assert(m_hWnd && "NOT");
-    POINT pt{ 0, 0 };
-    ::ClientToScreen(m_hWnd, &pt);
-    const auto px = static_cast<float>(pt.x);
-    const auto py = static_cast<float>(pt.y);
-    rect.top += py;
-    rect.left += px;
-    rect.right += px;
-    rect.bottom += py;
-}
-
-
-/// <summary>
-/// map rect to screen
-/// </summary>
-/// <returns></returns>
-void LongUI::CUIPlatformWin::MapToScreen(RectL& rect) const noexcept {
-    POINT pt{ 0, 0 };
-    ::ClientToScreen(m_hWnd, &pt);
-    rect.left += pt.x;
-    rect.top += pt.y;
-    rect.right += pt.x;
-    rect.bottom += pt.y;
-}
-
-
-
-/// <summary>
 /// 设置新的标题名后调用该方法
 /// </summary>
 /// <returns></returns>
@@ -1301,27 +1296,6 @@ void LongUI::CUIPlatformWin::AfterAbsRect() noexcept {
     //}
 }
 
-
-/// <summary>
-/// Maps from screen.
-/// </summary>
-/// <param name="rect">The rect.</param>
-/// <returns></returns>
-void LongUI::CUIPlatformWin::MapFromScreen(Point2F& pos) const noexcept {
-    // 内联窗口
-    //if (this->IsInlineWindow()) {
-    //    assert(!"NOT IMPL");
-    //}
-    // 系统窗口
-    //else {
-        POINT pt{ 0, 0 };
-        ::ScreenToClient(m_hWnd, &pt);
-        const auto px = static_cast<float>(pt.x);
-        const auto py = static_cast<float>(pt.y);
-        pos.x += px;
-        pos.y += py;
-    //}
-}
 
 /// <summary>
 /// 设置新的位置后调用该方法
@@ -1377,12 +1351,20 @@ void LongUI::CUIPlatformWin::ShowWindow(int show) noexcept {
 /// <returns></returns>
 void LongUI::CUIPlatformWin::ResizeAbsolute(Size2L size) noexcept {
     // 调整大小
-    const auto realw = size.width + adjust.right - adjust.left;
-    const auto realh = size.height + adjust.bottom - adjust.top;
+    const auto realw = size.width + adjust.right + adjust.left;
+    const auto realh = size.height + adjust.bottom + adjust.top;
     assert(realw > 0 && realh > 0);
-    // 改变窗口
-    constexpr UINT flag = SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOZORDER | SWP_ASYNCWINDOWPOS;
-    ::SetWindowPos(m_hWnd, nullptr, 0, 0, realw, realh, flag);
+    // 有效窗口
+    if (m_hWnd) {
+        constexpr UINT flag = SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOZORDER | SWP_ASYNCWINDOWPOS;
+        const auto a = ::SetWindowPos(m_hWnd, nullptr, 0, 0, realw, realh, flag);
+        const auto b = ::GetLastError();
+    }
+    // 无效
+    else {
+        this->rect.width = realw;
+        this->rect.height = realh;
+    }
 }
 
 /// <summary>

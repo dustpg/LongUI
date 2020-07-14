@@ -446,9 +446,6 @@ namespace LongUI {
     void CUIPlatform::AfterPosition() noexcept { LUI_PLATSP(AfterPosition); }
     void CUIPlatform::AfterAbsRect() noexcept { LUI_PLATSP(AfterAbsRect); }
     void CUIPlatform::CloseWindow() noexcept { LUI_PLATSP(CloseWindow); }
-    void CUIPlatform::MapToScreen(RectF& r) const noexcept { LUI_PLATSP(MapToScreen, r); }
-    void CUIPlatform::MapToScreen(RectL& r) const noexcept { LUI_PLATSP(MapToScreen, r); }
-    void CUIPlatform::MapFromScreen(Point2F& p) const noexcept { LUI_PLATSP(MapFromScreen, p); }
     void CUIPlatform::ShowWindow(int s) noexcept { LUI_PLATSP(ShowWindow, s); }
     void CUIPlatform::ResizeAbsolute(Size2L s) noexcept { LUI_PLATSP(ResizeAbsolute, s); }
     auto CUIPlatform::GetWorkArea() const noexcept ->RectL { LUI_PLATSP(GetWorkArea); }

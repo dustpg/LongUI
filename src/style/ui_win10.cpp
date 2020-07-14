@@ -310,6 +310,8 @@ auto LongUI::CUINativeStyleWindows10::Recreate() noexcept -> Result {
 void LongUI::CUINativeStyleWindows10::InitCtrl(UIControl& ctrl, AttributeAppearance type) noexcept{
     // NONE场合特殊处理
     if (type == Appearance_None) return;
+    // TODO: 不在init中初始化
+    if (const auto p = ctrl.GetParent()) p->NeedUpdate(Reason_ChildLayoutChanged);
     // 分类讨论
     switch (type)
     {
