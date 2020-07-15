@@ -5,6 +5,9 @@
       <![CDATA[00010001N0005Debug000000000000]]>
     </Plugin>
   </Plugins>
+  <VirtualDirectory Name="res">
+    <File Name="../AaaaUI/longui.ico"/>
+  </VirtualDirectory>
   <VirtualDirectory Name="inc"/>
   <VirtualDirectory Name="red">
     <File Name="../RichED/ed_undoredo.h"/>
@@ -22,6 +25,7 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
+    <VirtualDirectory Name="dropdrag"/>
     <VirtualDirectory Name="private">
       <File Name="../src/private/ui_console.h"/>
       <File Name="../src/private/ui_private_effect.cpp"/>
@@ -102,6 +106,8 @@
       <File Name="../src/debugger/ui_debug.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="core">
+      <File Name="../src/core/ui_platform_win.cpp"/>
+      <File Name="../src/core/ui_platform.cpp"/>
       <File Name="../src/core/ui_window_manager.cpp"/>
       <File Name="../src/core/ui_window.cpp"/>
       <File Name="../src/core/ui_time_capsule.cpp"/>
@@ -160,7 +166,6 @@
       <File Name="../src/container/ui_string_view.cpp"/>
       <File Name="../src/container/ui_string.cpp"/>
       <File Name="../src/container/pod_vector.cpp"/>
-      <File Name="../src/container/pod_sharedarray.cpp"/>
       <File Name="../src/container/pod_hash.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="cfunciton">
