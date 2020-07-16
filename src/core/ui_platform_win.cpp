@@ -454,7 +454,7 @@ void LongUI::CUIPlatform::basic_caret(I::Renderer2D& renderer) const noexcept {
         const auto visible = this->careted->RefBox().visible;
         renderer.PushAxisAlignedClip(auto_cast(visible), D2D1_ANTIALIAS_MODE_ALIASED);
 #if 0
-        // 反色操作, 但是较消耗GPU资源
+        // D2D反色操作, 但是较消耗GPU资源
         renderer.DrawImage(
             &img->RefBitmap(),
             auto_cast(reinterpret_cast<Point2F*>(&des)), &auto_cast(rc),
@@ -1378,11 +1378,7 @@ auto LongUI::CUIPlatformWin::GetWorkArea() const noexcept -> RectL {
     MONITORINFO info = { 0 };
     info.cbSize = sizeof(info);
     ::GetMonitorInfoW(monitor, &info);
-    //RectL rc;
-    //rc.left = info.rcWork.left;
-    //rc.top = info.rcWork.top;
-    //rc.right = info.rcWork.right;
-    //rc.bottom = info.rcWork.bottom;
+    static_assert(sizeof(info.rcWork) == sizeof(RectL), "must be same");
     return reinterpret_cast<RectL&>(info.rcWork);
 }
 
@@ -1394,7 +1390,6 @@ auto LongUI::CUIPlatformWin::Recreate() noexcept -> Result {
     const auto hwnd = m_hWnd;
     // 可能是节能模式?
     if (!hwnd) return { Result::RS_FALSE };
-    if (this->is_skip_render()) return{ Result::RS_OK };
     // 全渲染
     this->mark_fr_for_update();
     // 创建渲染资源, 需要渲染锁
