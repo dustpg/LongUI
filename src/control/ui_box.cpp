@@ -121,10 +121,8 @@ void LongUI::UIBoxLayout::relayout_v() noexcept {
     };
     // - 钳制尺寸
     const auto clamp_size = [](UIControl& child, float v) noexcept {
-        return impl::clamp(v, 
-            child.RefStyle().limited.height, 
-            child.RefStyle().maxsize.height
-        );
+        const auto& s = child.RefStyle();
+        return impl::clamp(v, s.limited.height, s.maxsize.height);
     };
     // - 设置PACK位置
     const auto setup_packing = [](Point2F pt, float v) noexcept {
@@ -147,9 +145,10 @@ void LongUI::UIBoxLayout::relayout_v() noexcept {
     }
     // 由于可能浮点误差这里硬编码为: 动画30Hz中1变化可以接受
     constexpr float deviation = 1.f / 30.f;
-    while (flex_sum > deviation) {
-        bool break_this = true;
+    if (flex_sum > deviation) while (std::abs(remain_len) > 0.5f) {
         const auto unit = remain_len / flex_sum;
+        flex_sum = 0.f;
+        bool break_this = true;
         for (auto & child : (*this)) if (child.IsVaildInLayout()) {
             const auto flex = child.RefStyle().flex;
             const auto v = UIControlPrivate::GetLayoutValueF(child);
@@ -158,7 +157,7 @@ void LongUI::UIBoxLayout::relayout_v() noexcept {
             if (n != v) {
                 break_this = false;
                 remain_len -= n - v;
-                flex_sum -= flex;
+                flex_sum += flex;
                 UIControlPrivate::SetLayoutValueF(child, n);
             }
         }
@@ -202,6 +201,11 @@ void LongUI::UIBoxLayout::relayout_h() noexcept {
     if (!std::strcmp(m_id.id, "btn-menu")) {
         int bk = 9;
     }
+    if (m_pParent) {
+        if (!std::strcmp(m_pParent->GetID().id, "gb2")) {
+            int bk = 9;
+        }
+    }
     if (this->IsTopLevel()) {
         int bk = 9;
     }
@@ -240,10 +244,8 @@ void LongUI::UIBoxLayout::relayout_h() noexcept {
     };
     // 钳制尺寸
     const auto clamp_size = [](UIControl& child, float v) noexcept {
-        return impl::clamp(v, 
-            child.RefStyle().limited.width, 
-            child.RefStyle().maxsize.width
-        );
+        const auto& s = child.RefStyle();
+        return impl::clamp(v, s.limited.width, s.maxsize.width);
     };
     // 设置PACK位置
     const auto setup_packing = [](Point2F pt, float v) noexcept {
@@ -263,11 +265,12 @@ void LongUI::UIBoxLayout::relayout_h() noexcept {
         flex_sum += child.RefStyle().flex;
         UIControlPrivate::SetLayoutValueF(child, get_fiting_size(child));
     }
-    // 由于可能浮点误差这里硬编码为: 动画30Hz中1变化可以接受
+    // 由于可能浮点误差这里硬编码为: 动画30Hz中0.1变化可以接受
     constexpr float deviation = 1.f / 30.f;
-    while (flex_sum > deviation) {
-        bool break_this = true;
+    if (flex_sum > deviation) while (std::abs(remain_len) > 0.5f) {
         const auto unit = remain_len / flex_sum;
+        flex_sum = 0.f;
+        bool break_this = true;
         for (auto & child : (*this)) if (child.IsVaildInLayout()) {
             const auto flex = child.RefStyle().flex;
             const auto v = UIControlPrivate::GetLayoutValueF(child);
@@ -276,7 +279,7 @@ void LongUI::UIBoxLayout::relayout_h() noexcept {
             if (n != v) {
                 break_this = false;
                 remain_len -= n - v;
-                flex_sum -= flex;
+                flex_sum += flex;
                 UIControlPrivate::SetLayoutValueF(child, n);
             }
         }
@@ -319,20 +322,11 @@ void LongUI::UIBoxLayout::relayout_h() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIBoxLayout::Update(UpdateReason reason) noexcept {
-    /*
-        偏向于小的大小进行布局
-
-        A(0)__B(0)__C(0)    布局A时, 只有B, B权重0, 
-                |___D(0)    没有设置最小, 则B设为0
-                |___E(1)     
-
-        B(0)__C(0)          布局B时, 有B,C,D, E权重1,
-          |___D(0)          没有设置最小, 则E设为B一
-          |___E(1)          样大小, 其余设为0
-
-    */
+    // 更新布局预备数据
     if (reason & Reason_BasicUpdateFitting) this->refresh_fitting();
+    // 更新布局
     if (reason & Reason_BasicRelayout) this->relayout_this();
+    // 链式调用
     return Super::Update(reason);
 }
 
@@ -341,18 +335,6 @@ void LongUI::UIBoxLayout::Update(UpdateReason reason) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIBoxLayout::relayout_this() noexcept {
-    /*
-        偏向于小的大小进行布局
-
-        A(0)__B(0)__C(0)    布局A时, 只有B, B权重0,
-                |___D(0)    没有设置最小, 则B设为0
-                |___E(1)
-
-        B(0)__C(0)          布局B时, 有B,C,D, E权重1,
-          |___D(0)          没有设置最小, 则E设为B一
-          |___E(1)          样大小, 其余设为0
-
-    */
     // 存在子控件才计算
     if (!this->GetChildrenCount()) return;
     // 面积不够
@@ -364,17 +346,22 @@ void LongUI::UIBoxLayout::relayout_this() noexcept {
 
 // ui::impl
 namespace LongUI { namespace impl {
+    // Iterator for UIControl
+    using ctrlitr_t = Node<UIControl>::Iterator;
+    PCN_NOINLINE
     /// <summary>
     /// get children boxfitting : hor mode
     /// </summary>
-    /// <param name="ctrl"></param>
-    /// <param name="min"></param>
-    /// <param name="fit"></param>
+    /// <param name="bgn">The begin.</param>
+    /// <param name="end">The end.</param>
+    /// <param name="min">The minimum.</param>
+    /// <param name="fit">The fit.</param>
     /// <returns></returns>
-    void children_boxfitting_hor(UIControl& ctrl, Size2F& min, Size2F& fit) noexcept {
+    void children_boxfitting_hor(const ctrlitr_t bgn, const ctrlitr_t end, Size2F& min, Size2F& fit) noexcept {
         Size2F m = { }, f = { };
         // 遍历控件
-        for (auto& child : ctrl) {
+        for (auto itr = bgn; itr != end; ++itr) {
+            UIControl& child = *itr;
             if (!child.IsVaildInLayout()) continue;
             const auto exsize = child.GetBoxExSize();
             // 最小值
@@ -392,17 +379,21 @@ namespace LongUI { namespace impl {
         }
         min = m; fit = f;
     }
+    PCN_NOINLINE
     /// <summary>
     /// get children boxfitting : ver mode
     /// </summary>
-    /// <param name="ctrl"></param>
-    /// <param name="min"></param>
-    /// <param name="fit"></param>
+    /// <param name="bgn">The begin.</param>
+    /// <param name="end">The end.</param>
+    /// <param name="min">The minimum.</param>
+    /// <param name="fit">The fit.</param>
     /// <returns></returns>
-    void children_boxfitting_ver(UIControl& ctrl, Size2F& min, Size2F& fit) noexcept {
-        Size2F m = {}, f = {};
+    void children_boxfitting_ver(const ctrlitr_t bgn, const ctrlitr_t end, Size2F& min, Size2F& fit) noexcept {
+        Size2F m = { }, f = { };
         // 遍历控件
-        for (auto& child : ctrl) {
+        for (auto itr = bgn; itr != end; ++itr) {
+            UIControl& child = *itr;
+            if (!child.IsVaildInLayout()) continue;
             if (!child.IsVaildInLayout()) continue;
             const auto exsize = child.GetBoxExSize();
             // 最小值
@@ -435,10 +426,12 @@ void LongUI::UIBoxLayout::refresh_fitting() noexcept {
         int bk = 9;
     }
 #endif
+    const auto begin_itr = this->begin();
+    const auto end_itr = this->end();
     if (m_state.orient == Orient_Horizontal) 
-        impl::children_boxfitting_hor(*this, m_minScrollSize, m_szRealFitting);
+        impl::children_boxfitting_hor(begin_itr, end_itr, m_minScrollSize, m_szRealFitting);
     else 
-        impl::children_boxfitting_ver(*this, m_minScrollSize, m_szRealFitting);
+        impl::children_boxfitting_ver(begin_itr, end_itr, m_minScrollSize, m_szRealFitting);
     Size2F limited = m_minScrollSize;
     Size2F fitting = m_szRealFitting;
 #ifdef LUI_BOXSIZING_BORDER_BOX
@@ -483,34 +476,87 @@ auto LongUI::UIBoxLayout::DoEvent(UIControl* sender, const EventArg& e) noexcept
 /// <param name="e">The event.</param>
 /// <returns></returns>
 void LongUI::UIBoxLayout::move_splitter(UIControl& splitter, const EventArg& e) noexcept {
+    const int index = m_state.orient;
+
+    // 横向
     const auto& ev = static_cast<const EventSplitterArg&>(e);
     const auto attribute = ev.attribute;
+    // XXX: 临时算法: 压缩方向调整maxsize 拉伸方向取消maxsize
 
-    auto ctrl_before = &splitter;
-    auto ctrl_after = &splitter;
-    const auto sp = this->make_sp_traversal();
-
-    const auto adjsut_size = [](UIControl& ctrl, Size2F size) noexcept {
-
+    // 获取遍历器
+    const auto get_traversal = [this, &splitter](float offset, unsigned base) noexcept {
+        SpTraversal sp = {};
+        const unsigned i = (offset < 0.f ? 0 : 2) | (base & 1 ^ unsigned(m_state.direction));
+        switch (i)
+        {
+        case 0:
+            sp.begin = UIControlPrivate::Prev(&splitter);
+            sp.end = this->rend();
+            sp.next = offsetof(UIBoxLayout, prev);
+            break;
+        case 1:
+            sp.begin = this->begin();
+            sp.end = &splitter;
+            sp.next = offsetof(UIBoxLayout, next);
+            break;
+        case 2:
+            sp.begin = UIControlPrivate::Next(&splitter);
+            sp.end = this->end();
+            sp.next = offsetof(UIBoxLayout, next);
+            break;
+        case 3:
+            sp.begin = this->rbegin();
+            sp.end = &splitter;
+            sp.next = offsetof(UIBoxLayout, prev);
+            break;
+        }
+        return sp;
     };
-    // 横向
-    if (this->GetOrient() == Orient_Horizontal) {
-        auto offset = ev.offset_x;
-    }
-    // 计算大小
-    //auto szp = p.GetBoxSize(); index[&szp.width] += o;
-    //if (index[&szp.width] <= index[&p.RefBox().minsize.width]) return;
-    //// 不是最后一个?
-    //if (!splitter.IsLastChild()) {
-    //    // 修改后面的
-    //    auto& n = UIControlPrivate::Next(splitter);
-    //    auto szn = n.GetSize(); index[&szn.width] -= o;
-    //    // 不够?
-    //    if (index[&szn.width] <= index[&n.RefBox().minsize.width]) return;
-    //    n.SetStyleSize(szn);
-    //}
-    //// 重置
-    //p.SetStyleSize(szp);
+    // 压缩
+    const auto compression = [&, this, index](const SpTraversal sp, float offset) noexcept {
+        assert(offset >= 0);
+        for (auto itr = sp.begin; itr != sp.end; itr = LongUI::SpNext(itr, sp.next)) {
+            UIControl& ctrl = *itr;
+            if (ctrl.RefStyle().flex > 0){
+                const auto bs = ctrl.GetBoxSize();
+                const auto bsex = ctrl.GetBoxExSize();
+                const auto nows = index[&bs.width] - index[&bsex.width];
+                auto& fitting = index[&ctrl.RefStyle().fitting.width];
+                auto& maxsize = index[&ctrl.RefStyle().maxsize.width];
+                const_cast<float&>(maxsize) = nows;
+                const_cast<float&>(fitting) = nows;
+                if (offset > 0) {
+                    const auto limited = index[&ctrl.RefStyle().limited.width];
+                    const auto target = std::max(nows - offset, limited);
+                    const_cast<float&>(maxsize) = target;
+                    const_cast<float&>(fitting) = target;
+                    // 避免浮点误差
+                    if (target != limited) offset = 0.f;
+                    else offset -= target - limited;
+                }
+            }
+        }
+        return offset;
+    };
+    // 解压缩
+    const auto decompression = [index](const SpTraversal sp) noexcept {
+        for (auto itr = sp.begin; itr != sp.end; itr = LongUI::SpNext(itr, sp.next)) {
+            UIControl& ctrl = *itr;
+            auto& style = ctrl.RefStyle();
+            // XXX: 特殊处理?
+            if (style.flex > 0) {
+                auto& maxs = index[&style.maxsize.width];
+                const_cast<float&>(maxs) = DEFAULT_CONTROL_MAX_SIZE;
+                break;
+            }
+        }
+    };
+    const auto offset = std::abs(ev.offset_x);
+    // 没有变化
+    if (offset == compression(get_traversal(ev.offset_x, attribute.resizebefore), offset)) return;
+    // 继续处理
+    decompression(get_traversal(-ev.offset_x, attribute.resizeafter));
+    this->NeedUpdate(Reason_ChildLayoutChanged);
 }
 
 
@@ -519,6 +565,7 @@ void LongUI::UIBoxLayout::move_splitter(UIControl& splitter, const EventArg& e) 
 /// </summary>
 /// <returns></returns>
 LongUI::UIBoxLayout::~UIBoxLayout() noexcept {
+
 }
 
 

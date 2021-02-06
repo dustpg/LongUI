@@ -71,7 +71,7 @@ namespace LongUI {
         // hovered curor
         CUICursor           m_hovered;
         // last clicked pos
-        Point2F             m_ptLastPos = {};
+        Point2F             m_ptClickPos = {};
         // base splitter attribute
         SplitterAttribute   m_attribute;
     private:

@@ -60,6 +60,7 @@ LongUI::UISplitter::UISplitter(const MetaControl& meta) noexcept
     m_attribute.resizebefore = Resize_Closest;
     m_attribute.resizeafter = Resize_Closest;
     m_attribute.collapse = Resizea_None;
+    m_attribute.dragoff = false;
     // 这个根据父节点自行定义?
     // 默认是水平方向拉拽?
     m_state.orient = Orient_Horizontal;
@@ -146,11 +147,12 @@ auto LongUI::UISplitter::DoMouseEvent(const MouseEventArg & e) noexcept -> Event
         if (e.modifier & Modifier_LButton) {
             // 鼠标相对本控件位置
             Point2F pt_parent = { e.px, e.py };
-            m_pParent->MapFromWindow(pt_parent);
+            m_pParent->MapFromWindow(luiref pt_parent);
+            pt_parent.x -= m_oBox.pos.x;
+            pt_parent.y -= m_oBox.pos.y;
             // 计算并记录相对移动
-            const auto ox = pt_parent.x - m_ptLastPos.x;
-            const auto oy = pt_parent.y - m_ptLastPos.y;
-            m_ptLastPos = pt_parent;
+            const auto ox = pt_parent.x - m_ptClickPos.x;
+            const auto oy = pt_parent.y - m_ptClickPos.y;
             // 父节点发送事件
             assert(m_pParent && "no parent?!");
             m_pParent->DoEvent(this, EventSplitterArg(ox, oy, m_attribute));
@@ -158,8 +160,16 @@ auto LongUI::UISplitter::DoMouseEvent(const MouseEventArg & e) noexcept -> Event
         break;
     case MouseEvent::Event_LButtonDown:
         // 记录开始拖拽的位置
-        m_ptLastPos = { e.px, e.py };
-        m_pParent->MapFromWindow(m_ptLastPos);
+        m_ptClickPos = { e.px, e.py };
+        m_pParent->MapFromWindow(luiref m_ptClickPos);
+        m_ptClickPos.x -= m_oBox.pos.x;
+        m_ptClickPos.y -= m_oBox.pos.y;
+        break;
+    case MouseEvent::Event_LButtonUp:
+        // 如果设定为弹起时候再处理事件?
+        //if (m_attribute.dragoff) {
+
+        //}
         break;
     }
     return Super::DoMouseEvent(e);

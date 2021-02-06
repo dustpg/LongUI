@@ -13,6 +13,8 @@ namespace LongUI {
         AttributeResize     resizeafter;
         // collapse
         AttributeCollapse   collapse;
+        // drag off to change
+        bool                dragoff;
     };
     // splitter event, EventAccept: have no effect 
     struct EventSplitterArg : EventArg {

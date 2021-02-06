@@ -16,17 +16,19 @@
   <groupbox orient="horizontal" flex="1">
     <caption label="collapse before" />
     <groupbox flex="1"><label flex="1" value="Left side" /></groupbox>
-    <splitter collapse="before" ></splitter>
+    <!-- <splitter collapse="before" ></splitter> -->
+    <splitter />
+    <groupbox flex="1"><label flex="1" value="Right side" /></groupbox>
     <groupbox flex="1"><label flex="1" value="Right side" /></groupbox>
   </groupbox>
 
-  <groupbox orient="horizontal" flex="1">
+  <groupbox orient="horizontal" flex="1" id="gb2">
     <caption label="collapse before" />
-    <label flex="1" value="11" />
+    <label flex="1" value="L1" />
     <label flex="1" value="L2" />
     <hbox><label flex="1" value="L3"  /><label flex="1" value="L3"  /></hbox>
     <splitter resizebefore="closest" resizeafter="closest" ></splitter>
-    <label flex="1" value="M1" />
+    <label flex="1" value="M1" id="test"/>
     <label flex="1" value="M2" />
     <label flex="1" value="M3" />
     <splitter resizebefore="closest" resizeafter="closest" ></splitter>

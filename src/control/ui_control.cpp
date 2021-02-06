@@ -826,7 +826,7 @@ void LongUI::UIControl::MapFromWindow(Point2F& point) const noexcept {
         LUIDebug(Warning) << "cannot call this in update" << endl;
     }
 #endif // !NDEBUG
-    point = TransformPointInverse(m_mtWorld, point);
+    point = LongUI::TransformPointInverse(m_mtWorld, point);
 }
 
 /// <summary>
