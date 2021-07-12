@@ -235,7 +235,7 @@ void LongUI::POD::detail::vector_base::op_equal(const vector_base& x) noexcept {
     if (capacity() >= x.size() + get_extra_buy()) {
         m_uVecLen = x.m_uVecLen;
         const auto cpylen = m_uVecLen + get_extra_buy();
-        std::memcpy(m_pData, x.m_pData, cpylen * m_uByteLen);
+        std::memmove(m_pData, x.m_pData, cpylen * m_uByteLen);
     }
     // 重新申请
     else {
@@ -266,7 +266,7 @@ void LongUI::POD::detail::vector_base::assign(const char* first, const char* las
         alloc_memory(len); 
     }
     // 数据有效
-    if (is_ok()) std::memcpy(m_pData, first, last - first);
+    if (is_ok()) std::memmove(m_pData, first, last - first);
 }
 
 PCN_NOINLINE
@@ -293,6 +293,7 @@ void LongUI::POD::detail::vector_base::assign(size_type n, const char* data) noe
         auto address = m_pData;
         const auto step = m_uByteLen;
         auto copy = [=]() mutable noexcept {
+            // TODO: memmove ?
             std::memcpy(address, data, step);
             address += step;
         };
