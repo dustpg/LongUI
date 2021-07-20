@@ -1,21 +1,26 @@
 ﻿#include <algorithm>
 #include <cstdarg>
 #include <cwchar>
+#include <util/ui_unicode.h>
 #include <core/ui_string.h>
 #include <util/ui_endian.h>
 
 // TODO: ascii_offset 换成常量表达式
 // TODO: C函数字符串处理函数全部换成LE(小端)后缀
 
-PCN_NOINLINE
-/// <summary>
-/// Strlens the specified PTR.
-/// </summary>
-/// <param name="ptr">The PTR.</param>
-/// <returns></returns>
-auto LongUI::impl::strlen(const unwchar_t ptr[]) noexcept -> size_t {
-    assert(ptr && "bad string pointer");
-    return std::char_traits<unwchar_t>::length(ptr);
+
+namespace LongUI {
+
+    PCN_NOINLINE
+    /// <summary>
+    /// Strlens the specified PTR.
+    /// </summary>
+    /// <param name="ptr">The PTR.</param>
+    /// <returns></returns>
+    auto impl::strlen(const unwchar_t ptr[]) noexcept -> size_t {
+        assert(ptr && "bad string pointer");
+        return std::char_traits<unwchar_t>::length(ptr);
+    }
 }
 
 
