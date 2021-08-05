@@ -1,6 +1,7 @@
 ﻿#include <algorithm>
 #include <cstdarg>
 #include <cwchar>
+#include <string>
 #include <util/ui_unicode.h>
 #include <core/ui_string.h>
 #include <util/ui_endian.h>
@@ -9,18 +10,18 @@
 // TODO: C函数字符串处理函数全部换成LE(小端)后缀
 
 
-namespace LongUI {
-
-    PCN_NOINLINE
-    /// <summary>
-    /// Strlens the specified PTR.
-    /// </summary>
-    /// <param name="ptr">The PTR.</param>
-    /// <returns></returns>
-    auto impl::strlen(const unwchar_t ptr[]) noexcept -> size_t {
-        assert(ptr && "bad string pointer");
-        return std::char_traits<unwchar_t>::length(ptr);
-    }
+PCN_NOINLINE
+/// <summary>
+/// get string length when string is [ not same as wchar_t ]
+/// <remarks>
+/// [ not same as wchar_t ] is char32_t on windows
+/// </remarks>
+/// </summary>
+/// <param name="ptr">The c-style string pointer.</param>
+/// <returns></returns>
+auto LongUI::impl::strlen(const unwchar_t ptr[]) noexcept -> size_t {
+    assert(ptr && "bad string pointer");
+    return std::char_traits<unwchar_t>::length(ptr);
 }
 
 
