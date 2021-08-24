@@ -36,6 +36,7 @@ namespace LongUI { namespace impl {
         // Win10API
         {
             const auto dll = ::GetModuleHandleA("User32.dll");
+            assert(dll && "bad dll");
             const auto api = ::GetProcAddress(dll, "AdjustWindowRectExForDpi");
             reinterpret_cast<FARPROC&>(g_api.adjust) = api;
         }

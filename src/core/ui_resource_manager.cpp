@@ -611,7 +611,7 @@ auto LongUI::CUIResMgr::SaveAsPng(
     const auto bitmap_size = bitmap.GetPixelSize();
     const auto bitmap_format = bitmap.GetPixelFormat();
     // 创建CPU可读位图
-    if (SUCCEEDED(hr)) {
+    if (hr) {
         // CPU 可读?
         if (bitmap.GetOptions() & D2D1_BITMAP_OPTIONS_CPU_READ) {
             readable_bitmap = LongUI::SafeAcquire(&bitmap);
@@ -623,13 +623,13 @@ auto LongUI::CUIResMgr::SaveAsPng(
             prop.colorContext = nullptr;
             prop.bitmapOptions = D2D1_BITMAP_OPTIONS_CPU_READ | D2D1_BITMAP_OPTIONS_CANNOT_DRAW;
             // 创建位图
-            hr = { m_p2DRenderer->CreateBitmap(
+            hr.code = m_p2DRenderer->CreateBitmap(
                 bitmap_size,
                 nullptr,
                 0,
                 &prop,
                 &readable_bitmap
-            ) };
+            );
 #ifndef NDEBUG
             Point2F ppppt;
             ppppt.x = float(bitmap_size.width);
@@ -637,19 +637,19 @@ auto LongUI::CUIResMgr::SaveAsPng(
             longui_debug_hr(Result{ hr }, L"failed: RenderTarget->CreateBitmap " << ppppt);
 #endif
             // 复制位图
-            if (SUCCEEDED(hr)) {
-                hr = { readable_bitmap->CopyFromBitmap(nullptr, &bitmap, nullptr) };
+            if (hr) {
+                hr.code = readable_bitmap->CopyFromBitmap(nullptr, &bitmap, nullptr);
                 longui_debug_hr(Result{ hr }, L"failed: readable_bitmap->CopyFromBitmap");
             }
         }
     }
     // 映射数据
-    if (SUCCEEDED(hr)) {
-        hr = { readable_bitmap->Map(D2D1_MAP_OPTIONS_READ, &rect) };
+    if (hr) {
+        hr.code = readable_bitmap->Map(D2D1_MAP_OPTIONS_READ, &rect);
         longui_debug_hr(Result{ hr }, L"failed: readable_bitmap->Map");
     }
     // 处理
-    if (SUCCEEDED(hr)) {
+    if (hr) {
         impl::save_bitmap_args prop;
         prop.bits = rect.bits;
         prop.factory = rm().wicfactroy;

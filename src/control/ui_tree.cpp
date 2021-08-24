@@ -763,8 +763,8 @@ LongUI::UITreeItem::UITreeItem(const MetaControl& meta) noexcept : Super(meta) {
 /// <param name="child">The child.</param>
 /// <returns></returns>
 void LongUI::UITreeItem::add_attribute(uint32_t key, U8View value) noexcept {
-    const auto BKDR_OPEN = 0x0efd2e42_ui32;
-    const auto BKDR_CONTAINER = 0xc85e44a5_ui32;
+    constexpr auto BKDR_OPEN = 0x0efd2e42_ui32;
+    constexpr auto BKDR_CONTAINER = 0xc85e44a5_ui32;
     switch (key)
     {
     case BKDR_OPEN:

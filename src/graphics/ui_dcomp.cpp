@@ -123,7 +123,7 @@ auto LongUI::impl::create_dcomp(dcomp_window_buf& buf, HWND hwnd, I::Swapchan& s
     assert(dcomp.dcomp_visual == nullptr);
     Result hr = { Result::RS_OK };
     // 创建直接组合(Direct Composition)设备
-    if (SUCCEEDED(hr)) {
+    if (hr) {
         // 获取
         ID2D1Device* d2d_device = nullptr;
         // 这条函数没有返回值
@@ -141,29 +141,29 @@ auto LongUI::impl::create_dcomp(dcomp_window_buf& buf, HWND hwnd, I::Swapchan& s
         longui_debug_hr(hr, L"DCompositionCreateDevice faild");
     }
     // 创建直接组合(Direct Composition)目标
-    if (SUCCEEDED(hr)) {
+    if (hr) {
         hr.code = dcomp.dcomp_device->CreateTargetForHwnd(
             hwnd, true, &dcomp.dcomp_target
         );
         longui_debug_hr(hr, L"DcompDevice->CreateTargetForHwnd faild");
     }
     // 创建直接组合(Direct Composition)视觉
-    if (SUCCEEDED(hr)) {
+    if (hr) {
         hr.code = dcomp.dcomp_device->CreateVisual(&dcomp.dcomp_visual);
         longui_debug_hr(hr, L"DcompDevice->CreateVisual faild");
     }
     // 设置当前交换链为视觉内容
-    if (SUCCEEDED(hr)) {
+    if (hr) {
         hr.code = dcomp.dcomp_visual->SetContent(&sc);
         longui_debug_hr(hr, L"DcompVisual->SetContent faild");
     }
     // 设置当前视觉为窗口目标
-    if (SUCCEEDED(hr)) {
+    if (hr) {
         hr.code = dcomp.dcomp_target->SetRoot(dcomp.dcomp_visual);
         longui_debug_hr(hr, L"DcompTarget->SetRoot faild");
     }
     // 向系统提交
-    if (SUCCEEDED(hr)) {
+    if (hr) {
         hr.code = dcomp.dcomp_device->Commit();
         longui_debug_hr(hr, L"DcompDevice->Commit faild");
     }

@@ -575,11 +575,11 @@ void LongUI::CUIPlatformWin::resize_window_buffer() noexcept {
         }
         // 利用交换链获取Dxgi表面
         if (hr) {
-            hr = { m_pSwapchan->GetBuffer(
+            hr.code = m_pSwapchan->GetBuffer(
                 0,
                 IID_IDXGISurface,
                 reinterpret_cast<void**>(&dxgibuffer)
-            ) };
+            );
             longui_debug_hr(hr, L"m_pSwapChain->GetBuffer faild");
         }
         // 利用Dxgi表面创建位图
@@ -589,11 +589,11 @@ void LongUI::CUIPlatformWin::resize_window_buffer() noexcept {
                 D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED)
             );
             ID2D1Bitmap1* bmp = nullptr;
-            hr = { UIManager.Ref2DRenderer().CreateBitmapFromDxgiSurface(
+            hr.code = UIManager.Ref2DRenderer().CreateBitmapFromDxgiSurface(
                 dxgibuffer,
                 &bitmapProperties,
                 &bmp
-            ) };
+            );
             m_pBitmap = static_cast<I::Bitmap*>(bmp);
             longui_debug_hr(hr, L"UIManager_RenderTarget.CreateBitmapFromDxgiSurface faild");
         }

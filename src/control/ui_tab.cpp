@@ -69,7 +69,7 @@ LongUI::UITab::~UITab() noexcept {
 /// <param name="str">The string.</param>
 /// <returns></returns>
 void LongUI::UITab::SetText(const CUIString& str) noexcept {
-    m_oLabel.SetText(std::move(str));
+    m_oLabel.SetText(CUIString{ str });
 }
 
 /// <summary>
