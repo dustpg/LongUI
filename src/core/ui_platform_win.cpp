@@ -716,7 +716,7 @@ auto LongUI::CUIPlatformWin::end_render() noexcept->Result {
         }
         //assert(time < 1000.f && "took too much time, check plz.");
 #else
-        hr = { this->swapchan->Present(0, 0) };
+        hr = { m_pSwapchan->Present(0, 0) };
 #endif
         longui_debug_hr(hr, L"swapchan->Present full rendering faild");
     }
@@ -758,7 +758,7 @@ auto LongUI::CUIPlatformWin::end_render() noexcept->Result {
         }
         //assert(time < 1000.f && "took too much time, check plz.");
 #else
-        hr = { this->swapchan->Present1(0, 0, &present_parameters) };
+        hr = { m_pSwapchan->Present1(0, 0, &present_parameters) };
 #endif
         longui_debug_hr(hr, L"swapchan->Present full rendering faild");
     }
