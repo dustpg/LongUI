@@ -238,17 +238,6 @@ void LongUI::CUIDefaultConfigure::SmallFree(void* address) noexcept {
 #include <windows.h>
 #include <process.h>
 
-
-enum WinConst {
-    WIN_DEFAULT_GUI_FONT = 17,
-    WIN_WM_QUIT = 0x12, 
-};
-
-#ifdef NDEBUG
-static_assert(WIN_WM_QUIT == WM_QUIT, "SAME!");
-static_assert(WIN_DEFAULT_GUI_FONT == DEFAULT_GUI_FONT, "SAME!");
-#endif
-
 /// <summary>
 /// Defaults the font argument.
 /// </summary>
@@ -256,26 +245,43 @@ static_assert(WIN_DEFAULT_GUI_FONT == DEFAULT_GUI_FONT, "SAME!");
 /// <returns></returns>
 void LongUI::CUIDefaultConfigure::DefaultFontArg(FontArg& arg) noexcept {
     arg.size = 16.f;
+    const auto lfHeight2Pixel = [](long lfHeight) noexcept {
+        const auto height = static_cast<float>(std::abs(lfHeight));
+        const float DOTSY = 72;// 96;
+        const float BASEY = 72;
+        return height * DOTSY / BASEY;
+    };
+#if 0
     // 获取默认GUI字体句柄
-    const auto font = ::GetStockObject(WIN_DEFAULT_GUI_FONT);
+    const auto font = ::GetStockObject(DEFAULT_GUI_FONT);
     constexpr size_t EX_NAME_LENGTH = 32;
     struct { LOGFONTW log; wchar_t ex[EX_NAME_LENGTH]; } buf;
     ::GetObjectW(font, sizeof(buf), &buf);
+    // 采用log
+    const auto& target = log;
+#else
+    // 获取NONCLIENT测量值
+    NONCLIENTMETRICSW ncm;
+    ncm.cbSize = sizeof(ncm);
+    ::SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, sizeof(ncm), &ncm, 0);
+    // 采用MessageFont
+    const auto& target = ncm.lfMessageFont;
+#endif
     // 字体大小
-    if (buf.log.lfHeight) 
-        arg.size = static_cast<float>(std::abs(buf.log.lfHeight));
+    if (target.lfHeight)
+        arg.size = lfHeight2Pixel(target.lfHeight);
     // 字体粗细
-    arg.weight = static_cast<AttributeFontWeight>(buf.log.lfWeight);
+    arg.weight = static_cast<AttributeFontWeight>(target.lfWeight);
     // 字体名称
-    if (*buf.log.lfFaceName) {
+    if (*target.lfFaceName) {
         constexpr size_t buflen = 256;
         char buffer[buflen];
-        const auto str = buf.log.lfFaceName;
+        const auto str = target.lfFaceName;
         const auto len = Unicode::To<Unicode::UTF8>(buffer, buflen, str);
         arg.family = UIManager.GetUniqueText({ buffer, buffer + len }).id;
     }
     // 斜体字
-    arg.style = buf.log.lfItalic ? Style_Italic : Style_Normal;
+    arg.style = target.lfItalic ? Style_Italic : Style_Normal;
 }
 
 /// <summary>
@@ -285,7 +291,7 @@ void LongUI::CUIDefaultConfigure::DefaultFontArg(FontArg& arg) noexcept {
 /// <returns></returns>
 void LongUI::CUIDefaultConfigure::BreakMsgLoop(uintptr_t code) noexcept {
     //::PostQuitMessage(-1);
-    ::PostMessageW(nullptr, WIN_WM_QUIT, code, 0);
+    ::PostMessageW(nullptr, WM_QUIT, code, 0);
 }
 
 
