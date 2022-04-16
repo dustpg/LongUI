@@ -75,7 +75,7 @@ namespace Demo {
                 const auto width = rect.right - rect.left - height;
                 const auto pos = get_delta_x() / width;
                 const auto base = this->IsChecked() ? 1.f : 0.f;
-                const auto value = detail::clamp(base + pos, 0.f, 1.f);
+                const auto value = impl::clamp(base + pos, 0.f, 1.f);
                 if (m_value != value) {
                     m_value = value;
                     this->Invalidate();
